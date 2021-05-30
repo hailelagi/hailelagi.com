@@ -3,6 +3,7 @@ title: 'An obsession takes root'
 date: Sun, 28 Jul 2019 17:33:17 +0000
 draft: false
 tags: ['Uncategorized']
+original: "https://atimetravellingghost.wordpress.com/"
 ---
 
 Essay into the mind of a learning self taught v2.1
@@ -18,4 +19,4 @@ There are often parallels between answers and methodologies. Often overlapping i
 
 Till another time,
 
-\-Haile Lagi (obsessed\_youth)
+\- Haile Lagi

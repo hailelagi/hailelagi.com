@@ -7,7 +7,6 @@ html {
 }
 
 body {
-    font-size: 16px;
     font-size: 1.6rem;
     font-family: 'Helvetica Neue', 'Arial', sans-serif;
     color: #313a3d;
@@ -17,13 +16,16 @@ body {
     line-height: 1.6;
 }
 
+header {}
+
 header#banner {
     margin: 25px 0;
 }
 
 header#banner a {
-    color: #313a3d;
+    color: #333333;
     text-decoration: none;
+
 }
 
 header#banner a:hover {

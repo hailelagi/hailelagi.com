@@ -2,10 +2,10 @@
 title: 'Process'
 date: Thu, 02 Apr 2020 00:20:10 +0000
 draft: false
-tags: ['Uncategorized']
+tags: ['rants']
 ---
 
-Seeing as my blog gets practically no real attention. It is a place where I get to air thoughts as I wish. To the deep deep space, through numerous protocols and packets of "words" flow. Into bits... a tiny tiny voice. When I wish. Days in a row or months apart. About lovers or technical details. It doesn't matter. What matters is the thought must be put to words and the words sent into the world. Into a place that never forgets. This really is a place for my thoughts to live. I write because it keeps me sane. It helps me to articulate my thoughts and work through what I'm think about.
+Seeing as my blog gets practically no real attention. It is a place where I get to air thoughts as I wish. To the deep deep space, through numerous protocols and packets of "words" flow. Into bits... a tiny tiny voice. When I wish, days in a row or months apart. About lovers or technical details. It doesn't matter. What matters is the thought must be put to words sent into the world, into a place that never forgets. This really is a place for my thoughts to live. I write because it keeps me sane. It helps me to articulate my thoughts and work through what I'm thinking about.
 
 I wonder then reading about the "old ones" the ones before. The men and women who practiced this dark arcane art called programming. I've spent the last few hours pouring over the Jargon File. It's odd. Uncanny. Strange. The personality of your typical hacker seems to be something lovely to my imagination. I see myself in that. The things I think, the way I behave. Short of perhaps one key quality of a hacker "intelligence" not quite sure if I'm smart enough to do this.
 

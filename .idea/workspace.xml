@@ -25,12 +25,51 @@
       <change beforePath="$PROJECT_DIR$/public/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/sitemap.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/sitemap.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/tags/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/assets/css/main.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/404.html" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/layouts/404.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/10.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/11.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/an-obsession-takes-root.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/an-obsession-takes-root.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/blog-feed.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/blog.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/deprecation-v1.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/deprecation-v1.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/i-quit.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/i-quit.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/mediocrity.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/mediocrity.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/panic.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/panic.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/process.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/process.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/pure-will.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/pure-will.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/so-far-so-good.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/so-far-so-good.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/the-problem-with-economics.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/the-problem-with-economics.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/what-drives-you.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/what-drives-you.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/diary/year.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/diary/year.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/5053b65ac2bd6a52d488f1693205db97.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/645.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/79dc6ecb57b1a02dc8f2c6f3d4edadf7.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/92.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/a-trifling-love-affair.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/a-villain-story.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/a-villain-story.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/blog.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/content-content-contentmy-paradox-of-reach.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/first-blog-post.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/give-up-maybe-no.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/goodbye-but-not-really.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/home.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/house-cleaning.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/im-sorryyesterday-promised-hes-such-a-terrible-liar.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/im-sorryyesterday-promised-hes-such-a-terrible-liar.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/ironic-ghosts-and-a-wishful-death.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/ironic-ghosts-and-a-wishful-death.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/lazy-ghosts-and-lying-calculators.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/questioning-war-conflict-violence.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/the-ghost-of-christmas-post.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/the-ghost-of-christmas-post.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/welcome-fellow-timetravelling-ghosts.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wordpress_export/travelling/white-ghosts-and-dark-memories.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/white-ghosts-and-dark-memories.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="GOROOT" path="$PROJECT_DIR$/../../../../Program Files/Go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -46,6 +85,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
@@ -56,6 +96,10 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\user\GolandProjects\blog\content\posts" />
+      <recent name="C:\Users\user\GolandProjects\blog\content" />
+      <recent name="C:\Users\user\GolandProjects\blog" />
+      <recent name="C:\Users\user\GolandProjects\blog\content\wordpress_export" />
       <recent name="C:\Users\user\GolandProjects\blog\static" />
     </key>
   </component>
@@ -78,9 +122,19 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="chore: hugo boilerplate and cname setup" />
     <MESSAGE value="chore: update config" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: update config" />
+    <MESSAGE value="feat: import technical articles from dev.to" />
+    <MESSAGE value="feat: nav links and syntax highlight change" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: nav links and syntax highlight change" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="0" y="58" key="DiffContextDialog" timestamp="1622367042770">
+      <screen x="0" y="0" width="1366" height="768" />
+    </state>
+    <state x="0" y="58" key="DiffContextDialog/0.0.1366.768@0.0.1366.768" timestamp="1622367042770" />
+    <state x="235" y="65" key="RollbackChangesDialog" timestamp="1622367044534">
+      <screen x="0" y="0" width="1366" height="768" />
+    </state>
+    <state x="235" y="65" key="RollbackChangesDialog/0.0.1366.768@0.0.1366.768" timestamp="1622367044534" />
     <state x="24" y="120" key="Vcs.Push.Dialog.v2" timestamp="1617538581412">
       <screen x="0" y="0" width="1366" height="768" />
     </state>
