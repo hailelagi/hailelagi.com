@@ -20,129 +20,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/public/404.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/categories/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/css/style.min.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/dev/break-your-next-server/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/dev/schrodinger-cats-and-boxes/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/dev/the-weight-of-choice-is-heavy/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/an-obsession-takes-root/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/deprecation-v1/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/i-quit/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/mediocrity/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/panic/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/process/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/pure-will/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/so-far-so-good/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/the-problem-with-economics/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/what-drives-you/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/diary/year/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/travelling/a-villain-story/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/travelling/im-sorryyesterday-promised-hes-such-a-terrible-liar/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/travelling/ironic-ghosts-and-a-wishful-death/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/travelling/the-ghost-of-christmas-post/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/posts/travelling/white-ghosts-and-dark-memories/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/abstraction/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/abstraction/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/agnostic/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/agnostic/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/algorithms/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/algorithms/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/architecture/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/architecture/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/bertrand-russell/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/bertrand-russell/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/blogging/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/blogging/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/buisness/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/buisness/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/capitalism/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/capitalism/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/christmas/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/christmas/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/concurrency/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/concurrency/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/content/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/content/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/economics/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/economics/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/einstein/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/einstein/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/elixir/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/elixir/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/free-thinking/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/free-thinking/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/free-thought/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/free-thought/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/functional/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/functional/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/holiday-special/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/holiday-special/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/holidays/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/holidays/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/ideas/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/ideas/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/late-posts/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/late-posts/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/life/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/life/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/markets/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/markets/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/monads/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/monads/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/nigeria/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/nigeria/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/otp/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/otp/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/paradigm/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/paradigm/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/philosophy/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/philosophy/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/poetry/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/poetry/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/probability/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/probability/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/python/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/python/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/questions/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/questions/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/random-thoughts/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/random-thoughts/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/rants/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/rants/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/regret/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/regret/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/religion/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/religion/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/saturday-feature/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/saturday-feature/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/science/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/science/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/society/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/society/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/special-relativity/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/special-relativity/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/spinoza/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/spinoza/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/thought/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/thought/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/thoughts/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/thoughts/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/time/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/time/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/timetravel/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/timetravel/index.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/uncategorized/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/tags/uncategorized/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/categories/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/categories/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/sitemap.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/sitemap.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/tags/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/a-villain-story.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/a-villain-story.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/im-sorryyesterday-promised-hes-such-a-terrible-liar.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/ironic-ghosts-and-a-wishful-death.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/the-ghost-of-christmas-post.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/the-ghost-of-christmas-post.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/white-ghosts-and-dark-memories.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/travelling/white-ghosts-and-dark-memories.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -152,6 +35,7 @@
   <component name="GOROOT" path="$PROJECT_DIR$/../../../../Program Files/Go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
   </component>
   <component name="ProjectId" id="1qhg1r2Ixym4ZOFIPtVHTmr9KzA" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -209,9 +93,16 @@
     <MESSAGE value="feat: add new post draft" />
     <MESSAGE value="chore: build trigger" />
     <MESSAGE value="chore: build re-trigger" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: build re-trigger" />
+    <MESSAGE value="chore: remove public folder" />
+    <MESSAGE value="chore[temp]: delete README.md" />
+    <MESSAGE value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
+    <option name="LAST_COMMIT_MESSAGE" value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="516" y="0" key="CommitChangelistDialog2" timestamp="1622380746870">
+      <screen x="0" y="0" width="1366" height="768" />
+    </state>
+    <state x="516" y="0" key="CommitChangelistDialog2/0.0.1366.768@0.0.1366.768" timestamp="1622380746870" />
     <state x="0" y="58" key="DiffContextDialog" timestamp="1622367042770">
       <screen x="0" y="0" width="1366" height="768" />
     </state>
@@ -220,9 +111,13 @@
       <screen x="0" y="0" width="1366" height="768" />
     </state>
     <state x="235" y="65" key="RollbackChangesDialog/0.0.1366.768@0.0.1366.768" timestamp="1622367044534" />
-    <state x="24" y="120" key="Vcs.Push.Dialog.v2" timestamp="1622379752788">
+    <state x="24" y="120" key="Vcs.Push.Dialog.v2" timestamp="1622380589788">
       <screen x="0" y="0" width="1366" height="768" />
     </state>
-    <state x="24" y="120" key="Vcs.Push.Dialog.v2/0.0.1366.768@0.0.1366.768" timestamp="1622379752788" />
+    <state x="24" y="120" key="Vcs.Push.Dialog.v2/0.0.1366.768@0.0.1366.768" timestamp="1622380589788" />
+    <state x="500" y="297" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1622476583673">
+      <screen x="0" y="0" width="1366" height="768" />
+    </state>
+    <state x="500" y="297" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1366.768@0.0.1366.768" timestamp="1622476583673" />
   </component>
 </project>
