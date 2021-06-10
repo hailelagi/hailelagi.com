@@ -20,13 +20,6 @@ pygmentsCodeFences = true
     weight = 20
 
   [[menu.main]]
-    identifier = "resume"
-    name = "resume"
-    title = "resume"
-    url = "https://www.github.com/hailelagi/"
-    weight = 20
-
-  [[menu.main]]
     identifier = "about"
     name = "about"
     title = "about"
