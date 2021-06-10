@@ -16,19 +16,19 @@ pygmentsCodeFences = true
     identifier = "work"
     name = "work"
     title = "work"
-    url = "https://www.haile.tech"
+    url = "https://www.github.com/hailelagi"
     weight = 20
 
   [[menu.main]]
     identifier = "resume"
     name = "resume"
     title = "resume"
-    url = "/about/"
+    url = "https://www.github.com/hailelagi/"
     weight = 20
 
   [[menu.main]]
     identifier = "about"
     name = "about"
-    title = "resume"
-    url = "/about/"
+    title = "about"
+    url = "https://www.haile.tech"
     weight = 20
