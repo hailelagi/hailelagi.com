@@ -1,7 +1,7 @@
 ---
 title: "Detritus, Bitrot, and the Like"
 date: 2021-08-18T10:28:54+01:00
-draft: true
+draft: false
 ---
 
 The title of this essay is inspired by [Deekoo](https://deekoo.net/technocracy/detritus.html) - seeing as I'm currently
@@ -24,7 +24,7 @@ abstraction of our actions relative to our percieved environment and we make cho
 
 I have struggled with this. Switching my environment to school, introduced variability in my ability to create process and
 habit. Electricity is sparse and inconsistent, Internet barely functional and sometimes non-existent, and the time management
-crisis of writing good production software(on time) and keeping up with my degree's requirements (lectures, classes, assignments)
+crisis of writing good production software(on time) and keeping up with my degree's requirements (lectures, classes, assignments, exams _etcetera_)
 proved to be an impossible problem. I tried of course - many things, the only important fact is they didn't work.
 
 ![Thats Too Much Man Sarah Lynn GIF](https://c.tenor.com/VoxJONDntsoAAAAC/thats-too-much-man-sarah-lynn.gif)
@@ -32,7 +32,7 @@ proved to be an impossible problem. I tried of course - many things, the only im
 The solution I think, if anyone else happens to be faced with similar circumstances is to do "what you can with what you have",
 but ultimately you cannot do your best work without critical infrastructure, inevitably your output cannot be optimal.
 Entering "flow" will become a struggle and every action a chore. Switch environments if you can, if you cannot like I
-could not, grin and bear the boredom and frustration of being unable to work on the things you want to work on.
+could not, grin and bear the boredom and frustration of being unable to work on the things you want to work on. We are not products of our environment - I'd like to believe, but it'd be foolish to disregard it's influence.
 
 ### Effective Research
 Writing logic is one of the few things purely in your control, therefore it is the easiest thing to accomplish. Do it last.
@@ -61,7 +61,7 @@ When you have a sufficient mental model of a problem and its intended behaviour,
 possible solutions to what you're doing and how what you're doing fits into what existed before. Code bases grow very
 big over time. Reducing the size and abstracting away complexity is always a good thing.
 
-# The menace that is testing
+### The menace that is testing
 Then tests. Yes, yes. I know you hate writing tests(perhaps you don't, idk) Often in my experience? Tests are hard to
 write, because the codebase is already written, lots of moving parts that work together. Simple functions are easy to test.
 You know how it's supposed to work. God even better it's a functional codebase. I love pure functions.
@@ -105,11 +105,20 @@ Pace is about forming good process. Every time you do it you can accelerate how 
 with the variations by keepingf of con, but often your responsibilities grow proportionally to what you can be assigned therefore each sprint you
 must optimise it. The more that can be shifted to your plate (and accomplished...) the more that will be.
 
-### On estimates
-Ask for more time than you need (if you can), always, because it is not enough. Oh! how I wish I were a 10x engineer,
-a surgeon with the accuracy and precision of a needle and the speed of a fox. Oh! how I wish, but I am naught but a mere
-mortal. Constraints are good but rarely is a task properly estimated. This improves very little with experience in my opinion.
+### On communication and estimates
 
-# On communication
-Over commit to this. The more the better. Schedule in time for this, because it can be unpredictable how much overhead
-this costs. No one _really_ likes meetings honestly
+Over commit to communication with other human beings. The more the better. Schedule in time for this, because it can be unpredictable how much overhead
+this costs. No one _really_ likes meetings honestly, but humans have yet to figure out the orchestration problem of translating complex ideas and actions to other human beings so they can act on this information. This intersects with the problem of estimations. Estimations are notoriously hard, because when an idea is first formed in the mind it does not come with it constraints bounded in _actuality_. It is but an _abstract possibility_ of how deeply you understand the interplay of a system. Improving your knowledge of said system (experience within a domain), helps but ultimately the only way to know how long a task will take is by performing the act itself bound in _actuality_._Oh! how I wish I were a 10x engineer,a surgeon with the accuracy and precision of a needle and the speed of a fox. Oh! how I wish, but I am naught but a mere
+mortal. Limitations are good but rarely is a task properly estimated. The impact of experience is overestimated :) in my opinion.
+
+### Finally, on direction
+
+> It is not a matter of exposing one's unchanging identity, the
+> true self that has always been, but a way of exposing one's
+> ceaseless growth, the dynamic self that has yet to be. 
+
+Now, more than ever I feel lost, wheter it's trying to understand mathematics as it applies to finance, or perhaps diving even further into the weird world of the metaverse, the ever evolving ideas and complexity of understanding the bitcoin and ethereum eco-systems. Or perhaps it's even a deeper dive into understanding computer science & programming - networks? Maybe diving into [CTF's](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security), or perhaps it's none of these perhaps - its understanding game theory - melding mathematics with economics. idk.
+
+Perhaps I'm [ngmi](https://www.uxsequence.io/news/blockchain-dictionary-a-z/)
+
+I don't really have to know, I'll just figure it out as I go and see what happens, I'll be here figuring this life and software thing out :)
