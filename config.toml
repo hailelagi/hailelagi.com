@@ -23,5 +23,5 @@ pygmentsCodeFences = true
     identifier = "about"
     name = "about"
     title = "about"
-    url = "https://www.haile.tech"
+    url = ""
     weight = 20
