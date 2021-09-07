@@ -1,4 +1,4 @@
-baseURL = "https://www.hailelagi.com/"
+baseURL = "/"
 languageCode = "en-us"
 title = "Haile Lagi"
 theme = "etch"
@@ -23,5 +23,5 @@ pygmentsCodeFences = true
     identifier = "about"
     name = "about"
     title = "about"
-    url = ""
+    url = "/"
     weight = 20
