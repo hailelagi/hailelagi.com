@@ -20,8 +20,31 @@ talks to the operating system via <a href=https://www.cs.uic.edu/~jbell/CourseNo
 manages the <a href=https://hamidreza-s.github.io/erlang/scheduling/real-time/preemptive/migration/2016/02/09/erlang-scheduler-details.html>how and when</a>
 of computations (processes - in the vm). It does something called preemptive scheduling which requires making
 a nuanced trade off - all processes are treated as equal and given a tiny block of time/memory to execute, whether this
-is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to process that need it most
-to make some important guarantees which make fault tolerance possible:</p><ol><li>High availability</li><li>Isolated failure states</li></ol><p>This constant <em>context switching</em> gives guarantees creating a system that is highly introspectable where we can
-leverage this information to make intelligent deductions about what is happening within the system and even design
-mechanisms to deal with and understand crashes and fail states, while also providing concurrent primitives that naturally
-scale across distributed systems, changing very little about the core system.</p><p><img src=assets/observer.png alt="Observer showing scheduling"></p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
+is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to processes that need it most
+to make some important guarantees which make fault tolerance possible:</p><ol><li>High availability</li><li>Isolated failure states</li></ol><p>This constant <em>context switching</em> gives guarantees creating a system that is dependable - allowing the creation
+of processes that inspect others, we can leverage this information to make intelligent deductions about what is happening
+within the system at runtime and design strategies to deal with and understand crashes and fail states,
+while also providing concurrent primitives that naturally scale across distributed systems,
+changing very little about the core system.</p><p><img src=/observer.png alt="Observer showing scheduling"></p><h3 id=scheduling-processes>Scheduling Processes</h3><p>You can see the scheduler at work by spinning up a few short-lived processes which begin their life time with about
+two kilobytes of memory which can grow on a:</p><ol><li>stack</li><li>heap</li></ol><p>Here you have the parent process creating another process that sends it messages:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=c1># the current parent process&#39;s identifier</span>
+</span></span><span class=line><span class=cl><span class=n>current</span> <span class=o>=</span> <span class=n>self</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>child</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> 
+</span></span><span class=line><span class=cl>  <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=c1># child indentifier</span>
+</span></span><span class=line><span class=cl>    <span class=n>self</span><span class=p>(),</span> 
+</span></span><span class=line><span class=cl>    <span class=s2>&#34;computation&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl><span class=k>end</span><span class=p>)</span>
+</span></span></code></pre></div><p>some more for good measure:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=n>child_two</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation two&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>child_three</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation three&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>child_four</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation four&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>child_five</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation five&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
+</span></span></code></pre></div><p>Processes have an <code>identity</code> via their <code>pid</code>, this is how they are aware of one another, when the scheduler(on one core)
+sees these concurrent tasks, it allocates some time and memory at runtime to <code>child</code> and lets it run for a bit, if the process does not
+finish(an infinite loop for example), the scheduler moves on to <code>child_two</code> and so on, checking up on each process,
+computing a bit.</p><h3 id=its-all-about-tradeoffs>It&rsquo;s all about tradeoffs</h3><p>Elixir provides a beautiful modern language that allows you to leverage athe amazing ecosystem and novel concurrency ideas
+built into erlang, this design offers you tools and design to create highly fault-tolerant, self-healing systems, sometimes
+at the cost of absolute runtime performance. You can see this with need to replicate data structures and performing
+computationally intensive tasks would make sense to be processed sequentially. Do not despair however, you can simply
+outsource this kind of heavy-lifting if required to a service in a different language or carefully poke a hole into the
+C interface via Native Implementation Functions, where in C++ or perhaps rust via <a href=https://github.com/rusterlium/rustler>rustler</a>.</p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
