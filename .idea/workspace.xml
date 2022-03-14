@@ -23,8 +23,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/blog.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/blog.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/observer.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,11 +67,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/assets" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/static" />
+      <recent name="$PROJECT_DIR$/resources/_gen/images" />
       <recent name="$PROJECT_DIR$/content/posts" />
-      <recent name="C:\Users\user\GolandProjects\blog\content\posts" />
-      <recent name="C:\Users\user\GolandProjects\blog\content" />
-      <recent name="C:\Users\user\GolandProjects\blog" />
-      <recent name="C:\Users\user\GolandProjects\blog\content\wordpress_export" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -101,28 +102,7 @@
     <MESSAGE value="chore: remove public folder" />
     <MESSAGE value="chore[temp]: delete README.md" />
     <MESSAGE value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
-    <option name="LAST_COMMIT_MESSAGE" value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="516" y="0" key="CommitChangelistDialog2" timestamp="1622380746870">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="516" y="0" key="CommitChangelistDialog2/0.0.1366.768@0.0.1366.768" timestamp="1622380746870" />
-    <state x="0" y="58" key="DiffContextDialog" timestamp="1622367042770">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="0" y="58" key="DiffContextDialog/0.0.1366.768@0.0.1366.768" timestamp="1622367042770" />
-    <state x="235" y="65" key="RollbackChangesDialog" timestamp="1623328348962">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="235" y="65" key="RollbackChangesDialog/0.0.1366.768@0.0.1366.768" timestamp="1623328348962" />
-    <state x="24" y="120" key="Vcs.Push.Dialog.v2" timestamp="1622380589788">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="24" y="120" key="Vcs.Push.Dialog.v2/0.0.1366.768@0.0.1366.768" timestamp="1622380589788" />
-    <state x="500" y="297" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1622476583673">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="500" y="297" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1366.768@0.0.1366.768" timestamp="1622476583673" />
+    <MESSAGE value="feat(wip): beam scheduler" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(wip): beam scheduler" />
   </component>
 </project>
