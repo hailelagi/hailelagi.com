@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="A repository for my thoughts"><link rel="shortcut icon" href=https://www.hailelagi.com/favicon.ico><link rel=stylesheet href=/css/style.min.css><title>A Peek Into the Beam</title></head><body><header id=banner><h2><a href=https://www.hailelagi.com/>Haile Lagi</a></h2><nav><ul><li><a href title=about>about</a></li><li><a href=https://www.github.com/hailelagi title=work>work</a></li></ul></nav></header><main id=content><article><header id=post-header><h1>A Peek Into the Beam</h1><time>March 2, 2022</time></header><p>A long time ago, you would give a computer an intensive set of instructions - in assembly or something more sane, and
+it would compute these instructions one by one, but while it did that - it would “freeze up” you couldn’t really do much
+else with it. At the time, computer hardware was pretty limited, it had a single CPU core
+(something that executes instruction sets) which did pretty much everything, one by one - computer scientists were not particularly
+satisfied with this, and they <a href=https://en.wikipedia.org/wiki/Mutual_exclusion>found a solution</a>.</p><p>In essence, execution of two or more computations is possible - given it is guaranteed that both read
+data from the same source, but writing could lead to inconsistency - commonly known as a <em>data race</em> or <em>race condition</em>.
+Today our computers have multiple cores - they can do a lot more stuff than they <a href=https://en.wikipedia.org/wiki/Moore%27s_law>used to</a>,
+but we need some way to guarantee or make it really hard for this to happen.</p><p>The world of concurrency is fascinating, lots of languages design mechanisms around this problem known as
+<strong>concurrency primitives</strong>, allowing software creators to fashion applications and software systems that perform much better
+than their sequential alternative, however we are most interested in a cursory glance into the BEAM
+(Erlang’s virtual machine). For brief context, a virtual machine is just software - an abstraction over the basic
+hardware of a computer allowing a layer of execution on top of it.
+The elixir/erlang source code is parsed and transformed into a set of intermediary files prefixed with <code>.beam</code> that the
+virtual machine can understand known as bytecode, via the <code>C</code> programming language. From here it is translated into
+assembly/machine instructions, 1&rsquo;s and 0&rsquo;s.</p><p><strong>source code</strong> &mdash;> <strong>c interface</strong> &mdash;> <strong>bytecode</strong></p><p>Most of the interesting <a href=https://en.wikipedia.org/wiki/Actor_model>concurrency primitives</a> that erlang/elixir provide
+are built on top of the <a href=https://ferd.ca/it-s-about-the-guarantees.html>guarantees</a> this virtual machine provides such
+as immutable state. The single basic unit being a process -
+an isolated sequential unit of computation which is managed by a scheduler an important construct.</p><h3 id=erlangs-scheduler>Erlang’s scheduler</h3><p>The scheduler within the BEAM runtime (not an <a href=https://en.wikipedia.org/wiki/Scheduling_(computing)>operating system scheduler</a>),
+talks to the operating system via <a href=https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/4_Threads.html>threads</a> and
+manages the <a href=https://hamidreza-s.github.io/erlang/scheduling/real-time/preemptive/migration/2016/02/09/erlang-scheduler-details.html>how and when</a>
+of computations (processes - in the vm). It does something called preemptive scheduling which requires making
+a nuanced trade off - all processes are treated as equal and given a tiny block of time/memory to execute, whether this
+is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to process that need it most
+to make some important guarantees which make fault tolerance possible:</p><ol><li>High availability</li><li>Isolated failure states</li></ol><p>This constant <em>context switching</em> gives guarantees creating a system that is highly introspectable where we can
+leverage this information to make intelligent deductions about what is happening within the system and even design
+mechanisms to deal with and understand crashes and fail states, while also providing concurrent primitives that naturally
+scale across distributed systems, changing very little about the core system.</p><p><img src=assets/observer.png alt="Observer showing scheduling"></p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
