@@ -39,15 +39,56 @@ talks to the operating system via [threads](https://www.cs.uic.edu/~jbell/Course
 manages the [how and when](https://hamidreza-s.github.io/erlang/scheduling/real-time/preemptive/migration/2016/02/09/erlang-scheduler-details.html)
 of computations (processes - in the vm). It does something called preemptive scheduling which requires making
 a nuanced trade off - all processes are treated as equal and given a tiny block of time/memory to execute, whether this
-is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to process that need it most
+is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to processes that need it most
 to make some important guarantees which make fault tolerance possible:
 
 1. High availability
 2. Isolated failure states
 
-This constant _context switching_ gives guarantees creating a system that is highly introspectable where we can
-leverage this information to make intelligent deductions about what is happening within the system and even design
-mechanisms to deal with and understand crashes and fail states, while also providing concurrent primitives that naturally
-scale across distributed systems, changing very little about the core system.
+This constant _context switching_ gives guarantees creating a system that is dependable - allowing the creation
+of processes that inspect others, we can leverage this information to make intelligent deductions about what is happening 
+within the system at runtime and design strategies to deal with and understand crashes and fail states, 
+while also providing concurrent primitives that naturally scale across distributed systems, 
+changing very little about the core system.
 
-![Observer showing scheduling](assets/observer.png)
+![Observer showing scheduling](/observer.png)
+
+### Scheduling Processes
+You can see the scheduler at work by spinning up a few short-lived processes which begin their life time with about 
+two kilobytes of memory which can grow on a:
+1. stack
+2. heap
+
+Here you have the parent process creating another process that sends it messages:
+```elixir
+# the current parent process's identifier
+current = self()
+
+child = spawn(fn -> 
+  send(current, {
+    # child indentifier
+    self(), 
+    "computation"})
+end)
+```
+
+some more for good measure:
+```elixir
+child_two = spawn(fn -> send(current, {self(), "computation two"}) end)
+child_three = spawn(fn -> send(current, {self(), "computation three"}) end)
+child_four = spawn(fn -> send(current, {self(), "computation four"}) end)
+child_five = spawn(fn -> send(current, {self(), "computation five"}) end)
+```
+
+Processes have an `identity` via their `pid`, this is how they are aware of one another, when the scheduler(on one core) 
+sees these concurrent tasks, it allocates some time and memory at runtime to `child` and lets it run for a bit, if the process does not
+finish(an infinite loop for example), the scheduler moves on to `child_two` and so on, checking up on each process,
+computing a bit. 
+
+### It's all about tradeoffs
+Elixir provides a beautiful modern language that allows you to leverage athe amazing ecosystem and novel concurrency ideas
+built into erlang, this design offers you tools and design to create highly fault-tolerant, self-healing systems, sometimes
+at the cost of absolute runtime performance. You can see this with need to replicate data structures and performing 
+computationally intensive tasks would make sense to be processed sequentially. Do not despair however, you can simply
+outsource this kind of heavy-lifting if required to a service in a different language or carefully poke a hole into the
+C interface via Native Implementation Functions, where in C++ or perhaps rust via [rustler](https://github.com/rusterlium/rustler).
