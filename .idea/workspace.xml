@@ -22,7 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="feat:">
+    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" afterDir="false" />
     </list>
@@ -109,6 +109,7 @@
     <MESSAGE value="feat: draft idea macros" />
     <MESSAGE value="fix: cleanup references" />
     <MESSAGE value="fix: update date" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: update date" />
+    <MESSAGE value="fix(tbd): clean up and restructure" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(tbd): clean up and restructure" />
   </component>
 </project>

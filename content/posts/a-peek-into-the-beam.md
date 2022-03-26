@@ -6,13 +6,13 @@ tags: go, python, elixir, erlang, scheduler, concurrency
 ---
 
 A long time ago, you would give a computer an intensive set of instructions - in assembly or something more sane, and 
-it would compute these instructions one by one, but while it did that - it would “freeze up” you couldn’t really do much
+it would compute these instructions one by one, but while it did that - it would “freeze up” you could not really do much
 else with it. At the time, computer hardware was pretty limited, it had a single CPU core 
 (something that executes instruction sets) which did pretty much everything, one by one - computer scientists were not particularly 
 satisfied with this, and they [found a solution](https://en.wikipedia.org/wiki/Mutual_exclusion). 
 
-In essence, execution of two or more computations is possible - given it is guaranteed that both read
-data from the same source, but writing could lead to inconsistency, commonly known as a _data race_ or _race condition_. 
+In essence, execution of two or more computations at the same time is possible - given it is guaranteed that both read
+data from the same source, but not writing which could lead to inconsistency, commonly known as a _data race_ or _race condition_. 
 Today our computers have multiple cores - they can do a lot more stuff than they [used to](https://en.wikipedia.org/wiki/Moore%27s_law), 
 but we need some way to guarantee or make it really hard for this to happen.
 
@@ -109,7 +109,6 @@ and lets it run for a bit, if the process does not finish(an infinite loop for e
 works the same way, only you'd need a different way to [manage the global name space](https://github.com/uwiger/gproc)
 of running processes.
 
-### todo(useful comment): Restructure and answer these questions
 **todo(useful notes): Expand on high availability and isolated failure states**
 1. We don't interact with the CPU, which your article pointed out - we think “processe” -
    small, non-shared state and isolated failure. how to fault tolerance.
@@ -133,25 +132,28 @@ heavy-lifting if required to a service in a different language. Let's explore at
 underpinnings of relatively more popular languages and how they stack up against the BEAM's approach.
 
 ### Actor Model vs Multithreading (Ruby, Javascript and Python)
-# TODO Contrast
-1. CPU interaction/scheduling/concurrency
-   How is this done in ruby/js/py? Threads? What are the issues here? Deadlock, null pointer?
-  comparable? short concise overview and contrast.
+Ruby - single thread (via Thread, Fibre)
+multithreading via (Ractor)
+Javascript - single thread - (event loop via libuv)
+Python - Single thread - (event loop via asyncio)
 
-2. How do we handle shared resources in processes 
-
-3. How do we handle async failures?
+CPU interaction/scheduling/concurrency
+1. Single/Multi threading
+2. Symmetric multiprocessing 
+3. Multiprocessing
+4. Event Loop/Runtime
+5. How to handle shared resources
+6. How to handle async failures
 
 
 ### Actor Model vs csp routines (goroutines)
-1. CPU interaction/scheduling/concurrency
-   goroutines what are the issues here? deadlock, null pointer?
-   comparable? short concise overview and contrast.
-
-2. How do we handle shared resources across nodes 
-locks and mutexes
-
-3. How do we handle async failures?
+CPU interaction/scheduling/concurrency
+1. Single/Multi threading
+2. Symmetric multiprocessing
+3. Multiprocessing
+4. goroutines, channels, select and sync
+5. How to handle shared resources 
+6. How to handle async failures
 
 ### Erlang processes vs the EVM model [bonus content - might not add to be decided]
 EVM is a Single-Threaded state machine. [[6]](#references)
@@ -170,4 +172,13 @@ EVM is a Single-Threaded state machine. [[6]](#references)
 
 [6] coinmonks(medium): https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12
 
+[7] stackoverflow: https://stackoverflow.com/questions/2708033/technically-why-are-processes-in-erlang-more-efficient-than-os-threads
+
+[8] symmetric multiprocessing: https://en.wikipedia.org/wiki/Symmetric_multiprocessing
+
+[9] node event loop: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
+
+[10] asyncio: https://docs.python.org/3/library/asyncio.html
+
+[11] node io: https://github.com/libuv/libuv
 
