@@ -2,6 +2,7 @@
 title: "A Peek Into the Beam"
 date: 2022-03-02T08:16:09+01:00
 draft: false
+tags: go, python, elixir, erlang, scheduler, concurrency
 ---
 
 A long time ago, you would give a computer an intensive set of instructions - in assembly or something more sane, and 
@@ -30,9 +31,18 @@ assembly/machine instructions, 1's and 0's.
 Most of the interesting [concurrency primitives](https://en.wikipedia.org/wiki/Actor_model) that erlang/elixir provide 
 are built on top of the [guarantees](https://ferd.ca/it-s-about-the-guarantees.html) this virtual machine provides such
 as immutable state. The single basic unit being a process - 
-an isolated sequential unit of computation which is managed by a scheduler an important construct.
+an isolated sequential unit of computation which is managed by a scheduler an important construct. 
 
-### Erlang’s scheduler
+```
+Note: you may think of a process as a kind of "green thread",
+if familiar with the concept. Otherwise thinking of them
+as an abstract unit of sequential computation is fine, I do not
+know enough about compiler/os internals to voice an opinion 
+on the correct terminology.
+see: https://en.wikipedia.org/wiki/Green_threads
+```
+
+## Erlang’s scheduler
 
 The scheduler within the BEAM runtime (not an [operating system scheduler](https://en.wikipedia.org/wiki/Scheduling_(computing))),
 talks to the operating system via [threads](https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/4_Threads.html) and 
@@ -49,46 +59,71 @@ This constant _context switching_ gives guarantees creating a system that is dep
 of processes that inspect others, we can leverage this information to make intelligent deductions about what is happening 
 within the system at runtime and design strategies to deal with and understand crashes and fail states, 
 while also providing concurrent primitives that naturally scale across distributed systems, 
-changing very little about the core system.
+changing very little about the core system. 
 
+A typical illustration of erlang introspective superpowers is `:observer` which ships by default. Pop `:observer.start()` 
+into any `iex` session and watch the magic.
 ![Observer showing scheduling](/observer.png)
 
-### Scheduling Processes
-You can see the scheduler at work by spinning up a few short-lived processes which begin their life time with about 
-two kilobytes of memory which can grow on a:
+## Scheduling Processes
+You can see the scheduler at work by spinning up a few short-lived processes which begin their lifetime[1] with about 
+[326 words of memory](https://en.wikipedia.org/wiki/Word_(computer_architecture)) which can 
+[grow](https://www.erlang.org/doc/man/erts_alloc.html) on a:
 1. stack
 2. heap
 
-Here you have the parent process creating another process that sends it messages:
+Here you have `self()` as the `iex` session, creating another process then it communicates with:
 ```elixir
-# the current parent process's identifier
-current = self()
-
-child = spawn(fn -> 
+iex(1)> current = self()
+iex(2)> child = spawn(fn -> 
   send(current, {
-    # child indentifier
-    self(), 
-    "computation"})
+    # new identifier process created by spawn
+    self(),
+    # any arbitrary sequential computation
+    # looping, control flow, anything :O
+    1 + 1})
 end)
 ```
 
-some more for good measure:
+We can then leverage the high level `Process` library for convenience, to create more processes, thousands or even millions
+if need be:
+
 ```elixir
-child_two = spawn(fn -> send(current, {self(), "computation two"}) end)
-child_three = spawn(fn -> send(current, {self(), "computation three"}) end)
-child_four = spawn(fn -> send(current, {self(), "computation four"}) end)
-child_five = spawn(fn -> send(current, {self(), "computation five"}) end)
+child_two = Process.spawn(fn -> 1 + 2 end, [:monitor])
+child_three = Process.spawn(fn -> 1 + 3 end, [:monitor])
+child_four = Process.spawn(fn -> 1 + 4 end, [:monitor])
+child_five = Process.spawn(fn -> 1 + 5 end, [:monitor])
 ```
 
-Processes have an `identity` via their `pid`, this is how they are aware of one another, when the scheduler(on one core) 
-sees these concurrent tasks, it allocates some time and memory at runtime to `child` and lets it run for a bit, if the process does not
-finish(an infinite loop for example), the scheduler moves on to `child_two` and so on, checking up on each process,
-computing a bit. 
+Processes have an `identity` via their `pid`, this is how they are aware of one another. The return value of each child 
+looks a little like this (note the pid and reference will be different on your machine).
+```elixir
+# {#PID<0.93.0>, #Reference<0.18808174.1939079169.202418>}
+```
+when the scheduler(on one core) sees these concurrent tasks, it allocates some time and memory at runtime to `child` 
+and lets it run for a bit, if the process does not finish(an infinite loop for example), the scheduler moves on to
+`child_two` and so on, checking up on each process, computing a bit. Scheduling multiple cores works the same way, only 
+you'd need a way to manage the global name space of running processes.
 
-### It's all about tradeoffs
-Elixir provides a beautiful modern language that allows you to leverage athe amazing ecosystem and novel concurrency ideas
-built into erlang, this design offers you tools and design to create highly fault-tolerant, self-healing systems, sometimes
-at the cost of absolute runtime performance. You can see this with need to replicate data structures and performing 
-computationally intensive tasks would make sense to be processed sequentially. Do not despair however, you can simply
-outsource this kind of heavy-lifting if required to a service in a different language or carefully poke a hole into the
-C interface via Native Implementation Functions, where in C++ or perhaps rust via [rustler](https://github.com/rusterlium/rustler).
+## It's all about tradeoffs
+Elixir provides a beautiful modern language that allows you to leverage the amazing ecosystem and novel concurrency ideas
+built into erlang, offering you the tools to create and design highly fault-tolerant, self-healing systems, sometimes
+at the cost of _absolute runtime performance_. You can see this with need to replicate data structures and performing 
+computationally intensive tasks that would make sense to be processed sequentially. Do not despair however, you can 
+carefully poke a hole into the runtime through the C interface via 
+[Native Implementation Functions](https://www.erlang.org/doc/tutorial/nif.html#:~:text=A%20NIF%20is%20a%20function,UNIX%2C%20DLL%20in%20Windows), 
+whether in C++ or perhaps rust via [rustler](https://github.com/rusterlium/rustler). Or outsource this kind of 
+heavy-lifting if required to a service in a different language. Let's explore at a high level the conceptual 
+underpinnings of relatively more popular languages and how they stack up against the BEAM.
+
+### Multithreading vs Actor model vs CSP routines
+
+#### 1. Erlang processes vs Multithreading (Ruby, Javascript and Python)
+# TODO
+
+#### 2. Erlang processes vs csp routines (goroutines)
+# TODO
+
+## References
+
+[1] Erlang documentation - https://www.erlang.org/doc/efficiency_guide/processes.html

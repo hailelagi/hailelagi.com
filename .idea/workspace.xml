@@ -24,7 +24,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/observer.png" beforeDir="false" afterPath="$PROJECT_DIR$/static/observer.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,6 +103,7 @@
     <MESSAGE value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
     <MESSAGE value="feat(wip): beam scheduler" />
     <MESSAGE value="refactor: add :observer screenshot" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: add :observer screenshot" />
+    <MESSAGE value="feat: first draft" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: first draft" />
   </component>
 </project>
