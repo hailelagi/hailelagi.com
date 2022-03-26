@@ -14,13 +14,12 @@ The elixir/erlang source code is parsed and transformed into a set of intermedia
 virtual machine can understand known as bytecode, via the <code>C</code> programming language. From here it is translated into
 assembly/machine instructions, 1&rsquo;s and 0&rsquo;s.</p><p><strong>source code</strong> &mdash;> <strong>c interface</strong> &mdash;> <strong>bytecode</strong></p><p>Most of the interesting <a href=https://en.wikipedia.org/wiki/Actor_model>concurrency primitives</a> that erlang/elixir provide
 are built on top of the <a href=https://ferd.ca/it-s-about-the-guarantees.html>guarantees</a> this virtual machine provides such
-as immutable state. The single basic unit being a process -
+as immutable state. The single basic unit being a process[3][4] -
 an isolated sequential unit of computation which is managed by a scheduler an important construct.</p><pre tabindex=0><code>Note: you may think of a process as a kind of &#34;green thread&#34;,
 if familiar with the concept. Otherwise thinking of them
 as an abstract unit of sequential computation is fine, I do not
 know enough about compiler/os internals to voice an opinion 
 on the correct terminology.
-see: https://en.wikipedia.org/wiki/Green_threads
 </code></pre><h2 id=erlangs-scheduler>Erlang’s scheduler</h2><p>The scheduler within the BEAM runtime (not an <a href=https://en.wikipedia.org/wiki/Scheduling_(computing)>operating system scheduler</a>),
 talks to the operating system via <a href=https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/4_Threads.html>threads</a> and
 manages the <a href=https://hamidreza-s.github.io/erlang/scheduling/real-time/preemptive/migration/2016/02/09/erlang-scheduler-details.html>how and when</a>
@@ -62,4 +61,6 @@ carefully poke a hole into the runtime through the C interface via
 <a href="https://www.erlang.org/doc/tutorial/nif.html#:~:text=A%20NIF%20is%20a%20function,UNIX%2C%20DLL%20in%20Windows">Native Implementation Functions</a>,
 whether in C++ or perhaps rust via <a href=https://github.com/rusterlium/rustler>rustler</a>. Or outsource this kind of
 heavy-lifting if required to a service in a different language. Let&rsquo;s explore at a high level the conceptual
-underpinnings of relatively more popular languages and how they stack up against the BEAM.</p><h3 id=multithreading-vs-actor-model-vs-csp-routines>Multithreading vs Actor model vs CSP routines</h3><h4 id=1-erlang-processes-vs-multithreading-ruby-javascript-and-python>1. Erlang processes vs Multithreading (Ruby, Javascript and Python)</h4><h1 id=todo>TODO</h1><h4 id=2-erlang-processes-vs-csp-routines-goroutines>2. Erlang processes vs csp routines (goroutines)</h4><h1 id=todo-1>TODO</h1><h2 id=references>References</h2><p>[1] Erlang documentation - <a href=https://www.erlang.org/doc/efficiency_guide/processes.html>https://www.erlang.org/doc/efficiency_guide/processes.html</a></p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
+underpinnings of relatively more popular languages and how they stack up against the BEAM.</p><h3 id=multithreading-vs-actor-model-vs-csp-routines>Multithreading vs Actor model vs CSP routines</h3><h4 id=1-erlang-processes-vs-multithreading-ruby-javascript-and-python>1. Erlang processes vs Multithreading (Ruby, Javascript and Python)</h4><h1 id=todo>TODO</h1><h4 id=2-erlang-processes-vs-csp-routines-goroutines>2. Erlang processes vs csp routines (goroutines)</h4><h1 id=todo-1>TODO</h1><h4 id=3-erlang-processes-vs-evm-model-bonus-content>3. Erlang processes vs EVM model [bonus content]</h4><p>In other words, EVM is a Single-Threaded state machine. As a result, Ethereum achieves Concurrency, but not Parallelism.</p><h2 id=references>References</h2><p>[1] Erlang documentation - <a href=https://www.erlang.org/doc/efficiency_guide/processes.html>https://www.erlang.org/doc/efficiency_guide/processes.html</a>
+[2] <a href=https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12>https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12</a>
+[3] Joe Armstrong Tweet - <a href=https://twitter.com/joeerl/status/1010485913393254401>https://twitter.com/joeerl/status/1010485913393254401</a></p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
