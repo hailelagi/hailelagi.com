@@ -7,7 +7,7 @@ pygmentsCodeFences = true
 
 [params]
   description = "A repository for my thoughts"
-  copyright = "Copyright © 2021 Haile Lagi"
+  copyright = "Copyright © 2022 Haile Lagi"
   dark = "off"
   highlight = true
 
