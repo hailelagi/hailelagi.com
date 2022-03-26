@@ -30,16 +30,14 @@ assembly/machine instructions, 1's and 0's.
 
 Most of the interesting [concurrency primitives](https://en.wikipedia.org/wiki/Actor_model) that erlang/elixir provide 
 are built on top of the [guarantees](https://ferd.ca/it-s-about-the-guarantees.html) this virtual machine provides such
-as immutable state. The single basic unit being a process - 
-an isolated sequential unit of computation which is managed by a scheduler an important construct. 
-
+as immutable state. The single basic unit being a process[3][4] - 
+an isolated sequential unit of computation which is managed by a scheduler an important construct.
 ```
 Note: you may think of a process as a kind of "green thread",
 if familiar with the concept. Otherwise thinking of them
 as an abstract unit of sequential computation is fine, I do not
 know enough about compiler/os internals to voice an opinion 
 on the correct terminology.
-see: https://en.wikipedia.org/wiki/Green_threads
 ```
 
 ## Erlang’s scheduler
@@ -124,6 +122,11 @@ underpinnings of relatively more popular languages and how they stack up against
 #### 2. Erlang processes vs csp routines (goroutines)
 # TODO
 
+#### 3. Erlang processes vs EVM model [bonus content]
+In other words, EVM is a Single-Threaded state machine. As a result, Ethereum achieves Concurrency, but not Parallelism.
+
 ## References
 
 [1] Erlang documentation - https://www.erlang.org/doc/efficiency_guide/processes.html
+[2] https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12
+[3] Joe Armstrong Tweet - https://twitter.com/joeerl/status/1010485913393254401
