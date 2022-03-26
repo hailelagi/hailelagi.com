@@ -43,9 +43,9 @@ The scheduler within the BEAM runtime (not an [operating system scheduler](https
 talks to the operating system via [threads](https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/4_Threads.html) and 
 manages the [how and when](https://hamidreza-s.github.io/erlang/scheduling/real-time/preemptive/migration/2016/02/09/erlang-scheduler-details.html)
 of computations (processes - in the vm). It does something called _preemptive scheduling_ which requires making
-a nuanced trade off - all processes are treated as equal and given a tiny block of time/memory to execute, whether this
-is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to processes that need it most
-to make some important guarantees which make fault tolerance possible:
+a nuanced trade off - all processes are treated as equal(unless a priority is set) and given a tiny block of time/memory
+to execute, whether this is enough for a process is irrelevant. It sacrifices the efficient allocation of resources to
+processes that need it most to make some important guarantees which make fault tolerance possible:
 
 1. High availability
 2. Isolated failure states
@@ -66,7 +66,7 @@ iex(1)> :observer.start()
 
 ![Observer showing scheduling](/observer.png)
 
-You can see the scheduler at work by spinning up a few short-lived processes which begin their lifetime[[3]](#references) 
+You can see the scheduler at work by spinning up a few short-lived processes which begin their lifetime[[4]](#references) 
 with about [326 words of memory](https://en.wikipedia.org/wiki/Word_(computer_architecture)) (approximately 0.65 kilobytes) 
 which can [grow](https://www.erlang.org/doc/man/erts_alloc.html) on a stack or heap.
 
@@ -94,16 +94,30 @@ child_five = Process.spawn(fn -> 1 + 5 end, [:monitor])
 ```
 
 Processes have an `identity` via their `pid`, this is how they are aware of one another. The return value of each child 
-looks a little like this (note the pid and reference will be different on your machine).
+looks a little like this:
 ```elixir
 # {#PID<0.93.0>, #Reference<0.18808174.1939079169.202418>}
 ```
-when the scheduler(on one core) sees these concurrent tasks, it allocates some time and memory at runtime to `child` 
-and lets it run for a bit, if the process does not finish(an infinite loop for example), the scheduler moves on to
-`child_two` and so on, checking up on each process, computing a bit. Scheduling multiple cores works the same way, only 
-you'd need a way to manage the global name space of running processes.
-**todo: Expand on high availability and isolated failure states**
+```
+ Note: The actual pid and reference will be different on your machine).
+```
 
+When the scheduler(on one core) sees these concurrent tasks, it allocates some time and memory at runtime to `child` 
+and lets it run for a bit, if the process does not finish(an infinite loop for example), the scheduler moves on to
+`child_two` and so on, checking up on each process, computing a bit. Processes are namespaced in a 
+[local registry](https://hexdocs.pm/elixir/1.13/Registry.html) for a single node. Scheduling across multiple nodes
+works the same way, only you'd need a different way to [manage the global name space](https://github.com/uwiger/gproc)
+of running processes.
+
+### todo(useful comment): Restructure and answer these questions
+**todo(useful notes): Expand on high availability and isolated failure states**
+1. We don't interact with the CPU, which your article pointed out - we think “processe” -
+   small, non-shared state and isolated failure. how to fault tolerance.
+
+2. How do we handle shared resources in processes in Elixir - I'd suggest you focus on a “Genserver” as the ideal process/
+Agent
+
+3. How do we handle async failures? You can mention supervisors e.t.c
 
 ## It's all about tradeoffs
 ### (Multithreading vs Actor model vs CSP routines)
@@ -119,13 +133,28 @@ heavy-lifting if required to a service in a different language. Let's explore at
 underpinnings of relatively more popular languages and how they stack up against the BEAM's approach.
 
 ### Actor Model vs Multithreading (Ruby, Javascript and Python)
-# TODO
+# TODO Contrast
+1. CPU interaction/scheduling/concurrency
+   How is this done in ruby/js/py? Threads? What are the issues here? Deadlock, null pointer?
+  comparable? short concise overview and contrast.
+
+2. How do we handle shared resources in processes 
+
+3. How do we handle async failures?
+
 
 ### Actor Model vs csp routines (goroutines)
-# TODO
+1. CPU interaction/scheduling/concurrency
+   goroutines what are the issues here? deadlock, null pointer?
+   comparable? short concise overview and contrast.
 
-### Erlang processes vs the EVM model [bonus content]
-EVM is a Single-Threaded state machine. [[5]](#references)
+2. How do we handle shared resources across nodes 
+locks and mutexes
+
+3. How do we handle async failures?
+
+### Erlang processes vs the EVM model [bonus content - might not add to be decided]
+EVM is a Single-Threaded state machine. [[6]](#references)
 
 ## References
 
@@ -135,8 +164,10 @@ EVM is a Single-Threaded state machine. [[5]](#references)
 
 [3] Joe Armstrong(twitter): https://twitter.com/joeerl/status/1010485913393254401
 
-[4] Erlang documentation: https://www.erlang.org/doc/efficiency_guide/processes.html
+[4] Erlang documentation: https://www.erlang.org/doc/reference_manual/processes.html
 
-[5] coinmonks(medium): https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12
+[5] Erlang documentation: https://www.erlang.org/doc/efficiency_guide/processes.html
+
+[6] coinmonks(medium): https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12
 
 
