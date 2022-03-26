@@ -15,7 +15,13 @@ virtual machine can understand known as bytecode, via the <code>C</code> program
 assembly/machine instructions, 1&rsquo;s and 0&rsquo;s.</p><p><strong>source code</strong> &mdash;> <strong>c interface</strong> &mdash;> <strong>bytecode</strong></p><p>Most of the interesting <a href=https://en.wikipedia.org/wiki/Actor_model>concurrency primitives</a> that erlang/elixir provide
 are built on top of the <a href=https://ferd.ca/it-s-about-the-guarantees.html>guarantees</a> this virtual machine provides such
 as immutable state. The single basic unit being a process -
-an isolated sequential unit of computation which is managed by a scheduler an important construct.</p><h3 id=erlangs-scheduler>Erlang’s scheduler</h3><p>The scheduler within the BEAM runtime (not an <a href=https://en.wikipedia.org/wiki/Scheduling_(computing)>operating system scheduler</a>),
+an isolated sequential unit of computation which is managed by a scheduler an important construct.</p><pre tabindex=0><code>Note: you may think of a process as a kind of &#34;green thread&#34;,
+if familiar with the concept. Otherwise thinking of them
+as an abstract unit of sequential computation is fine, I do not
+know enough about compiler/os internals to voice an opinion 
+on the correct terminology.
+see: https://en.wikipedia.org/wiki/Green_threads
+</code></pre><h2 id=erlangs-scheduler>Erlang’s scheduler</h2><p>The scheduler within the BEAM runtime (not an <a href=https://en.wikipedia.org/wiki/Scheduling_(computing)>operating system scheduler</a>),
 talks to the operating system via <a href=https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/4_Threads.html>threads</a> and
 manages the <a href=https://hamidreza-s.github.io/erlang/scheduling/real-time/preemptive/migration/2016/02/09/erlang-scheduler-details.html>how and when</a>
 of computations (processes - in the vm). It does something called preemptive scheduling which requires making
@@ -25,26 +31,35 @@ to make some important guarantees which make fault tolerance possible:</p><ol><l
 of processes that inspect others, we can leverage this information to make intelligent deductions about what is happening
 within the system at runtime and design strategies to deal with and understand crashes and fail states,
 while also providing concurrent primitives that naturally scale across distributed systems,
-changing very little about the core system.</p><p><img src=/observer.png alt="Observer showing scheduling"></p><h3 id=scheduling-processes>Scheduling Processes</h3><p>You can see the scheduler at work by spinning up a few short-lived processes which begin their life time with about
-two kilobytes of memory which can grow on a:</p><ol><li>stack</li><li>heap</li></ol><p>Here you have the parent process creating another process that sends it messages:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=c1># the current parent process&#39;s identifier</span>
-</span></span><span class=line><span class=cl><span class=n>current</span> <span class=o>=</span> <span class=n>self</span><span class=p>()</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=n>child</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> 
+changing very little about the core system.</p><p>A typical illustration of erlang introspective superpowers is <code>:observer</code> which ships by default. Pop <code>:observer.start()</code>
+into any <code>iex</code> session and watch the magic.
+<img src=/observer.png alt="Observer showing scheduling"></p><h2 id=scheduling-processes>Scheduling Processes</h2><p>You can see the scheduler at work by spinning up a few short-lived processes which begin their lifetime[1] with about
+<a href=https://en.wikipedia.org/wiki/Word_(computer_architecture)>326 words of memory</a> which can
+<a href=https://www.erlang.org/doc/man/erts_alloc.html>grow</a> on a:</p><ol><li>stack</li><li>heap</li></ol><p>Here you have <code>self()</code> as the <code>iex</code> session, creating another process then it communicates with:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=n>iex</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span><span class=o>&gt;</span> <span class=n>current</span> <span class=o>=</span> <span class=n>self</span><span class=p>()</span>
+</span></span><span class=line><span class=cl><span class=n>iex</span><span class=p>(</span><span class=mi>2</span><span class=p>)</span><span class=o>&gt;</span> <span class=n>child</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> 
 </span></span><span class=line><span class=cl>  <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=c1># child indentifier</span>
-</span></span><span class=line><span class=cl>    <span class=n>self</span><span class=p>(),</span> 
-</span></span><span class=line><span class=cl>    <span class=s2>&#34;computation&#34;</span><span class=p>})</span>
+</span></span><span class=line><span class=cl>    <span class=c1># new identifier process created by spawn</span>
+</span></span><span class=line><span class=cl>    <span class=n>self</span><span class=p>(),</span>
+</span></span><span class=line><span class=cl>    <span class=c1># any arbitrary sequential computation</span>
+</span></span><span class=line><span class=cl>    <span class=c1># looping, control flow, anything :O</span>
+</span></span><span class=line><span class=cl>    <span class=mi>1</span> <span class=o>+</span> <span class=mi>1</span><span class=p>})</span>
 </span></span><span class=line><span class=cl><span class=k>end</span><span class=p>)</span>
-</span></span></code></pre></div><p>some more for good measure:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=n>child_two</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation two&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=n>child_three</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation three&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=n>child_four</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation four&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
-</span></span><span class=line><span class=cl><span class=n>child_five</span> <span class=o>=</span> <span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=n>send</span><span class=p>(</span><span class=n>current</span><span class=p>,</span> <span class=p>{</span><span class=n>self</span><span class=p>(),</span> <span class=s2>&#34;computation five&#34;</span><span class=p>})</span> <span class=k>end</span><span class=p>)</span>
-</span></span></code></pre></div><p>Processes have an <code>identity</code> via their <code>pid</code>, this is how they are aware of one another, when the scheduler(on one core)
-sees these concurrent tasks, it allocates some time and memory at runtime to <code>child</code> and lets it run for a bit, if the process does not
-finish(an infinite loop for example), the scheduler moves on to <code>child_two</code> and so on, checking up on each process,
-computing a bit.</p><h3 id=its-all-about-tradeoffs>It&rsquo;s all about tradeoffs</h3><p>Elixir provides a beautiful modern language that allows you to leverage athe amazing ecosystem and novel concurrency ideas
-built into erlang, this design offers you tools and design to create highly fault-tolerant, self-healing systems, sometimes
-at the cost of absolute runtime performance. You can see this with need to replicate data structures and performing
-computationally intensive tasks would make sense to be processed sequentially. Do not despair however, you can simply
-outsource this kind of heavy-lifting if required to a service in a different language or carefully poke a hole into the
-C interface via Native Implementation Functions, where in C++ or perhaps rust via <a href=https://github.com/rusterlium/rustler>rustler</a>.</p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
+</span></span></code></pre></div><p>We can then leverage the high level <code>Process</code> library for convenience, to create more processes, thousands or even millions
+if need be:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=n>child_two</span> <span class=o>=</span> <span class=nc>Process</span><span class=o>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=mi>1</span> <span class=o>+</span> <span class=mi>2</span> <span class=k>end</span><span class=p>,</span> <span class=p>[</span><span class=ss>:monitor</span><span class=p>])</span>
+</span></span><span class=line><span class=cl><span class=n>child_three</span> <span class=o>=</span> <span class=nc>Process</span><span class=o>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=mi>1</span> <span class=o>+</span> <span class=mi>3</span> <span class=k>end</span><span class=p>,</span> <span class=p>[</span><span class=ss>:monitor</span><span class=p>])</span>
+</span></span><span class=line><span class=cl><span class=n>child_four</span> <span class=o>=</span> <span class=nc>Process</span><span class=o>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=mi>1</span> <span class=o>+</span> <span class=mi>4</span> <span class=k>end</span><span class=p>,</span> <span class=p>[</span><span class=ss>:monitor</span><span class=p>])</span>
+</span></span><span class=line><span class=cl><span class=n>child_five</span> <span class=o>=</span> <span class=nc>Process</span><span class=o>.</span><span class=n>spawn</span><span class=p>(</span><span class=k>fn</span> <span class=o>-&gt;</span> <span class=mi>1</span> <span class=o>+</span> <span class=mi>5</span> <span class=k>end</span><span class=p>,</span> <span class=p>[</span><span class=ss>:monitor</span><span class=p>])</span>
+</span></span></code></pre></div><p>Processes have an <code>identity</code> via their <code>pid</code>, this is how they are aware of one another. The return value of each child
+looks a little like this (note the pid and reference will be different on your machine).</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-elixir data-lang=elixir><span class=line><span class=cl><span class=c1># {#PID&lt;0.93.0&gt;, #Reference&lt;0.18808174.1939079169.202418&gt;}</span>
+</span></span></code></pre></div><p>when the scheduler(on one core) sees these concurrent tasks, it allocates some time and memory at runtime to <code>child</code>
+and lets it run for a bit, if the process does not finish(an infinite loop for example), the scheduler moves on to
+<code>child_two</code> and so on, checking up on each process, computing a bit. Scheduling multiple cores works the same way, only
+you&rsquo;d need a way to manage the global name space of running processes.</p><h2 id=its-all-about-tradeoffs>It&rsquo;s all about tradeoffs</h2><p>Elixir provides a beautiful modern language that allows you to leverage the amazing ecosystem and novel concurrency ideas
+built into erlang, offering you the tools to create and design highly fault-tolerant, self-healing systems, sometimes
+at the cost of <em>absolute runtime performance</em>. You can see this with need to replicate data structures and performing
+computationally intensive tasks that would make sense to be processed sequentially. Do not despair however, you can
+carefully poke a hole into the runtime through the C interface via
+<a href="https://www.erlang.org/doc/tutorial/nif.html#:~:text=A%20NIF%20is%20a%20function,UNIX%2C%20DLL%20in%20Windows">Native Implementation Functions</a>,
+whether in C++ or perhaps rust via <a href=https://github.com/rusterlium/rustler>rustler</a>. Or outsource this kind of
+heavy-lifting if required to a service in a different language. Let&rsquo;s explore at a high level the conceptual
+underpinnings of relatively more popular languages and how they stack up against the BEAM.</p><h3 id=multithreading-vs-actor-model-vs-csp-routines>Multithreading vs Actor model vs CSP routines</h3><h4 id=1-erlang-processes-vs-multithreading-ruby-javascript-and-python>1. Erlang processes vs Multithreading (Ruby, Javascript and Python)</h4><h1 id=todo>TODO</h1><h4 id=2-erlang-processes-vs-csp-routines-goroutines>2. Erlang processes vs csp routines (goroutines)</h4><h1 id=todo-1>TODO</h1><h2 id=references>References</h2><p>[1] Erlang documentation - <a href=https://www.erlang.org/doc/efficiency_guide/processes.html>https://www.erlang.org/doc/efficiency_guide/processes.html</a></p></article></main><footer id=footer>Copyright © 2021 Haile Lagi</footer></body></html>
