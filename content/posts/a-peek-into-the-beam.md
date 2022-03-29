@@ -182,7 +182,7 @@ as values passed between goroutines. If panicked routines crash they inform the 
 along swimmingly. 
 
 Reasoning about concurrency systems is somewhat trickier here but allows for performance fine-tuning if you can enforce mutual
-exclusion between goroutines. This freedom does come seemingly at a cost[6](#references) which it seems all
+exclusion between goroutines. This freedom does come seemingly at a cost[[6]](#references) which it seems all
 languages that do not enforce immutable data structures and performance fine-tuning an exception rather than the norm,
 but of course it all depends on context and use case.
 
