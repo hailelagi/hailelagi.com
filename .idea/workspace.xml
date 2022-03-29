@@ -22,7 +22,8 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
+    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="fix(a peek into the beam): fix phrasing suggesting a single scheduler">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/posts/a-peek-into-the-beam.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -88,7 +89,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore: hugo boilerplate and cname setup" />
     <MESSAGE value="chore: update config" />
     <MESSAGE value="feat: import technical articles from dev.to" />
     <MESSAGE value="feat: nav links and syntax highlight change" />
@@ -113,6 +113,7 @@
     <MESSAGE value="feat(a peek into the beam): unedited final draft" />
     <MESSAGE value="fix(a peek into the beam): cleanup" />
     <MESSAGE value="fix(a peek into the beam): cleanup add acknowledgements" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(a peek into the beam): cleanup add acknowledgements" />
+    <MESSAGE value="fix(a peek into the beam): fix phrasing suggesting a single scheduler" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(a peek into the beam): fix phrasing suggesting a single scheduler" />
   </component>
 </project>

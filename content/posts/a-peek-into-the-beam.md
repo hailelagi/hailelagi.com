@@ -1,9 +1,10 @@
 ---
 title: "A Peek Into the Beam"
-date: 2022-03-02T08:16:09+01:00
+date: 2022-03-29T08:16:09+01:00
 draft: false
 tags: go, python, elixir, erlang, scheduler, concurrency
 ---
+_First Draft: date: 2022-03-02T08:16:09+01:00_
 
 A long time ago, you would give a computer an intensive set of instructions - in assembly or something more sane, and 
 it would compute these instructions one by one, but while it did that - it would “freeze up” you could not really do much
