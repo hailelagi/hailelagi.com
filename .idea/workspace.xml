@@ -110,6 +110,7 @@
     <MESSAGE value="fix: cleanup references" />
     <MESSAGE value="fix: update date" />
     <MESSAGE value="fix(tbd): clean up and restructure" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(tbd): clean up and restructure" />
+    <MESSAGE value="chore: scope peak into the beam" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: scope peak into the beam" />
   </component>
 </project>

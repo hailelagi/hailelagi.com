@@ -109,18 +109,11 @@ and lets it run for a bit, if the process does not finish(an infinite loop for e
 works the same way, only you'd need a different way to [manage the global name space](https://github.com/uwiger/gproc)
 of running processes.
 
-**todo(useful notes): Expand on high availability and isolated failure states**
-1. We don't interact with the CPU, which your article pointed out - we think “processe” -
-   small, non-shared state and isolated failure. how to fault tolerance.
-
-2. How do we handle shared resources in processes in Elixir - I'd suggest you focus on a “Genserver” as the ideal process/
-Agent
-
-3. How do we handle async failures? You can mention supervisors e.t.c
+High availability and isolated failure states are achieved via messages propagated through a web of processes. Leading to
+interesting high level abstractions such as [supervisors](https://www.hailelagi.com/posts/dev/break-your-next-server/) 
+and [agents](https://www.hailelagi.com/posts/dev/break-your-next-server/) for handling local inter process state.
 
 ## It's all about tradeoffs
-### (Multithreading vs Actor model vs CSP routines)
-
 Elixir provides a beautiful modern language that allows you to leverage the amazing ecosystem and novel concurrency ideas
 built into erlang, offering you the tools to create and design highly fault-tolerant, self-healing systems, sometimes
 at the cost of _absolute runtime performance_. You can see this with need to replicate data structures and performing 
@@ -131,32 +124,56 @@ whether in C++ or perhaps rust via [rustler](https://github.com/rusterlium/rustl
 heavy-lifting if required to a service in a different language. Let's explore at a high level the conceptual 
 underpinnings of relatively more popular languages and how they stack up against the BEAM's approach.
 
-### Actor Model vs Multithreading (Ruby, Javascript and Python)
-Ruby - single thread (via Thread, Fibre)
-multithreading via (Ractor)
-Javascript - single thread - (event loop via libuv)
-Python - Single thread - (event loop via asyncio)
+### Actor Model vs Single Thread(multithreading) (Ruby, Javascript and Python)
+Ruby, Javascript and Python all have different concurrent models and implementations, however they share some important 
+similarities at a high enough level they can be grouped together. Ruby(MRI), CPython and Javascript's v8 runtime(node.js)
+are all single threaded. Concurrency is achieved via a single Process(operating system) which has one large "main" 
+thread(where the runtime is loaded) which creates smaller threads of execution within a single context(system resources - memory etc).
 
-CPU interaction/scheduling/concurrency
-1. Single/Multi threading
-2. Symmetric multiprocessing 
-3. Multiprocessing
-4. Event Loop/Runtime
-5. How to handle shared resources
-6. How to handle async failures
+```
+Note: You can infact create analagous threads of execution beyond what is given but doing so is expensive and tricky.
+```
 
+Node.js in design was especially optimised with this design early on. The limitations here are somewhat obvious, utilising 
+a multicore architecture is incredibly difficult and burdens the application developer with the nuances of lower level 
+details you'll simply not interface with in erlang. Ruby and Python however need a mechanism called a Global Interpreter Lock(GIL) 
+to enforce/sync the runtime and make a data race impossible. This is often called a _mutual exclusion lock_ and the algorithm 
+is plenty fascinating and deserving of its own article.
+
+The primitives given are fairly similar ruby gives you a [Thread class](https://ruby-doc.org/core-3.0.0/Thread.html) 
+and [Fibre](https://ruby-doc.org/core-3.0.0/Fiber.html) to create worker threads, node gives you access to the main 
+libuv[11](#references) managed [Process](https://nodejs.org/api/process.html#process) and one for when you're 
+creating [worker threads](https://nodejs.org/api/worker_threads.html)
+
+To utilise any form of thread parallel execution python provides a [library interface](https://docs.python.org/3/library/multiprocessing.html),
+ruby core has been experimenting with and recently released an actor model inspired mechanism called [Ractor](https://docs.ruby-lang.org/en/3.0/Ractor.html).
+
+In practice when creating say a web server with these languages an `Event Loop`[9](#references)[1](#references) handles 
+the heavy lifting within the main thread, resources are simply not shared and asynchronous failures caught with lots and 
+lots of defensive programming.
 
 ### Actor Model vs csp routines (goroutines)
-CPU interaction/scheduling/concurrency
-1. Single/Multi threading
-2. Symmetric multiprocessing
-3. Multiprocessing
-4. goroutines, channels, select and sync
-5. How to handle shared resources 
-6. How to handle async failures
+In some ways erlang and go share some features of their concurrent model - leverage better a symmetric multiprocessing
+architecture with the core key difference eloquently expressed by a deceptively simple philosophy:
+```
+Do not communicate by sharing memory; instead, share memory by communicating
+```
+Goroutines are analogous to "processes" being a lightweight "unit" of computation, however they have no identity(pid). 
+This isolation ensures the only way data moves is through a "channel", a departure from the concept of a mailbox that 
+keeps track of immutable internal state, a channel serves the purpose of message passing between anonymous actors.
 
-### Erlang processes vs the EVM model [bonus content - might not add to be decided]
-EVM is a Single-Threaded state machine. [[6]](#references)
+By opening a channel to some forgotten computation you can peek it's state and enforce synchronisation.
+
+Resources are shared with carefully crafted rules. The analog of a supervisor being a "monitor goroutine". 
+The sole writer of data in any cluster of spawned processes. This too is a form of message passing, just implemented
+with a kind of artificial immutability for workers. Runtime failures (panics) are rarer in go, and instead errors treated 
+as values passed between goroutines. If panicked routines crash they inform the main go thread and the whole thing carries 
+along swimmingly. 
+
+Reasoning about concurrency systems is somewhat trickier here but allows for performance fine-tuning if you can enforce mutual
+exclusion between goroutines. This freedom does come seemingly at a [cost](https://go.dev/ref/mem) which it seems all
+languages that do not enforce immutable data structures and performance fine-tuning an exception rather than the norm,
+but of course it all depends on context and use case.
 
 ## References
 
