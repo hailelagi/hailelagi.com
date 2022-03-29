@@ -66,7 +66,7 @@ iex(1)> :observer.start()
 
 ![Observer showing scheduling](/observer.png)
 
-You can see the scheduler at work by spinning up a few short-lived processes which begin their lifetime[[4]](#references) 
+You can see the schedulers at work by spinning up a few short-lived processes which begin their lifetime[[4]](#references) 
 with about [326 words of memory](https://en.wikipedia.org/wiki/Word_(computer_architecture)) (approximately 0.65 kilobytes) 
 which can [grow](https://www.erlang.org/doc/man/erts_alloc.html) on a stack or heap.
 
@@ -108,6 +108,14 @@ and lets it run for a bit, if the process does not finish(an infinite loop for e
 [local registry](https://hexdocs.pm/elixir/1.13/Registry.html) for a single node. Scheduling across multiple nodes
 works the same way, only you'd need a different way to [manage the global name space](https://github.com/uwiger/gproc)
 of running processes.
+
+```
+Note: There are likely many scheduler threads coordinating 
+on this activity on a single core, and at least one per
+operating system process. Further details are subject to
+which version of Erlang/OTP you're running and the implementation
+has varied significantly over the years and may change.
+```
 
 High availability and isolated failure states are achieved via messages propagated through a web of processes. Leading to
 interesting high level abstractions such as [supervisors](https://www.hailelagi.com/posts/dev/break-your-next-server/) 
