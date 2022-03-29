@@ -112,6 +112,7 @@
     <MESSAGE value="fix(tbd): clean up and restructure" />
     <MESSAGE value="chore: scope peak into the beam" />
     <MESSAGE value="feat(a peek into the beam): unedited final draft" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(a peek into the beam): unedited final draft" />
+    <MESSAGE value="fix(a peek into the beam): cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(a peek into the beam): cleanup" />
   </component>
 </project>

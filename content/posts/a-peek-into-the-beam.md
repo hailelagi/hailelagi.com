@@ -153,15 +153,15 @@ In practice, when creating say a web server with these languages an `Event Loop`
 [[12]](#references) handles the heavy lifting within the main thread, resources are simply not shared and asynchronous 
 failures caught with lots and lots of defensive programming.
 
-### Actor Model vs csp routines (goroutines)
-In some ways erlang and go share some features of their concurrent model - leverage better a symmetric multiprocessing
-architecture with the core key difference eloquently expressed by a deceptively simple philosophy:
+### Actor Model vs Communicating sequential processes (goroutines)
+In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
+architecture with the key difference eloquently expressed by a deceptively simple philosophy:
 ```
 Do not communicate by sharing memory; instead, share memory by communicating
 ```
 Goroutines are analogous to "processes" being a lightweight "unit" of computation, however they have no identity(pid). 
 This isolation ensures the only way data moves is through a "channel", a departure from the concept of a mailbox that 
-keeps track of immutable internal state, a channel serves the purpose of message passing between anonymous actors.
+keeps track of immutable internal state, a channel serves the purpose of message passing between anonymous routines.
 
 By opening a channel to some forgotten computation you can peek it's state and enforce synchronisation.
 
@@ -175,6 +175,8 @@ Reasoning about concurrency systems is somewhat trickier here but allows for per
 exclusion between goroutines. This freedom does come seemingly at a cost[6](#references) which it seems all
 languages that do not enforce immutable data structures and performance fine-tuning an exception rather than the norm,
 but of course it all depends on context and use case.
+
+_Thanks to [Ayomide](https://github.com/ponty96) and [Daniel](https://github.com/derhnyel) for reviewing early drafts of this article._
 
 ## References
 
