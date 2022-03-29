@@ -131,26 +131,27 @@ are all single threaded. Concurrency is achieved via a single Process(operating 
 thread(where the runtime is loaded) which creates smaller threads of execution within a single context(system resources - memory etc).
 
 ```
-Note: You can infact create analagous threads of execution beyond what is given but doing so is expensive and tricky.
+Note: You can infact create analagous threads of execution
+beyond what is given but doing so is expensive and tricky.
 ```
 
-Node.js in design was especially optimised with this design early on. The limitations here are somewhat obvious, utilising 
+Node.js in particular was especially optimised with this design early on. The limitations here are somewhat obvious, utilising 
 a multicore architecture is incredibly difficult and burdens the application developer with the nuances of lower level 
-details you'll simply not interface with in erlang. Ruby and Python however need a mechanism called a Global Interpreter Lock(GIL) 
+details you'll simply not interface with in erlang/elixir. Ruby and Python historically however needed a mechanism called a Global Interpreter Lock(GIL) 
 to enforce/sync the runtime and make a data race impossible. This is often called a _mutual exclusion lock_ and the algorithm 
 is plenty fascinating and deserving of its own article.
 
-The primitives given are fairly similar ruby gives you a [Thread class](https://ruby-doc.org/core-3.0.0/Thread.html) 
+The primitives given are fairly similar - ruby gives you a [Thread class](https://ruby-doc.org/core-3.0.0/Thread.html) 
 and [Fibre](https://ruby-doc.org/core-3.0.0/Fiber.html) to create worker threads, node gives you access to the main 
-libuv[11](#references) managed [Process](https://nodejs.org/api/process.html#process) and one for when you're 
-creating [worker threads](https://nodejs.org/api/worker_threads.html)
+libuv[[11]](#references) managed [Process](https://nodejs.org/api/process.html#process) and one for when you're 
+creating [worker threads](https://nodejs.org/api/worker_threads.html).
 
 To utilise any form of thread parallel execution python provides a [library interface](https://docs.python.org/3/library/multiprocessing.html),
 ruby core has been experimenting with and recently released an actor model inspired mechanism called [Ractor](https://docs.ruby-lang.org/en/3.0/Ractor.html).
 
-In practice when creating say a web server with these languages an `Event Loop`[9](#references)[1](#references) handles 
-the heavy lifting within the main thread, resources are simply not shared and asynchronous failures caught with lots and 
-lots of defensive programming.
+In practice, when creating say a web server with these languages an `Event Loop`[[9]](#references)[[11]](#references)
+[[12]](#references) handles the heavy lifting within the main thread, resources are simply not shared and asynchronous 
+failures caught with lots and lots of defensive programming.
 
 ### Actor Model vs csp routines (goroutines)
 In some ways erlang and go share some features of their concurrent model - leverage better a symmetric multiprocessing
@@ -171,7 +172,7 @@ as values passed between goroutines. If panicked routines crash they inform the 
 along swimmingly. 
 
 Reasoning about concurrency systems is somewhat trickier here but allows for performance fine-tuning if you can enforce mutual
-exclusion between goroutines. This freedom does come seemingly at a [cost](https://go.dev/ref/mem) which it seems all
+exclusion between goroutines. This freedom does come seemingly at a cost[6](#references) which it seems all
 languages that do not enforce immutable data structures and performance fine-tuning an exception rather than the norm,
 but of course it all depends on context and use case.
 
@@ -187,7 +188,7 @@ but of course it all depends on context and use case.
 
 [5] Erlang documentation: https://www.erlang.org/doc/efficiency_guide/processes.html
 
-[6] coinmonks(medium): https://medium.com/coinmonks/concurrency-and-parallelism-in-smart-contracts-part-1-10e8f6ecfa12
+[6] go reference: https://go.dev/ref/mem
 
 [7] stackoverflow: https://stackoverflow.com/questions/2708033/technically-why-are-processes-in-erlang-more-efficient-than-os-threads
 
@@ -199,3 +200,4 @@ but of course it all depends on context and use case.
 
 [11] node io: https://github.com/libuv/libuv
 
+[12] RoR documentation: https://guides.rubyonrails.org/threading_and_code_execution.html
