@@ -166,7 +166,8 @@ failures caught with lots and lots of defensive programming.
 In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
 architecture with the key difference eloquently expressed by a deceptively simple philosophy:
 ```
-Do not communicate by sharing memory; instead, share memory by communicating
+Do not communicate by sharing memory; 
+instead, share memory by communicating
 ```
 Goroutines are analogous to "processes" being a lightweight "unit" of computation, however they have no identity(pid). 
 This isolation ensures the only way data moves is through a "channel", a departure from the concept of a mailbox that 
