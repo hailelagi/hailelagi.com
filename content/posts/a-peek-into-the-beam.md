@@ -159,8 +159,8 @@ To utilise any form of thread parallel execution python provides a [library inte
 ruby core has been experimenting with and recently released an actor model inspired mechanism called [Ractor](https://docs.ruby-lang.org/en/3.0/Ractor.html).
 
 In practice, when creating say a web server with these languages an `Event Loop`[[9]](#references)[[10]](#references)
-[[12]](#references) handles the heavy lifting within the main thread, resources are simply not shared and asynchronous 
-failures caught with lots and lots of defensive programming.
+[[11]](#references)[[12]](#references) handles the heavy lifting within the main thread, resources are simply not shared 
+and asynchronous failures caught with lots and lots of defensive programming.
 
 ### Actor Model vs Communicating sequential processes (goroutines)
 In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
