@@ -164,7 +164,7 @@ failures caught with lots and lots of defensive programming.
 
 ### Actor Model vs Communicating sequential processes (goroutines)
 In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
-architecture with the key difference eloquently expressed by a deceptively simple philosophy:
+[[8]](#references) architecture with the key difference eloquently expressed by a deceptively simple philosophy:
 ```
 Do not communicate by sharing memory; 
 instead, share memory by communicating

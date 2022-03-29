@@ -88,7 +88,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: nav links and syntax highlight change" />
     <MESSAGE value="feat: dracula stylesheet" />
     <MESSAGE value="chore: trim old posts" />
     <MESSAGE value="feat: add new post draft" />
@@ -113,6 +112,7 @@
     <MESSAGE value="fix(a peek into the beam): fix phrasing suggesting a single scheduler" />
     <MESSAGE value="chore(a peek into the beam): timeline" />
     <MESSAGE value="fix(a peek into the beam): block space note" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(a peek into the beam): block space note" />
+    <MESSAGE value="fix(a peek into the beam): bad ref" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(a peek into the beam): bad ref" />
   </component>
 </project>
