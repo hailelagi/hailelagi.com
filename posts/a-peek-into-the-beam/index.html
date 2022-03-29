@@ -84,8 +84,8 @@ and <a href=https://ruby-doc.org/core-3.0.0/Fiber.html>Fibre</a> to create worke
 libuv<a href=#references>[11]</a> managed <a href=https://nodejs.org/api/process.html#process>Process</a> and one for when you&rsquo;re
 creating <a href=https://nodejs.org/api/worker_threads.html>worker threads</a>.</p><p>To utilise any form of thread parallel execution python provides a <a href=https://docs.python.org/3/library/multiprocessing.html>library interface</a>,
 ruby core has been experimenting with and recently released an actor model inspired mechanism called <a href=https://docs.ruby-lang.org/en/3.0/Ractor.html>Ractor</a>.</p><p>In practice, when creating say a web server with these languages an <code>Event Loop</code><a href=#references>[9]</a><a href=#references>[10]</a>
-<a href=#references>[12]</a> handles the heavy lifting within the main thread, resources are simply not shared and asynchronous
-failures caught with lots and lots of defensive programming.</p><h3 id=actor-model-vs-communicating-sequential-processes-goroutines>Actor Model vs Communicating sequential processes (goroutines)</h3><p>In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
+<a href=#references>[11]</a><a href=#references>[12]</a> handles the heavy lifting within the main thread, resources are simply not shared
+and asynchronous failures caught with lots and lots of defensive programming.</p><h3 id=actor-model-vs-communicating-sequential-processes-goroutines>Actor Model vs Communicating sequential processes (goroutines)</h3><p>In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
 <a href=#references>[8]</a> architecture with the key difference eloquently expressed by a deceptively simple philosophy:</p><pre tabindex=0><code>Do not communicate by sharing memory; 
 instead, share memory by communicating
 </code></pre><p>Goroutines are analogous to &ldquo;processes&rdquo; being a lightweight &ldquo;unit&rdquo; of computation, however they have no identity(pid).
