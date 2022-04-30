@@ -88,7 +88,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: dracula stylesheet" />
     <MESSAGE value="chore: trim old posts" />
     <MESSAGE value="feat: add new post draft" />
     <MESSAGE value="chore: build trigger" />
@@ -113,6 +112,7 @@
     <MESSAGE value="chore(a peek into the beam): timeline" />
     <MESSAGE value="fix(a peek into the beam): block space note" />
     <MESSAGE value="fix(a peek into the beam): bad ref" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(a peek into the beam): bad ref" />
+    <MESSAGE value="feat(idea): design patterns" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(idea): design patterns" />
   </component>
 </project>
