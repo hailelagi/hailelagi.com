@@ -1,7 +1,7 @@
 baseURL = "https://www.hailelagi.com/"
 languageCode = "en-us"
 title = "Haile Lagi"
-theme = "etch"
+theme = ["etch"]
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 
@@ -10,6 +10,7 @@ pygmentsCodeFences = true
   copyright = "Copyright © 2022 Haile Lagi"
   dark = "off"
   highlight = true
+  custom_css = ["css/bridge.css"]
 
 [menu]
   [[menu.main]]
@@ -17,11 +18,11 @@ pygmentsCodeFences = true
     name = "work"
     title = "work"
     url = "https://www.github.com/hailelagi"
-    weight = 20
+    weight = 25
 
   [[menu.main]]
-    identifier = "about"
-    name = "about"
-    title = "about"
-    url = ""
-    weight = 20
+    identifier = "readme"
+    name = "readme"
+    title = "readme"
+    url = "/readme"
+    weight = 25
