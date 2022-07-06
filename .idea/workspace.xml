@@ -23,11 +23,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/css/bridge.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/header.html" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/layouts/partials/header.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/assets/css/main.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,7 +91,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: add new post draft" />
     <MESSAGE value="chore: build trigger" />
     <MESSAGE value="chore: build re-trigger" />
     <MESSAGE value="chore: remove public folder" />
@@ -117,6 +115,7 @@
     <MESSAGE value="fix(a peek into the beam): bad ref" />
     <MESSAGE value="feat(idea): design patterns" />
     <MESSAGE value="feat(idea): recursion" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(idea): recursion" />
+    <MESSAGE value="feat: add readme" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add readme" />
   </component>
 </project>

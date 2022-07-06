@@ -14,10 +14,10 @@ pygmentsCodeFences = true
 
 [menu]
   [[menu.main]]
-    identifier = "work"
-    name = "work"
-    title = "work"
-    url = "https://www.github.com/hailelagi"
+    identifier = "resume"
+    name = "resume"
+    title = "resume"
+    url = "/resume.pdf"
     weight = 25
 
   [[menu.main]]
@@ -26,3 +26,12 @@ pygmentsCodeFences = true
     title = "readme"
     url = "/readme"
     weight = 25
+
+  [[menu.main]]
+    identifier = "work"
+    name = "work"
+    title = "work"
+    url = "https://www.github.com/hailelagi"
+    weight = 25
+
+

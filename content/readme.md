@@ -9,9 +9,12 @@ I've recently been experimenting with rust but primarily focused on getting my f
 
 I'm currently exploring:
  - algorithms and data structures
+ - cryptography basics
  - [elixir in action](https://www.manning.com/books/elixir-in-action-second-edition)
  - [testing elixir](https://www.oreilly.com/library/view/testing-elixir/9781680508918/)
  
-My interests outside computer science are primarily philosophy and economics. My current bookshelf(June) is:
+
+My interests outside computer science are primarily philosophy and economics. My current bookshelf(June
+[and now july...backlog lol]) is:
  - [how to solve it](https://www.amazon.com/How-Solve-Mathematical-Princeton-Science/dp/069111966X)
  - [existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)
