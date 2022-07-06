@@ -10,7 +10,6 @@ pygmentsCodeFences = true
   copyright = "Copyright © 2022 Haile Lagi"
   dark = "off"
   highlight = true
-  custom_css = ["css/bridge.css"]
 
 [menu]
   [[menu.main]]
