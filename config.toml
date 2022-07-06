@@ -4,12 +4,12 @@ title = "Haile Lagi"
 theme = ["etch"]
 pygmentsUseClasses = true
 pygmentsCodeFences = true
-
 [params]
   description = "A repository for my thoughts"
   copyright = "Copyright © 2022 Haile Lagi"
   dark = "off"
   highlight = true
+  mainSections = ['technical', 'personal']
 
 [menu]
   [[menu.main]]

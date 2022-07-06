@@ -1,6 +1,6 @@
-<h3>Personal </h3>
+<h3> Personal </h3>
+{{ range where (where .Site.Pages "Section" "personal" ) ".IsPage" "==" true }}
 <ul id="posts">
-    {{- range where site.RegularPages "Type" "in" site.Params.mainSections }}
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}

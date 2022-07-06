@@ -1,6 +1,6 @@
 <h3>Technical </h3>
+{{ range where (where .Site.Pages "Section" "technical" ) ".IsPage" "==" true }}
 <ul id="posts">
-    {{- range where .Pages "Section" "technical" }}
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}
