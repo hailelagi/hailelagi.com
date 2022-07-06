@@ -2,7 +2,7 @@
 title: 'Deprecation v1'
 date: Sun, 06 Oct 2019 17:48:41 +0000
 draft: false
-tags: ['Uncategorized']
+tags: ['archive']
 ---
 
 ![](https://obsessedyouthhome.files.wordpress.com/2019/10/screenshot-99.png?w=1024)

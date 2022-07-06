@@ -55,10 +55,12 @@ header#banner nav ul {
 header#banner nav ul li {
     display: inline;
     margin: 0 3px;
+    text-decoration: underline;
+
 }
 
 header#banner nav ul li a {
-    color: #454545;
+    color: #4c525c;
 }
 
 main#content a {

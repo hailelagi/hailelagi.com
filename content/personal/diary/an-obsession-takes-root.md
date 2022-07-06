@@ -6,9 +6,6 @@ tags: ['Uncategorized']
 original: "https://atimetravellingghost.wordpress.com/"
 ---
 
-Essay into the mind of a learning self taught v2.1
---------------------------------------------------
-
 > “Anxiety is the dizziness of freedom.” 
 > 
 > — **Søren Kierkegaard**

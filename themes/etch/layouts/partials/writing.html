@@ -1,10 +1,9 @@
-<h4> Personal </h4>
-{{ range where (where .Site.Pages "Section" "personal")
-  ".IsPage" "==" true
-}}
+<h4 class="category">Writing </h4>
+{{ range where (where .Site.Pages "Section" "writing" ) ".IsPage" "==" true }}
+
 <ul id="posts">
-{{ if in .Params.tags "archive"}}
-{{ else }}
+  {{ if in .Params.tags "archive"}}
+  {{ else }}
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}
@@ -12,5 +11,5 @@
         </a>
     </li>
     {{- end }}
-{{ end }}
+  {{- end }}
 </ul>

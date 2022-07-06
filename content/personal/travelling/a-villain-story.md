@@ -2,7 +2,7 @@
 title: 'A villain story'
 date: Sun, 26 Mar 2017 00:49:32 +0000
 draft: false
-tags: ['religion', 'society', 'spinoza']
+tags: ['religion', 'society', 'spinoza', 'archive']
 ---
 
 Hey everyone, Before we delve into this its topic matter, it's well...controversial? I've been careful in selecting 

@@ -2,7 +2,7 @@
 title: 'White Ghosts and Dark Memories'
 date: Sun, 08 Jan 2017 00:17:03 +0000
 draft: false
-tags: ['philosophy', 'science']
+tags: ['philosophy', 'science', 'archive']
 ---
 
 1,2,3,4,5,6,7,8,9 and 10. It probably took that voice in your head, the whole of a few seconds to comprehend and interpret

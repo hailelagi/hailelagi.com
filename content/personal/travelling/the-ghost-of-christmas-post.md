@@ -2,7 +2,7 @@
 title: 'The Ghost of Christmas Post'
 date: Sun, 25 Dec 2016 08:23:52 +0000
 draft: false
-tags: ['blogging', 'christmas', 'Holiday special', 'holidays', 'ideas', 'random thoughts', 'thoughts']
+tags: ['blogging', 'christmas', 'Holiday special', 'holidays', 'ideas', 'random thoughts', 'thoughts', 'archive']
 ---
 
 Hey everyone, In case you haven't noticed and have somehow being in a coma and just woke up at the exact time your 

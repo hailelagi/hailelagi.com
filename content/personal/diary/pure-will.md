@@ -2,7 +2,7 @@
 title: 'Pure Will'
 date: Thu, 22 Aug 2019 21:08:15 +0000
 draft: false
-tags: ['Uncategorized']
+tags: ['Uncategorized', 'archive']
 ---
 
 There comes a time in every classical hero's journey that he must come to grips with. A crooked blade of potential and talent waiting to be molded in the fire of hardship, pain and challenge.

@@ -2,7 +2,7 @@
 title: 'Panic?'
 date: Sun, 27 Oct 2019 04:43:42 +0000
 draft: false
-tags: ['Uncategorized']
+tags: ['archive']
 ---
 
 So what's this all about? I think for a while now, I've been in panic mode. Worrying excessively over the future, over-analyzing and burdening myself with worry. Consider some of my previous articles where I expand on and detail my past experiences and failures. How they've dramatically shifted my life course from how I thought it would be, to how it actually ended up becoming. Sipping my really really dark cup of coffee this morning as I'm about to re-dive into html and css I realize maybe I've got this all wrong.

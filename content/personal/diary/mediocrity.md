@@ -2,7 +2,7 @@
 title: 'Mediocrity.'
 date: Mon, 30 Mar 2020 15:39:16 +0000
 draft: false
-tags: ['rants']
+tags: ['rants', 'archive']
 ---
 
 ### me•di•o•cre mē″dē-ō′kər►

@@ -1,11 +1,14 @@
-<h3>Technical </h3>
-{{ range where (where .Site.Pages "Section" "technical" ) ".IsPage" "==" true }}
+<h4 class="category">Hacks </h4>
+{{ range where (where .Site.Pages "Section" "hacks" ) ".IsPage" "==" true }}
 <ul id="posts">
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}
+            wip
             <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
         </a>
     </li>
     {{- end }}
 </ul>
+
+

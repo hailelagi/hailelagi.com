@@ -2,7 +2,7 @@
 title: 'The Problem with Economics'
 date: Mon, 05 Aug 2019 00:44:38 +0000
 draft: false
-tags: ['buisness', 'capitalism', 'economics', 'markets', 'philosophy', 'Uncategorized']
+tags: ['buisness', 'capitalism', 'economics', 'markets', 'philosophy', 'archive']
 ---
 
 This is a rant on a topic I'm fairly acquainted with and have no formal education in except the various books on economic theory I've read over the years purely out of interest. Forgive my many inaccuracies and off topic devolving into philosophy. If you have a differing opinion, see any error in my reasoning or I have my facts wrong. Kindly direct me further to the path of enlightenment, I'm eager to learn and genuinely not above being wrong (if you have a reasonable and sound argument based on facts) . This was inspired in most part by a youtube video of Peter Schiff a businessman, investor and overall self-made millionaire with fairly strong parental influences in economics, strong opinions on the American government and a somewhat tragic rebellious inheritance.

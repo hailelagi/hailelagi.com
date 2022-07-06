@@ -2,7 +2,7 @@
 title: 'So far..so good?'
 date: Sun, 22 Sep 2019 23:13:06 +0000
 draft: false
-tags: ['Uncategorized']
+tags: ['Uncategorized', 'archive']
 ---
 
 ![](https://obsessedyouthhome.files.wordpress.com/2019/09/obstacle_web_1024x1024.png?w=1024)

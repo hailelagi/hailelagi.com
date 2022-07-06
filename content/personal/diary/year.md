@@ -2,7 +2,7 @@
 title: 'Year.'
 date: Sat, 10 Aug 2019 18:56:12 +0000
 draft: false
-tags: ['Uncategorized']
+tags: ['archive']
 ---
 
 Year year year year year year year year year year year year year year year year year so after many many year the time had come for the year to end in a very yearly fashion for the years and years party of the awesomeness of the chateau du vale were simply too amazing to pass up this year also in the news this year the yearly year of the harvest year thing of years has come to be a yearly thing annually or yearly? This had me utterly perplexed at the benign nature of what has come to ultimately be the end of every very weird year year in year out we pray to the cake Gods for mercy but alas there is no cake this year either for many apple cider friters are on my mind to choke on the merciless year of reckoning but be that as it may I shall not faulter in my attempts of a graceful new year ye ye ye ye ye ye  ye ey ye ye ye ye ye ye ye year ear lend me and earful so that I may explain this years problem child year year who cant spell year? I mean it’s the simplest dum thing to know yunno? Also year year year year year year year year why ear toothpaste because that is simply the best alternative to whatever creepy thing you have planned fuck fuck fuck fuckity fuck fucked the fuckingly fuckers fuuuuckkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
