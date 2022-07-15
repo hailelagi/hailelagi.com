@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
     <MESSAGE value="feat(wip): beam scheduler" />
     <MESSAGE value="refactor: add :observer screenshot" />
     <MESSAGE value="feat: first draft" />
@@ -122,6 +121,7 @@
     <MESSAGE value="feat: simple categorize" />
     <MESSAGE value="fix: self referential page" />
     <MESSAGE value="refactor: archive non technical posts" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: archive non technical posts" />
+    <MESSAGE value="chore: update readme.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: update readme.md" />
   </component>
 </project>

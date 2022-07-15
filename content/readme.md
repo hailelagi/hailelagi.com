@@ -17,5 +17,5 @@ My interests outside computer science are primarily philosophy and economics. My
  - [existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)
 
 Stuff I've read recently:
-- ~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~
-- ~[how to solve it](https://www.amazon.com/How-Solve-Mathematical-Princeton-Science/dp/069111966X)~
+ - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~
+ - ~~how to solve it - George Pólya ~~
