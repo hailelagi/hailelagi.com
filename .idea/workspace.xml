@@ -23,41 +23,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/content/hacks/wip.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/themes/etch/layouts/partials/hacks.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/an-obsession-takes-root.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/an-obsession-takes-root.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/deprecation-v1.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/deprecation-v1.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/mediocrity.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/mediocrity.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/panic.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/panic.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/process.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/process.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/pure-will.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/pure-will.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/so-far-so-good.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/so-far-so-good.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/the-problem-with-economics.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/the-problem-with-economics.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/what-drives-you.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/what-drives-you.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/diary/year.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/year.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/i-quit.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/i-quit.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/travelling/a-villain-story.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/travelling/a-villain-story.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/travelling/the-ghost-of-christmas-post.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/travelling/the-ghost-of-christmas-post.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/personal/travelling/white-ghosts-and-dark-memories.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/travelling/white-ghosts-and-dark-memories.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/Detritus, bitrot, and the like.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/Detritus, bitrot, and the like.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/a-peek-into-the-beam.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/a-peek-into-the-beam.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/advanced-recursion.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/advanced-recursion.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/boredom.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/boredom.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/chemistry-love-and-bits.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/chemistry-love-and-bits.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/design-patterns.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/design-patterns.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/dev.to/break-your-next-server.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/break-your-next-server.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/dev.to/schrodinger-cats-and-boxes.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/schrodinger-cats-and-boxes.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/dev.to/the-weight-of-choice-is-heavy.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/the-weight-of-choice-is-heavy.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/dining.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dining.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/technical/macros.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/macros.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/bridge.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/assets/css/main.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/layouts/_default/list.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/layouts/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/personal.html" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/layouts/partials/personal.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/technical.html" beforeDir="false" afterPath="$PROJECT_DIR$/themes/etch/layouts/partials/writing.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -130,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore[temp]: delete README.md" />
     <MESSAGE value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
     <MESSAGE value="feat(wip): beam scheduler" />
     <MESSAGE value="refactor: add :observer screenshot" />
@@ -155,6 +121,7 @@
     <MESSAGE value="minor updates" />
     <MESSAGE value="feat: simple categorize" />
     <MESSAGE value="fix: self referential page" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: self referential page" />
+    <MESSAGE value="refactor: archive non technical posts" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor: archive non technical posts" />
   </component>
 </project>
