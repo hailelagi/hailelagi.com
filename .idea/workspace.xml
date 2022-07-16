@@ -22,11 +22,46 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
+    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="Merge branch 'main' into mirror-version">
+      <change afterPath="$PROJECT_DIR$/.hugo_build.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/hacks/wip.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/writing/a-peek-into-the-beam.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/writing/advanced-recursion.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/writing/design-patterns.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/writing/dining.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/writing/macros.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/layouts/_default/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/layouts/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/layouts/partials/personal.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/layouts/partials/writing.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/observer.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitmodules" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/blog.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/blog.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/css/syntax.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/syntax.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/Detritus, bitrot, and the like.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/Detritus, bitrot, and the like.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/boredom.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/boredom.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/chemistry-love-and-bits.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/chemistry-love-and-bits.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/dev/break-your-next-server.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/break-your-next-server.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/dev/schrodinger-cats-and-boxes.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/schrodinger-cats-and-boxes.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/dev/the-weight-of-choice-is-heavy.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/the-weight-of-choice-is-heavy.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/an-obsession-takes-root.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/an-obsession-takes-root.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/conquering-costlemark-towerand-what-it-taught-me-about-programming-and-life.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/deprecation-v1.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/deprecation-v1.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/i-quit.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/i-quit.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/mediocrity.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/mediocrity.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/panic.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/panic.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/process.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/process.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/pure-will.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/pure-will.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/so-far-so-good.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/so-far-so-good.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/the-problem-with-economics.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/the-problem-with-economics.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/what-drives-you.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/what-drives-you.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/diary/year.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/diary/year.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/a-villain-story.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/travelling/a-villain-story.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/the-ghost-of-christmas-post.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/travelling/the-ghost-of-christmas-post.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/posts/travelling/white-ghosts-and-dark-memories.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/travelling/white-ghosts-and-dark-memories.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/LICENSE" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/README.md" beforeDir="false" />
@@ -35,6 +70,13 @@
       <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/main.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/min770px.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/min770px.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/syntax.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/config.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/content/_index.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/content/about/index.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/content/posts/emoji-support.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/content/posts/markdown-syntax.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/content/posts/placeholder-text.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/exampleSite/content/posts/rich-content.md" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/images/screenshot.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/images/screenshot_dark.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/images/screenshot_small.png" beforeDir="false" />
@@ -42,16 +84,14 @@
       <change beforePath="$PROJECT_DIR$/themes/etch/images/tn_dark.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/404.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/404.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/baseof.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/baseof.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/list.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/rss.xml" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/rss.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/single.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/single.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/index.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/footer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/hacks.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/hacks.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/head.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/head.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/header.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/header.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/personal.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/personal.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/writing.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/writing.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/posts.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/hacks.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/layouts/shortcodes/toc.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/shortcodes/toc.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/themes/etch/theme.toml" beforeDir="false" />
     </list>
@@ -68,6 +108,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="MIXED" />
   </component>
@@ -126,7 +171,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: expand draft" />
     <MESSAGE value="feat: add new draft idea" />
     <MESSAGE value="feat: draft idea macros" />
     <MESSAGE value="fix: cleanup references" />
@@ -151,6 +195,7 @@
     <MESSAGE value="fix: strikethrough syntax" />
     <MESSAGE value="fix: annoying af space" />
     <MESSAGE value="chore: explicit nav" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: explicit nav" />
+    <MESSAGE value="Merge branch 'main' into mirror-version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'main' into mirror-version" />
   </component>
 </project>
