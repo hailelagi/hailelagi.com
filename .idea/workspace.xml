@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -20,18 +23,56 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitmodules" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/chemistry-love-and-bits-part-two.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/css/syntax.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/syntax.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/archetypes/default.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/dark.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/dark.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/main.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/min770px.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/min770px.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/assets/css/syntax.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/images/screenshot.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/images/screenshot_dark.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/images/screenshot_small.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/images/tn.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/images/tn_dark.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/404.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/404.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/baseof.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/baseof.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/rss.xml" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/rss.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/_default/single.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/single.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/footer.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/hacks.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/hacks.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/head.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/head.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/header.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/header.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/personal.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/personal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/partials/writing.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/writing.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/layouts/shortcodes/toc.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/shortcodes/toc.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/etch/theme.toml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="GOROOT" path="$PROJECT_DIR$/../../../../Program Files/Go" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="MIXED" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="1qhg1r2Ixym4ZOFIPtVHTmr9KzA" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -42,10 +83,16 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.format.on.save.advertiser.fired" value="true" />
+    <property name="go.formatter.settings.were.checked" value="true" />
     <property name="go.import.settings.migrated" value="true" />
+    <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
@@ -56,11 +103,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\user\GolandProjects\blog\content\posts" />
-      <recent name="C:\Users\user\GolandProjects\blog\content" />
-      <recent name="C:\Users\user\GolandProjects\blog" />
-      <recent name="C:\Users\user\GolandProjects\blog\content\wordpress_export" />
-      <recent name="C:\Users\user\GolandProjects\blog\static" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/assets/css" />
+      <recent name="$PROJECT_DIR$/content/personal" />
+      <recent name="$PROJECT_DIR$/content/posts" />
+      <recent name="$PROJECT_DIR$/static" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -77,43 +124,33 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore: hugo boilerplate and cname setup" />
-    <MESSAGE value="chore: update config" />
-    <MESSAGE value="feat: import technical articles from dev.to" />
-    <MESSAGE value="feat: nav links and syntax highlight change" />
-    <MESSAGE value="feat: dracula stylesheet" />
-    <MESSAGE value="chore: trim old posts" />
-    <MESSAGE value="feat: add new post draft" />
-    <MESSAGE value="chore: build trigger" />
-    <MESSAGE value="chore: build re-trigger" />
-    <MESSAGE value="chore: remove public folder" />
-    <MESSAGE value="chore[temp]: delete README.md" />
-    <MESSAGE value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
-    <option name="LAST_COMMIT_MESSAGE" value="Revert &quot;chore[temp]: delete README.md&quot;&#10;&#10;This reverts commit 9d49e991" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="516" y="0" key="CommitChangelistDialog2" timestamp="1622380746870">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="516" y="0" key="CommitChangelistDialog2/0.0.1366.768@0.0.1366.768" timestamp="1622380746870" />
-    <state x="0" y="58" key="DiffContextDialog" timestamp="1622367042770">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="0" y="58" key="DiffContextDialog/0.0.1366.768@0.0.1366.768" timestamp="1622367042770" />
-    <state x="235" y="65" key="RollbackChangesDialog" timestamp="1623328348962">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="235" y="65" key="RollbackChangesDialog/0.0.1366.768@0.0.1366.768" timestamp="1623328348962" />
-    <state x="24" y="120" key="Vcs.Push.Dialog.v2" timestamp="1622380589788">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="24" y="120" key="Vcs.Push.Dialog.v2/0.0.1366.768@0.0.1366.768" timestamp="1622380589788" />
-    <state x="500" y="297" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1622476583673">
-      <screen x="0" y="0" width="1366" height="768" />
-    </state>
-    <state x="500" y="297" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1366.768@0.0.1366.768" timestamp="1622476583673" />
+    <MESSAGE value="feat: expand draft" />
+    <MESSAGE value="feat: add new draft idea" />
+    <MESSAGE value="feat: draft idea macros" />
+    <MESSAGE value="fix: cleanup references" />
+    <MESSAGE value="fix: update date" />
+    <MESSAGE value="fix(tbd): clean up and restructure" />
+    <MESSAGE value="chore: scope peak into the beam" />
+    <MESSAGE value="feat(a peek into the beam): unedited final draft" />
+    <MESSAGE value="fix(a peek into the beam): cleanup" />
+    <MESSAGE value="fix(a peek into the beam): cleanup add acknowledgements" />
+    <MESSAGE value="fix(a peek into the beam): fix phrasing suggesting a single scheduler" />
+    <MESSAGE value="chore(a peek into the beam): timeline" />
+    <MESSAGE value="fix(a peek into the beam): block space note" />
+    <MESSAGE value="fix(a peek into the beam): bad ref" />
+    <MESSAGE value="feat(idea): design patterns" />
+    <MESSAGE value="feat(idea): recursion" />
+    <MESSAGE value="feat: add readme" />
+    <MESSAGE value="minor updates" />
+    <MESSAGE value="feat: simple categorize" />
+    <MESSAGE value="fix: self referential page" />
+    <MESSAGE value="refactor: archive non technical posts" />
+    <MESSAGE value="chore: update readme.md" />
+    <MESSAGE value="fix: strikethrough syntax" />
+    <MESSAGE value="fix: annoying af space" />
+    <MESSAGE value="chore: explicit nav" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: explicit nav" />
   </component>
 </project>

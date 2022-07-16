@@ -1,0 +1,16 @@
+<h4> Personal </h4>
+{{ range where (where .Site.Pages "Section" "personal")
+  ".IsPage" "==" true
+}}
+<ul id="posts">
+{{ if in .Params.tags "archive"}}
+{{ else }}
+    <li>
+        <a href="{{ .Permalink }}">
+            {{ .Title }}
+            <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
+        </a>
+    </li>
+    {{- end }}
+{{ end }}
+</ul>

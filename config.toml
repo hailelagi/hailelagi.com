@@ -1,27 +1,33 @@
 baseURL = "/"
 languageCode = "en-us"
 title = "Haile Lagi"
-theme = "etch"
 pygmentsUseClasses = true
 pygmentsCodeFences = true
-
 [params]
   description = "A repository for my thoughts"
-  copyright = "Copyright © 2021 Haile Lagi"
+  copyright = "Copyright © 2022 Haile Lagi"
   dark = "off"
   highlight = true
+  mainSections = ['technical', 'hacks', 'personal']
 
 [menu]
   [[menu.main]]
-    identifier = "work"
-    name = "work"
-    title = "work"
-    url = "https://www.github.com/hailelagi"
-    weight = 20
+    identifier = "resume"
+    name = "resume"
+    title = "resume"
+    url = "/resume.pdf"
+    weight = 25
 
   [[menu.main]]
-    identifier = "about"
-    name = "about"
-    title = "about"
-    url = "/"
-    weight = 20
+    identifier = "readme"
+    name = "readme"
+    title = "readme"
+    url = "/readme"
+    weight = 25
+
+  [[menu.main]]
+    identifier = "github"
+    name = "github"
+    title = "github"
+    url = "https://www.github.com/hailelagi"
+    weight = 25
