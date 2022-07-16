@@ -1,7 +1,6 @@
 baseURL = "https://www.hailelagi.com/"
 languageCode = "en-us"
 title = "Haile Lagi"
-theme = ["etch"]
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 [params]
