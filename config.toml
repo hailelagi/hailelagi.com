@@ -27,9 +27,9 @@ pygmentsCodeFences = true
     weight = 25
 
   [[menu.main]]
-    identifier = "work"
-    name = "work"
-    title = "work"
+    identifier = "github"
+    name = "github"
+    title = "github"
     url = "https://www.github.com/hailelagi"
     weight = 25
 
