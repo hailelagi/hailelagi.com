@@ -6,8 +6,6 @@ tags: ['functional', 'paradigm', 'agnostic', 'monads']
 original: "https://dev.to/haile/schrodinger-cats-and-boxes-l93"
 ---
 
-#A humble aspiring junior dev's guide to programmatic thought. A series of rants and odd thoughts.
-
 >“And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.”
 *Genesis 1:2*
 
