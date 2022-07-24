@@ -4,6 +4,7 @@ date: 2022-03-29T08:16:09+01:00
 draft: false
 tags: go, python, elixir, erlang, scheduler, concurrency
 recommend: true
+
 ---
 _First Draft: date: 2022-03-02T08:16:09+01:00_
 
