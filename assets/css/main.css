@@ -153,6 +153,11 @@ main#content header#post-header time {
     color: #767676;
 }
 
+main#content #recommend {
+    /* margin-left: 0.2em; */
+    font-size: 65%;
+}
+
 main#content #toc {
     border: 1px solid #b1b1b1;
     border-radius: 1px;

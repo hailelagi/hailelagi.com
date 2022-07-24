@@ -1,4 +1,5 @@
 <h4 class="category">Writing </h4>
+
 {{ range where (where .Site.Pages "Section" "writing" ) ".IsPage" "==" true }}
 
 <ul id="posts">
@@ -7,6 +8,10 @@
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}
+            {{ if .Params.recommend }}
+                <span id="recommend">⭐</span>
+            {{- end }}
+
             <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
         </a>
     </li>

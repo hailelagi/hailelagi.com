@@ -24,8 +24,11 @@
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/css/dark.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/dark.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/main.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/writing/a-peek-into-the-beam.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/a-peek-into-the-beam.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/writing/boredom.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/boredom.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/writing/dev.to/the-weight-of-choice-is-heavy.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/the-weight-of-choice-is-heavy.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/layouts/partials/writing.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/writing.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +101,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: expand draft" />
     <MESSAGE value="feat: add new draft idea" />
     <MESSAGE value="feat: draft idea macros" />
     <MESSAGE value="fix: cleanup references" />
@@ -123,6 +125,7 @@
     <MESSAGE value="fix: strikethrough syntax" />
     <MESSAGE value="fix: annoying af space" />
     <MESSAGE value="chore: explicit nav" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: explicit nav" />
+    <MESSAGE value="clarify pid allocations, reference swarm" />
+    <option name="LAST_COMMIT_MESSAGE" value="clarify pid allocations, reference swarm" />
   </component>
 </project>

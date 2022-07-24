@@ -2,6 +2,7 @@
 title: "boredom"
 date: 2021-09-07T14:57:54+01:00
 draft: false
+tags: ['archive']
 ---
 
 Are you bad at hacking? Often it's called imposter syndrome, let's dive into understanding the self and framing failure. The short answer is probably yes. The long answer is maybe, but it doesn't matter. The first time a programmer, or at least I opened up a text editor(it was sublime), I was pretty bad at this activity. I couldn't really talk to my computer.
