@@ -284,3 +284,10 @@ footer#footer {
     color: #949494;
     margin: 40px 0;
 }
+
+footer#footer a {
+    color: #007dfa;
+    text-decoration: none;
+    padding: 0.5em;
+    margin-left: 2em;
+}

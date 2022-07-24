@@ -24,7 +24,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/writing/dev.to/break-your-next-server.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/writing/dev.to/break-your-next-server.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/css/main.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/layouts/partials/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/footer.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +98,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix: cleanup references" />
     <MESSAGE value="fix: update date" />
     <MESSAGE value="fix(tbd): clean up and restructure" />
     <MESSAGE value="chore: scope peak into the beam" />
@@ -122,6 +122,7 @@
     <MESSAGE value="clarify pid allocations, reference swarm" />
     <MESSAGE value="feat: recommend articles" />
     <MESSAGE value="fix: reduce icon size" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: reduce icon size" />
+    <MESSAGE value="fix: text wrapping imgs" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: text wrapping imgs" />
   </component>
 </project>
