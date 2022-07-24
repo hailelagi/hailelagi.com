@@ -52,10 +52,11 @@ looks a little like this:</p><div class=highlight><pre tabindex=0 class=chroma><
 </span></span></code></pre></div><pre tabindex=0><code> Note: The actual pid and reference will be different on your machine).
 </code></pre><p>When the scheduler(on one core) sees these concurrent tasks, it allocates some time and memory at runtime to <code>child</code>
 and lets it run for a bit, if the process does not finish(an infinite loop for example), the scheduler moves on to
-<code>child_two</code> and so on, checking up on each process, computing a bit. Processes are namespaced in a
-<a href=https://hexdocs.pm/elixir/1.13/Registry.html>local registry</a> for a single node. Scheduling across multiple nodes
-works the same way, only you&rsquo;d need a different way to <a href=https://github.com/uwiger/gproc>manage the global name space</a>
-of running processes.</p><pre tabindex=0><code>Note: There are likely many scheduler threads coordinating 
+<code>child_two</code> and so on, checking up on each process, computing a bit. Processes can be namespaced in a
+<a href=https://hexdocs.pm/elixir/1.13/Registry.html>local registry</a> for a single node to avoid passing around pids.
+Scheduling across multiple nodes works the same way, only you&rsquo;d need a different way to manage the global name space of
+running processes such as erlang&rsquo;s <code>:global</code>, <a href=https://github.com/uwiger/gproc>gproc</a> or <a href=https://github.com/bitwalker/swarm>swarm</a>,
+depending on whether the system requires high availability or consistency at the network layer.</p><pre tabindex=0><code>Note: There are likely many scheduler threads coordinating 
 on this activity on a single core, and at least one per
 operating system process. Further details are subject to
 which version of Erlang/OTP you&#39;re running and the implementation
