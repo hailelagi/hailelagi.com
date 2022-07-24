@@ -6,8 +6,6 @@ tags: ['elixir', 'otp', 'concurrency', 'architecture']
 original: "https://atimetravellingghost.wordpress.com/"
 ---
 
-# Your friendly neighbourhood aspiring junior dev's guide to understanding the philosophy of fault tolerance in servers. A series of rants and odd thoughts.
-
 I want to propose something, break your next server, on purpose. Nope that title isn't clickbait, but I hope you spare me a few moments to explain. Runtime errors are the last thing you want to happen in your code right? Especially if it's running in "production", but you know... I don't know.
 
 I'd like to think in general software development, stuff goes wrong more than it goes right. I always wonder what happens in real software teams? how do they respond to minor and major corruptions in their systems? Servers break all the time. For lots of unusual reasons, *especially* in production. The world is a messy place, unpredictable and I have yet to find any real world service that hasn't experienced some sort of outage at some point in time. Sometimes? These are entirely unpredictable, novel problems that require novel solutions. There's no magic server that can guarantee 100% uptime(depends on what you define as "uptime", more on that later). Stuff happens, security vulnerabilities, scaling issues, dependencies on external services break, and so on. Things my inexperienced mind cannot begin to fathom.
@@ -17,20 +15,27 @@ Yet? sometimes, these errors aren't so unimaginable. A database query fails? oop
 Okay, that's the *problem* what's the solution? Let's explore some common approaches before we know what exactly is going wrong. :smiling_imp:
 
 ## Deploy another one! (Modern problems require modern solutions!)
+
 ![gif of Bart and Lisa Simpson sitting on a couch](https://media.giphy.com/media/3o6Mbajy4stmeNfCPS/giphy.gif)
+
 Apparently there's this fancy stuff they call a `container` these days. I won't bore you with infrastructure voodoo (I know little about it anyway), or less fancy a simple vcs checkout, let's keep this about *systemic approach* rather than implementation. These are different things, yes but they can be used(sometimes together or in isolation) to "fix errors". This approach says "oh crap" something broke, let's go back to *when it did work*. This is great except? Something caused a runtime exception you didn't expect and now you have an unavailable service. So you go off on an adventure, generating bug reports, pouring over log files and finding wtf happened! Sherlock mode activated! While this is happening you try to reboot the entire system with an older (bug free you believe) version. Nothing wrong with this, except? It's not solving the error problem. It's solving a dependency problem, an environment problem... but not necessarily an error problem and it's an approach at too high a level, you believe since the error happened in the programmer's domain? It must have been caused by it. Sometimes this is true, but not always. Sadly this server is too fragile anyway, just one lousy runtime error and everything goes boom?! You don't have to put yourself in that position. Not *unnecessarily* and *without good reason*. You should only need to re-deploy when something **really important** goes wrong. This should be a rare case.
 
 ## Avoid runtime errors at all costs!
+
 ![gif of Elliot Alderson on a train](https://media.giphy.com/media/l3YSeNYycfpIvPokM/giphy.gif)
+
 At this point, we're jaded and cynical about I/O. Legend has it? If you wrapped your entire application in a try/except clause it will never fail. You have some input? Don't just sanitize it, you bleach it, add some disinfectant, rub some olive oil on it, cut a chicken's head off and invent scenarios. Likely? unlikely? doesn't matter! `try, except, catch, rescue` and their siblings are great... to a point. Yet, you can't predict every possible error under the sun. You need to take precaution, yes but you also need to be nimble, adaptable to the strange world of I/O and unpredictable side effects. The limitation of this approach is in the inability to isolate the error in the system, leading to generic uncaught exceptions and more importantly the corruption of state. More on that later. Depending on how this server's engineer intended recovery, it can go from beautifully crafted code to omg wtf is this because of the many paths the program can follow and how it re-converges to stability matters. This depends on skill and experience to execute and is a function of experience(usually) to the kinds of errors that could occur in prod. What if there was another way? Reflecting on experience is indispensable, you cannot substitute it. However, next best you can try to play catch up with a little foresight and study, re-inventing the wheel only when you need to.
 
 ## To be fore-compiled is to before tested!
+
 ![gif of anime girl typing quickly](https://media.giphy.com/media/kz6cm1kKle2MYkHtJF/giphy.gif)
 
 There's this thing around the programmatic universe, it's called Test Driven Development. Some people swear by it, some think it's a pain, yet pretty much everyone thinks it's a good idea(except crazy people :smirk:). On another side of the equation you have static typing. What do these things have in common? They check for the correctness of software *before* it goes off into the real world(among other things lol). This is awesome, but it doesn't solve our problem still, how software behaves in an environment you do not control. These are lovely additions to controlling the programmer's domain and make sure(to an extent) nothing funny is going on through technology features and development practices.
 
 ## Embracing failure as an inevitable part of systems(and our lives) by introducing the horsemen of the error apocalypse, Agents, GenServers, Supervisors and Applications.
+
 ![cartoon dog sitting in a burning house](https://media.giphy.com/media/eIfYQTaK3148kmMCxT/giphy.gif)
+
 There's a lovely rhetoric that I think holds true. Fail often, fail fast. Each of these approaches had a little something, a piece of the puzzle, a system design choice and when combined in the right way? they can be powerful tools. Introducing [fault tolerance 101](https://en.wikipedia.org/wiki/Fault_tolerance) which has a rich [history.](https://en.wikipedia.org/wiki/SAPO_(computer))
 
 Fault tolerance and by extension concurrency are implemented in Elixir using the [Actor model](https://en.wikipedia.org/wiki/Actor_model). Let's start with the fundamental pieces and eventually how they work together to conceptually create an error tolerant server. You can ignore the code snippets if unfamiliar with the language, they run but are ultimately useless and illustrative. Before we go to the fun useful abstractions? Let's talk about the basics! Processes.
@@ -84,7 +89,9 @@ The [official Elixir guide](https://elixir-lang.org/getting-started/mix-otp/gens
 *Why is this useful though?* You see `genServers` are you bread and butter, this is what in essence computes all your lovely complex computations, network requests, database queries? you name it.
 
 #### Supervisors(middle management)
+
 ![Cheryl Tunt from the show archer](https://media.giphy.com/media/g0vgklqMS8zT2/giphy.gif)
+
 We can sorta intuitively understand processes and message passing. We've explored agents a safety net that make sure our state is never corrupted, and generic servers as abstractions that perform collections of necessary async processes... yet how is any of this fault tolerant?
 
 What if we make a database query in a `genServer` and it fails?
