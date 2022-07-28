@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore: scope peak into the beam" />
     <MESSAGE value="feat(a peek into the beam): unedited final draft" />
     <MESSAGE value="fix(a peek into the beam): cleanup" />
     <MESSAGE value="fix(a peek into the beam): cleanup add acknowledgements" />
@@ -122,6 +121,7 @@
     <MESSAGE value="fix: text wrapping imgs" />
     <MESSAGE value="feat: update footer" />
     <MESSAGE value="docs: roadmap" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: roadmap" />
+    <MESSAGE value="update readme.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="update readme.md" />
   </component>
 </project>

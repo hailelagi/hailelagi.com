@@ -8,15 +8,18 @@ I primarily write [elixir](https://elixir-lang.org/) these days and I used to wr
 I've recently been experimenting with rust but primarily focused on getting my first principle fundamentals down.
 
 I'm currently exploring:
- - building with rust and elixir.
+ - [building with rust and elixir](./hacks/wip)
  - [testing elixir](https://www.oreilly.com/library/view/testing-elixir/9781680508918/)
  
-My interests outside computer science are primarily philosophy and economics. My current bookshelf(June
-[and now july...backlog lol]) is:
- - [existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)
+My interests outside computer science are primarily philosophy and economics. My current bookshelf is:
+- Thinking, Fast and Slow by Daniel Kahneman [August]
+
+I'm always looking for great recommendations! you may use [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581) 
+or [twitter](https://www.twitter.com/haile_lagi)
 
 Stuff I've done/read recently:
  - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [August]
+ - ~~[existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)~~ [July]
  - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~ [July]
  - ~~how to solve it - George Pólya~~ [June]
- - ~~[algorithms and data structure basics](https://runestone.academy/ns/books/published/pythonds/index.html)~~ [June]
+ - ~~[algorithms and data structure basics](https://runestone.academy/ns/books/published/pythonds/index.html)~~ [March - June]
