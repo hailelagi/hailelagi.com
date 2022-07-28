@@ -18,7 +18,7 @@ I'm always looking for great recommendations! you may use [github](https://gist.
 or [twitter](https://www.twitter.com/haile_lagi)
 
 Stuff I've done/read recently:
- - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [August]
+ - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [July - August]
  - ~~[existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)~~ [July]
  - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~ [July]
  - ~~how to solve it - George Pólya~~ [June]
