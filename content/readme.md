@@ -8,14 +8,15 @@ I primarily write [elixir](https://elixir-lang.org/) these days and I used to wr
 I've recently been experimenting with rust but primarily focused on getting my first principle fundamentals down.
 
 I'm currently exploring:
- - algorithms and data structures
- - cryptography basics
+ - building with rust and elixir.
  - [testing elixir](https://www.oreilly.com/library/view/testing-elixir/9781680508918/)
  
 My interests outside computer science are primarily philosophy and economics. My current bookshelf(June
 [and now july...backlog lol]) is:
  - [existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)
 
-Stuff I've read recently:
- - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~
- - ~~how to solve it - George Pólya~~
+Stuff I've done/read recently:
+ - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [August]
+ - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~ [July]
+ - ~~how to solve it - George Pólya~~ [June]
+ - ~~[algorithms and data structure basics](https://runestone.academy/ns/books/published/pythonds/index.html)~~ [June]
