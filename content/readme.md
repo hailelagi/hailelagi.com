@@ -4,8 +4,8 @@ I currently work at [juice](https://spendjuice.org/), I was previously at [buyco
 now [hellicarrier](https://helicarrier.studio/). Before that, I went off to get a degree in chemical engineering, and I 
 learned I like writing code a lot more than solving differential equations.
 
-I primarily write [elixir](https://elixir-lang.org/) these days and I used to write a fair bit of ruby, javascript and some go.
-I've recently been experimenting with rust but primarily focused on getting my first principle fundamentals down.
+I primarily write [elixir](https://elixir-lang.org/) these days and I used to write a fair bit of ruby, javascript
+and some go. I've recently been experimenting with [rust](https://www.rust-lang.org/).
 
 I'm currently exploring:
  - [building with rust and elixir](./hacks/wip)
@@ -14,7 +14,7 @@ I'm currently exploring:
 My interests outside computer science are primarily philosophy and economics. My current bookshelf is:
 - Thinking, Fast and Slow by Daniel Kahneman [August]
 
-I'm always looking for great recommendations! you may use [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581) 
+I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581) 
 or [twitter](https://www.twitter.com/haile_lagi)
 
 Stuff I've done/read recently:
