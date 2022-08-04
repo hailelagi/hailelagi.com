@@ -4,11 +4,9 @@
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}
-            wip
             <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
         </a>
+        <span id="badge"> {{ .Params.tags }} </span>
     </li>
     {{- end }}
 </ul>
-
-

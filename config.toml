@@ -8,7 +8,7 @@ pygmentsCodeFences = true
   copyright = "Copyright © 2022 Haile Lagi"
   dark = "off"
   highlight = true
-  mainSections = ['technical', 'personal']
+  mainSections = ['writing', 'personal', 'hacks']
 
 [menu]
   [[menu.main]]

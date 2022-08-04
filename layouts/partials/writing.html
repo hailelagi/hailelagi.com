@@ -1,6 +1,6 @@
 <h4 class="category">Writing </h4>
 
-{{ range where (where .Site.Pages "Section" "writing" ) ".IsPage" "==" true }}
+{{ range where (where .Site.Pages "Section" "writing") ".IsPage" "==" true }}
 
 <ul id="posts">
   {{ if in .Params.tags "archive"}}
