@@ -15,7 +15,7 @@ pygmentsCodeFences = true
     identifier = "resume"
     name = "resume"
     title = "resume"
-    url = "/resume.pdf"
+    url = "/resume"
     weight = 25
 
   [[menu.main]]

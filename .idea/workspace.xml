@@ -23,7 +23,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/content/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/content/resume.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,7 +98,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix(a peek into the beam): cleanup" />
     <MESSAGE value="fix(a peek into the beam): cleanup add acknowledgements" />
     <MESSAGE value="fix(a peek into the beam): fix phrasing suggesting a single scheduler" />
     <MESSAGE value="chore(a peek into the beam): timeline" />
@@ -121,6 +122,7 @@
     <MESSAGE value="docs: roadmap" />
     <MESSAGE value="update readme.md" />
     <MESSAGE value="update readme.md july retro" />
-    <option name="LAST_COMMIT_MESSAGE" value="update readme.md july retro" />
+    <MESSAGE value="sigh" />
+    <option name="LAST_COMMIT_MESSAGE" value="sigh" />
   </component>
 </project>
