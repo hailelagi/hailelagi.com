@@ -24,10 +24,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="feat: thumbelina draft">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/hacks/thumbelina.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/hacks/thumbelina.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/partials/hacks.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/hacks.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/partials/writing.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/writing.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
