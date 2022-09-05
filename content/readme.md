@@ -8,16 +8,20 @@ I primarily write [elixir](https://elixir-lang.org/) these days and I used to wr
 and some go. I've recently been experimenting with [rust](https://www.rust-lang.org/).
 
 I'm currently exploring:
- - [building with rust and elixir](./hacks/wip)
- - [testing elixir](https://www.oreilly.com/library/view/testing-elixir/9781680508918/)
+ - building with rust and elixir
+ - prometheus, kubernetes and docker
+ - observability and instrumentation (open telemetry & grafana)
  
 My interests outside computer science are primarily philosophy and economics. My current bookshelf is:
-- Thinking, Fast and Slow by Daniel Kahneman [August]
+- Erlang in Anger [September]
+- The little Ecto Cookbook [September]
+- Thinking, Fast and Slow by Daniel Kahneman [August][Backlog]
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581) 
 or [twitter](https://www.twitter.com/haile_lagi)
 
 Stuff I've done/read recently:
+- ~~[the rust book](https://github.com/hailelagi/rustacea)~~ [August]
  - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [July - August]
  - ~~[existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)~~ [July]
  - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~ [July]
