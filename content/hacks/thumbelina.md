@@ -15,11 +15,12 @@ Thumbelina is an experiment in _extending_ elixir.
 
 Thumbelina tries to be a lazy, ~~distributed~~, data-pipeline processor library. 
 
-The most popular example of this kind of library is discord's
+The most popular example of this kind of library(NIF) is discord's
 [SortedSet](https://github.com/discord/sorted_set_nif), the 
 [blog post](https://discord.com/blog/using-rust-to-scale-elixir-for-11-million-concurrent-users) 
 is also an excellent resource for the curious, although it extends elixir/erlang in a different way, improving 
-mutable shared data access/writes across processes.
+mutable shared data access/writes across processes. See features/demo for production ready libraries that target a 
+similar feature set.
 
 ### Mechanisms
 One approach to using programs written in other languages is opening a `Port`, mogrify for example leverages `System.cmd`,
@@ -43,6 +44,12 @@ image bytes cannot be chunked, a dirty NIF thread is spawned to handle CPU bound
 
 ### Features/Demo
 phoenix server - https://thumbelina.fly.dev/
+
+Thumbelina can be used to run a [distributed global image service](https://fly.io/docs/app-guides/run-a-global-image-service/),
+cluster with elixir, underneath it uses `image-rs`, alternative libraries like:
+- https://github.com/h2non/imaginary
+- https://github.com/imazen/imageflow (with the elixir binding)
+- https://github.com/akash-akya/vix
 
 Elixir/Erlang gives you superpowers when it comes to distributed workloads, giving you access to incredible abstractions
 that would simply be either too hard or take too long to implement in any other language.
