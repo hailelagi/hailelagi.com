@@ -48,6 +48,5 @@ Elixir/Erlang gives you superpowers when it comes to distributed workloads, givi
 that would simply be either too hard or take too long in any other language.
 
 ### Going foward
-Elixir/Erlang is used to handle lazy pause/resume functionality at first by using `:ets`, eventually it is likely possible
-to distribute the workload across erlang/elixir nodes. If you've found a bug, or this is something you'd like to see, 
-please open an [issue ;)](https://github.com/hailelagi/thumbelina/issues).
+Eventually it is likely possible to distribute the workload across erlang/elixir nodes. If you've found a bug,
+or this is something you'd like to see please open an [issue ;)](https://github.com/hailelagi/thumbelina/issues).
