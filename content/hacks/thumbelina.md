@@ -45,7 +45,7 @@ image bytes cannot be chunked, a dirty NIF thread is spawned to handle CPU bound
 phoenix server - https://thumbelina.fly.dev/
 
 Elixir/Erlang gives you superpowers when it comes to distributed workloads, giving you access to incredible abstractions
-that would simply be either too hard or take too long in any other language.
+that would simply be either too hard or take too long to implement in any other language.
 
 ### Going foward
 Eventually it is likely possible to distribute the workload across erlang/elixir nodes. If you've found a bug,
