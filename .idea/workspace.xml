@@ -22,7 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="feat: thumbelina draft">
+    <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="publish thumbeli">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/hacks/thumbelina.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/hacks/thumbelina.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
@@ -98,7 +98,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix(a peek into the beam): block space note" />
     <MESSAGE value="fix(a peek into the beam): bad ref" />
     <MESSAGE value="feat(idea): design patterns" />
     <MESSAGE value="feat(idea): recursion" />
@@ -123,6 +122,7 @@
     <MESSAGE value="update status" />
     <MESSAGE value="clean up language" />
     <MESSAGE value="feat: thumbelina draft" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: thumbelina draft" />
+    <MESSAGE value="update september" />
+    <option name="LAST_COMMIT_MESSAGE" value="update september" />
   </component>
 </project>
