@@ -23,6 +23,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/hacks/thumbelina.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/hacks/thumbelina.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -96,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat(idea): recursion" />
     <MESSAGE value="feat: add readme" />
     <MESSAGE value="minor updates" />
     <MESSAGE value="feat: simple categorize" />
@@ -121,6 +121,7 @@
     <MESSAGE value="update september" />
     <MESSAGE value="publish thumbelina.md" />
     <MESSAGE value="chore: rephrase" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: rephrase" />
+    <MESSAGE value="doc: add alt prod libs" />
+    <option name="LAST_COMMIT_MESSAGE" value="doc: add alt prod libs" />
   </component>
 </project>

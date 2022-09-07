@@ -46,7 +46,7 @@ image bytes cannot be chunked, a dirty NIF thread is spawned to handle CPU bound
 phoenix server - https://thumbelina.fly.dev/
 
 Thumbelina can be used to run a [distributed global image service](https://fly.io/docs/app-guides/run-a-global-image-service/),
-cluster with elixir, underneath it uses `image-rs`, alternative libraries like:
+cluster with elixir, underneath it uses `image-rs`, if trying to run in production consider alternative libraries like:
 - https://github.com/h2non/imaginary
 - https://github.com/imazen/imageflow (with the elixir binding)
 - https://github.com/akash-akya/vix
