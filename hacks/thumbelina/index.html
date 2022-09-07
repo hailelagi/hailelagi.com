@@ -10,6 +10,6 @@ pre-emptively scheduled quickly and are appropriate for <code>synchronous</code>
 computations and custom data structures. Implementing a NIF is a little dangerous, see the <code>README.md</code>
 for details on pitfalls.</p><p>Getting this right at the systems level, requires providing custom concurrency synchronisation and yielding!</p><p>Thumbelina uses a yielding mechanism by default implemented in the beam, for data beyond a specified limit or where the
 image bytes cannot be chunked, a dirty NIF thread is spawned to handle CPU bound processing.</p><h3 id=featuresdemo>Features/Demo</h3><p>phoenix server - <a href=https://thumbelina.fly.dev/>https://thumbelina.fly.dev/</a></p><p>Elixir/Erlang gives you superpowers when it comes to distributed workloads, giving you access to incredible abstractions
-that would simply be either too hard or take too long in any other language.</p><h3 id=going-foward>Going foward</h3><p>Eventually it is likely possible to distribute the workload across erlang/elixir nodes. If you&rsquo;ve found a bug,
+that would simply be either too hard or take too long to implement in any other language.</p><h3 id=going-foward>Going foward</h3><p>Eventually it is likely possible to distribute the workload across erlang/elixir nodes. If you&rsquo;ve found a bug,
 or this is something you&rsquo;d like to see please open an <a href=https://github.com/hailelagi/thumbelina/issues>issue ;)</a>.</p></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>source</a>
 Copyright © 2022 Haile Lagi</footer></body></html>
