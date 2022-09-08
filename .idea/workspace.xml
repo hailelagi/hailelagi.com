@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: add readme" />
     <MESSAGE value="minor updates" />
     <MESSAGE value="feat: simple categorize" />
     <MESSAGE value="fix: self referential page" />
@@ -122,6 +121,7 @@
     <MESSAGE value="publish thumbelina.md" />
     <MESSAGE value="chore: rephrase" />
     <MESSAGE value="doc: add alt prod libs" />
-    <option name="LAST_COMMIT_MESSAGE" value="doc: add alt prod libs" />
+    <MESSAGE value="doc: rephrase" />
+    <option name="LAST_COMMIT_MESSAGE" value="doc: rephrase" />
   </component>
 </project>
