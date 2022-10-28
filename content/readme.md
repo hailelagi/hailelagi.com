@@ -1,7 +1,7 @@
 Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)). 
 
-I currently work at [juice](https://spendjuice.org/), I was previously at [buycoins](https://buycoins.africa/),
-now [hellicarrier](https://helicarrier.studio/). Before that, I went off to get a degree in chemical engineering, and I 
+I was previously at [juice](https://spendjuice.org/), before that [buycoins](https://buycoins.africa/) aka 
+[hellicarrier](https://helicarrier.studio/). Long before that, I went off to get a degree in chemical engineering, and I 
 learned I like writing code a lot more than solving differential equations.
 
 I primarily write [elixir](https://elixir-lang.org/) these days and I used to write a fair bit of ruby, javascript
@@ -13,8 +13,9 @@ I'm currently exploring:
  - observability and instrumentation (open telemetry & grafana)
 
 My interests outside computer science are primarily philosophy and economics. My current bookshelf is:
-- Erlang in Anger [September]
-- The little Ecto Cookbook [September]
+- Concurrent data processing in elixir [October]
+- Erlang in Anger [September][Backlog]
+- The little Ecto Cookbook [September][Backlog]
 - Thinking, Fast and Slow by Daniel Kahneman [August][Backlog]
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
