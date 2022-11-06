@@ -25,6 +25,7 @@
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/personal/work-hard.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/work-hard.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +98,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix: annoying af space" />
     <MESSAGE value="chore: explicit nav" />
     <MESSAGE value="clarify pid allocations, reference swarm" />
     <MESSAGE value="feat: recommend articles" />
@@ -122,6 +122,7 @@
     <MESSAGE value="life update" />
     <MESSAGE value="idea: nov/dec publish" />
     <MESSAGE value="default to public" />
-    <option name="LAST_COMMIT_MESSAGE" value="default to public" />
+    <MESSAGE value="feat(publish): [personal] work hard" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(publish): [personal] work hard" />
   </component>
 </project>
