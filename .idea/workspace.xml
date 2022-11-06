@@ -74,10 +74,10 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/content/personal" />
       <recent name="$PROJECT_DIR$/content/writing" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/assets/css" />
-      <recent name="$PROJECT_DIR$/content/personal" />
       <recent name="$PROJECT_DIR$/content/posts" />
     </key>
   </component>
@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix: strikethrough syntax" />
     <MESSAGE value="fix: annoying af space" />
     <MESSAGE value="chore: explicit nav" />
     <MESSAGE value="clarify pid allocations, reference swarm" />
@@ -122,6 +121,7 @@
     <MESSAGE value="rephrase" />
     <MESSAGE value="life update" />
     <MESSAGE value="idea: nov/dec publish" />
-    <option name="LAST_COMMIT_MESSAGE" value="idea: nov/dec publish" />
+    <MESSAGE value="default to public" />
+    <option name="LAST_COMMIT_MESSAGE" value="default to public" />
   </component>
 </project>
