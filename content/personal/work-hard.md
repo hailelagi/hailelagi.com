@@ -23,8 +23,7 @@ useful to society, function as a business or run as a company.
 
 What are the bounds? There is insane variance when it comes to writing software.
 
-Writing a game engine for example from scratch 
-isn't building a distributed system serving millions doing complex logic. A small
+Writing a game engine from scratch for example isn't building a distributed system serving millions doing complex logic. A small
 node.js app running on heroku serving 10k requests a month can be doing something 
 extremely useful in society unlocking value for a lot of people.
 

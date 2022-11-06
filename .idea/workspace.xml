@@ -23,8 +23,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/personal/work-hard.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/personal/work-hard.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -98,7 +96,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore: explicit nav" />
     <MESSAGE value="clarify pid allocations, reference swarm" />
     <MESSAGE value="feat: recommend articles" />
     <MESSAGE value="fix: reduce icon size" />
@@ -123,6 +120,7 @@
     <MESSAGE value="idea: nov/dec publish" />
     <MESSAGE value="default to public" />
     <MESSAGE value="feat(publish): [personal] work hard" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(publish): [personal] work hard" />
+    <MESSAGE value="fix(publish): last section" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(publish): last section" />
   </component>
 </project>
