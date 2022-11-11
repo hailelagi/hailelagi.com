@@ -1,5 +1,7 @@
 Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)). 
 
+I'm currently trying to help amazingly talented people build [catalyx](https://www.catalyx.io) a crypto exchange in Canada.
+
 I was previously at [juice](https://spendjuice.org/), before that [buycoins](https://buycoins.africa/) 
 ([hellicarrier](https://helicarrier.studio/)). Long before that, I went off to get a degree in chemical engineering, and I 
 learned I like writing code a lot more than solving differential equations.
