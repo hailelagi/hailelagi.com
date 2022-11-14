@@ -6,8 +6,8 @@ I was previously at [juice](https://spendjuice.org/), before that [buycoins](htt
 ([hellicarrier](https://helicarrier.studio/)). Long before that, I went off to get a degree in chemical engineering, and I 
 learned I like writing code a lot more than solving differential equations.
 
-I primarily write [elixir](https://elixir-lang.org/) these days and I used to write a fair bit of ruby, javascript
-and some go. I've recently been experimenting with [rust](https://www.rust-lang.org/).
+I primarily write [elixir](https://elixir-lang.org/) these days, I used to write a fair bit of ruby, javascript
+and some go. I really like [rust](https://www.rust-lang.org/).
 
 My interests outside **computer science** are primarily **philosophy** and **economics**. I'm currently reading: _Concurrent data processing in elixir_
 

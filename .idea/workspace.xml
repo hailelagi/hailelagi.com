@@ -24,7 +24,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5fdc7148-5ba1-4eb8-aee1-face831c619a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/content/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
