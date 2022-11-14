@@ -1,6 +1,6 @@
 baseURL = "https://www.hailelagi.com/"
 languageCode = "en-us"
-title = "Haile Lagi"
+title = "Haile (ሐይሌ)"
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 [params]
