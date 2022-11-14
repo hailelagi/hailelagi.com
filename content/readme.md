@@ -7,7 +7,7 @@ I was previously at [juice](https://spendjuice.org/), before that [buycoins](htt
 learned I like writing code a lot more than solving differential equations.
 
 I primarily write [elixir](https://elixir-lang.org/) these days, I used to write a fair bit of ruby, javascript
-and some go. I really like [rust](https://www.rust-lang.org/).
+and some go. I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
 My interests outside **computer science** are primarily **philosophy** and **economics**. I'm currently reading: _Concurrent data processing in elixir_
 

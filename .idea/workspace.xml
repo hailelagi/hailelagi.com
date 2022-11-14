@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix: text wrapping imgs" />
     <MESSAGE value="feat: update footer" />
     <MESSAGE value="docs: roadmap" />
     <MESSAGE value="update readme.md" />
@@ -122,6 +121,7 @@
     <MESSAGE value="fix(publish): phrasing" />
     <MESSAGE value="fix: url" />
     <MESSAGE value="update" />
-    <option name="LAST_COMMIT_MESSAGE" value="update" />
+    <MESSAGE value="reformat" />
+    <option name="LAST_COMMIT_MESSAGE" value="reformat" />
   </component>
 </project>
