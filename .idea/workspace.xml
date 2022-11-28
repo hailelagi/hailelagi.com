@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update readme.md" />
     <MESSAGE value="update readme.md july retro" />
     <MESSAGE value="sigh" />
     <MESSAGE value="update status" />
@@ -122,6 +121,7 @@
     <MESSAGE value="reformat" />
     <MESSAGE value="clarify" />
     <MESSAGE value="rename" />
-    <option name="LAST_COMMIT_MESSAGE" value="rename" />
+    <MESSAGE value="fix: broken margin on mobile" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: broken margin on mobile" />
   </component>
 </project>
