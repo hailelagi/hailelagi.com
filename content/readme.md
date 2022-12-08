@@ -1,6 +1,6 @@
 Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)). 
 
-I'm currently trying to help talented people build [catalyx](https://catalyx.io).
+I'm currently learning distributed systems, cryptography and web assembly.
 
 I was previously at [juice](https://spendjuice.org/), before that [buycoins](https://buycoins.africa/) 
 ([hellicarrier](https://helicarrier.studio/)). Long before that, I went off to get a degree in chemical engineering, and I 
@@ -15,6 +15,7 @@ I am _always_ looking for great recommendations! via [github](https://gist.githu
 or [twitter](https://www.twitter.com/haile_lagi)
 
 Stuff I'm learning:
+- How to Design Programs (https://htdp.org/)
 - Erlang in Anger [September][Backlog][postponed/incomplete]
 - The little Ecto Cookbook [September][Backlog][postponed/incomplete]
 - Thinking, Fast and Slow by Daniel Kahneman [August][Backlog][postponed/incomplete]
