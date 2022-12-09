@@ -10,7 +10,7 @@ My interests outside **computer science** are primarily **philosophy** and **eco
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)
 
-Stuff I'm considering learning:
+Stuff I'm learning:
 - How to Design Programs (https://htdp.org/)
 - Erlang in Anger [September][Backlog][postponed/incomplete]
 - Thinking, Fast and Slow by Daniel Kahneman [August][Backlog][postponed/incomplete]
