@@ -5,7 +5,7 @@ I'm currently learning distributed systems, cryptography and web assembly.
 I primarily write [elixir](https://elixir-lang.org/) these days, I used to write a fair bit of ruby, javascript
 and some go. I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
-My interests outside **computer science** are primarily **philosophy** and **economics**. I'm currently reading: _Concurrent data processing in elixir_
+My interests outside **computer science** are primarily **philosophy** and **economics**. I'm currently reading: _The little Ecto Cookbook_
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)
@@ -13,9 +13,9 @@ or [twitter](https://www.twitter.com/haile_lagi)
 Stuff I'm learning:
 - How to Design Programs (https://htdp.org/)
 - Erlang in Anger [September][Backlog][postponed/incomplete]
-- The little Ecto Cookbook [September][Backlog][postponed/incomplete]
 - Thinking, Fast and Slow by Daniel Kahneman [August][Backlog][postponed/incomplete]
 - Designing Data Intensive Systems by Martin Kleppmann
+- ~~ Concurrent data processing in elixir ~~
 - ~~[the rust book](https://github.com/hailelagi/rustacea)~~ [August]
 - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [July - August][incomplete]
 - ~~[existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)~~ [July]
