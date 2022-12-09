@@ -10,12 +10,12 @@ My interests outside **computer science** are primarily **philosophy** and **eco
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)
 
-Stuff I'm learning:
+Stuff I'm considering learning:
 - How to Design Programs (https://htdp.org/)
 - Erlang in Anger [September][Backlog][postponed/incomplete]
 - Thinking, Fast and Slow by Daniel Kahneman [August][Backlog][postponed/incomplete]
 - Designing Data Intensive Systems by Martin Kleppmann
-- ~~ Concurrent data processing in elixir ~~
+- ~~Concurrent data processing in elixir~~
 - ~~[the rust book](https://github.com/hailelagi/rustacea)~~ [August]
 - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [July - August][incomplete]
 - ~~[existentialism is a humanism](https://www.goodreads.com/book/show/51985.Existentialism_is_a_Humanism)~~ [July]

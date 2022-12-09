@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update status" />
     <MESSAGE value="clean up language" />
     <MESSAGE value="feat: thumbelina draft" />
     <MESSAGE value="update september" />
@@ -122,6 +121,7 @@
     <MESSAGE value="fix: broken margin on mobile" />
     <MESSAGE value="softer color scheme" />
     <MESSAGE value="wip" />
-    <option name="LAST_COMMIT_MESSAGE" value="wip" />
+    <MESSAGE value="finish" />
+    <option name="LAST_COMMIT_MESSAGE" value="finish" />
   </component>
 </project>
