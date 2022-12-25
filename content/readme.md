@@ -5,7 +5,8 @@ I'm currently learning distributed systems, cryptography and web assembly.
 I primarily write [elixir](https://elixir-lang.org/) these days, I used to write a fair bit of ruby, javascript
 and some go. I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
-My interests outside **computer science** are primarily **philosophy** and **economics**. I'm currently reading: _The little Ecto Cookbook_
+My interests outside **computer science** are primarily **philosophy** and **economics**. 
+I'm currently reading: _The little Ecto Cookbook_ & _Programming Ecto_
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)

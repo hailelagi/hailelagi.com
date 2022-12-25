@@ -97,7 +97,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: thumbelina draft" />
     <MESSAGE value="update september" />
     <MESSAGE value="publish thumbelina.md" />
     <MESSAGE value="chore: rephrase" />
@@ -122,6 +121,7 @@
     <MESSAGE value="wip" />
     <MESSAGE value="finish" />
     <MESSAGE value="fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix" />
+    <MESSAGE value="use old phrase" />
+    <option name="LAST_COMMIT_MESSAGE" value="use old phrase" />
   </component>
 </project>
