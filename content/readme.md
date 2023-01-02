@@ -1,21 +1,24 @@
-Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)). 
+Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)).
 
 I'm currently learning distributed systems, cryptography and web assembly.
 
-I primarily write [elixir](https://elixir-lang.org/) these days, I used to write a fair bit of ruby, javascript
-and some go. I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
+I've had previous production experience with [elixir](https://elixir-lang.org/), [ruby](https://www.ruby-lang.org/en/)
+and [go](https://go.dev/) on the server side and javascript(vue.js and react) on the client.
+I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
-My interests outside **computer science** are primarily **philosophy** and **economics**. 
-I'm currently reading: _The little Ecto Cookbook_ & _Programming Ecto_
+My interests outside **computer science** are primarily **philosophy** and **economics**.
+I'm currently reading: _The little Ecto Cookbook_
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)
 
 Stuff I'm learning:
-- How to Design Programs (https://htdp.org/)
+
+- How to Design Programs (<https://htdp.org/>)
 - Erlang in Anger [September][Backlog][postponed/incomplete]
 - Thinking, Fast and Slow by Daniel Kahneman [August][Backlog][postponed/incomplete]
 - Designing Data Intensive Systems by Martin Kleppmann
+- ~~[Programming Ecto](https://pragprog.com/titles/wmecto/programming-ecto/)~~
 - ~~Concurrent data processing in elixir~~
 - ~~[the rust book](https://github.com/hailelagi/rustacea)~~ [August]
 - ~~[cryptography basics](https://github.com/hailelagi/matasano)~~ [July - August][incomplete]
