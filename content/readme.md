@@ -1,6 +1,8 @@
 Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)).
 
-I'm currently learning distributed systems, cryptography and web assembly.
+I'm currently learning metaprogramming (the sexy hygenic kind!), sql and networks.
+
+I want to eventually start learning distributed systems, cryptography and web assembly.
 
 I've had previous production experience with [elixir](https://elixir-lang.org/), [ruby](https://www.ruby-lang.org/en/)
 and [go](https://go.dev/) on the server side and javascript(vue.js and react) on the client.
