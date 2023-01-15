@@ -1,7 +1,7 @@
 Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)).
 
 I've had previous production experience with [elixir](https://elixir-lang.org/), [ruby](https://www.ruby-lang.org/en/)
-and [go](https://go.dev/) on the server side and javascript(vue.js and react) on the client.
+and [go](https://go.dev/) on the server side and javascript([vue.js](https://vuejs.org/) and [react](https://reactjs.org/)) on the client.
 I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
 My interests outside **computer science** are primarily **philosophy** and **economics**.
