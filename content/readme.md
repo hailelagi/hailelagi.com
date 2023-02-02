@@ -14,8 +14,9 @@ or [twitter](https://www.twitter.com/haile_lagi)
 
 2023:
 
-- Erlang in Anger [up next]
-- [crafting interpreters](https://craftinginterpreters.com/) [March '23 | undecided]
+- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content) [up next]
+- [Erlang in Anger](https://www.erlang-in-anger.com/) [Feb | '23 (hopefully)]
+- [crafting interpreters](https://craftinginterpreters.com/) [April '23]
 - Thinking, Fast and Slow by Daniel Kahneman [Feb '23|planned]
 - Designing Data Intensive Systems by Martin Kleppmann [Feb '23|planned]
 - [How to Design Programs](<https://htdp.org/>) [Feb '23|planned]

@@ -1,7 +1,7 @@
 ---
-title: "It's Legos all the way down"
+title: "It's legos all the way down"
 date: 2023-01-25T22:42:06+01:00
-draft: true
+draft: false
 ---
 
 Often as folks who create useful software things we tend to think of ourselves as people who write software for "users". A "user" clicks a button and
@@ -58,3 +58,5 @@ end
 [1] I don't touch on Javascript(ECMAScript) as the language itself doesn't provide (afaik) useful apis to introspect it's compile time state at  runtime,
 added to that is the balloned complexity of _which_ version of the AST, by which engine is produced and you get unwanted complexity that is out of scope.
 (<https://nodejs.dev/en/learn/the-v8-javascript-engine/>)
+
+[2] AST reference: https://github.com/elixir-lang/elixir/blob/d8f1a5d6b653c14ae44c6eacdbc8e9df7006d284/lib/elixir/pages/syntax-reference.md#the-elixir-ast
