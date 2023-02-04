@@ -35,13 +35,22 @@ print(eval('2 + 2'))
 
 That's kind of neat isn't it? But what's going on here? how do we go from a `string` to a computation?
 
+For the short story continue on! However if this question seems interesting check out [crafting interpreters](https://craftinginterpreters.com/).
+
 ### Building a (Dynamic) Array "constructor" in Elixir
 
-First, some background. Elixir is a (mostly) functional language with (mostly) immutable datastructures, it doesn't provide a dynamic array out of the box, as the implementation of one
-requires internally mutable state. If you _really_ need one though, you can reach into the [erlang stdlib](https://www.erlang.org/doc/man/array.html).
+First, some background. Elixir is a (mostly) functional language with (mostly) immutable datastructures, it doesn't encourage the use of
+or provide a dynamic array out of the box like most functional languages, as the implementation of one
+requires random access read/write via internal mutable state.
+
+If you _really_ need one though, you can reach into the [erlang stdlib](https://www.erlang.org/doc/man/array.html).
 
 For this we're going to piggyback off the rust standard library's [Vector](https://doc.rust-lang.org/std/vec/struct.Vec.html) and
-creating a [foreign function interface](https://en.wikipedia.org/wiki/Foreign_function_interface) in elixir by re-creating rust's `vec!` macro api.
+creating a [foreign function interface](https://en.wikipedia.org/wiki/Foreign_function_interface) in elixir by re-creating rust's `vec!` macro api
+eventually supporting either the erlang or rust version as a backend.
+
+As we'll see the "backend" implementation of the data structure is not important, what we're focused on is providing an easy to use syntactic abstraction
+of a common datastructure.
 
 Here's a simplified version pull straight from [the rust book](https://doc.rust-lang.org/book/ch19-06-macros.html) of `vec!`:
 
