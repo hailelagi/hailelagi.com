@@ -10,9 +10,13 @@ Abstractions are all around us in software and clever programmers create good ab
 
 A really common example of this is an [Application Programming Interface](https://en.wikipedia.org/wiki/API) which allows two "applications" to talk to each other over
 some transport. Like an API, there are other interesting kinds of abstractions -- let's talk about the one between the language creator and language user by _inventing
-syntax in elixir_!
+syntax!_
 
-We'll be stepping through how to create a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) constructor.
+How? we'll define a [constructor](https://en.wikipedia.org/wiki/Constructor_(object-oriented_programming)) for a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) in `elixir`.
+
+This involves a subtle shift in the paradigm used to understand computation, at the core is the idea of viewing _computation_ as _data_. I would guess for most people,
+the typical mental model when reading at first is mostly _procedural_, a top-down scan with familiarity of syntax and semantics, then another important shift occurs in
+understanding runtime execution with the introduction of concurrency and parallelism, here we'll be peeling back at the layer between _compile time_ and _runtime_.
 
 Before we begin, a caveat. Although metaprogramming applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references)) but not typescript[[4]](#references)
 
@@ -33,11 +37,11 @@ print(eval('2 + 2'))
 
 ```ruby
 # ruby
-puts eval('2+2')
+puts eval('2 + 2')
 ```
 
-That's kind of neat isn't it? But what's going on here? how do we go from a `string` to a computation?
-For the short story continue on! However if you're interested in how compilation works in general checkout [crafting interpreters](https://craftinginterpreters.com/).
+The computation `2 + 2` is represented as data, in this case a `string`. That's kind of neat isn't it? however we can take this much futher.
+If you're interested in the details of what's happening here, checkout [crafting interpreters](https://craftinginterpreters.com/).
 
 ### Building a (Dynamic) Array "constructor" in Elixir
 
