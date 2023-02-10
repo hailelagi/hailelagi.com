@@ -1,7 +1,7 @@
 ---
 title: "It's legos all the way down"
 date: 2023-01-25T22:42:06+01:00
-draft: true
+draft: false
 ---
 
 Often as folks who create useful software things we tend to think of ourselves as people who write software for the mythical "user". A "user" clicks a button and
@@ -10,32 +10,34 @@ Abstractions are all around us in software and clever programmers create good ab
 
 A really common example of this is an [Application Programming Interface](https://en.wikipedia.org/wiki/API) which allows two "applications" to talk to each other over
 some transport. Like an API, there are other interesting kinds of abstractions -- let's talk about the one between the language creator and language user by _inventing
-syntax_!
+syntax in elixir_!
 
 We'll be stepping through how to create a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) constructor.
 
-Before we begin, a caveat. Although this technique applies broadly to most modern languages, it is ergonomic to explore explicity with a language that has at least made some kind of syntactic/library provision, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references) and Ruby MRI[[2]](#references) but not javascript [[3]](#references))
+Before we begin, a caveat. Although metaprogramming applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references)) but not typescript[[4]](#references)
 
 ### AST what?
 
 Abstract Syntax Tree. Okay but what is it? As this is intended to be written in a more hands-on style, at the risk
 of oversimplification, think of an AST as a way to meaningfully represent the textual source of a program that sometimes allows you to do something resembling [string interpolation](https://en.wikipedia.org/wiki/String_interpolation) operations on your program's text source. Consider for example the humble `eval()` function:
 
-javascript:
-
 ```javascript
+// javascript
 console.log(eval('2 + 2'));
 ```
 
-python:
-
 ```python3
+# python
 print(eval('2 + 2'))
 ```
 
-That's kind of neat isn't it? But what's going on here? how do we go from a `string` to a computation?
+```ruby
+# ruby
+puts eval('2+2')
+```
 
-For the short story continue on! However if this question seems interesting check out [crafting interpreters](https://craftinginterpreters.com/).
+That's kind of neat isn't it? But what's going on here? how do we go from a `string` to a computation?
+For the short story continue on! However if you're interested in how compilation works in general checkout [crafting interpreters](https://craftinginterpreters.com/).
 
 ### Building a (Dynamic) Array "constructor" in Elixir
 
@@ -52,7 +54,7 @@ eventually supporting either the erlang or rust version as a backend.
 As we'll see the "backend" implementation of the data structure is not important, what we're focused on is providing an easy to use syntactic abstraction
 of a common datastructure.
 
-Here's a simplified version pull straight from [the rust book](https://doc.rust-lang.org/book/ch19-06-macros.html) of `vec!`:
+Here's a simplified version pulled straight from [the rust book](https://doc.rust-lang.org/book/ch19-06-macros.html) of `vec!`:
 
 ```rust
 #[macro_export]
@@ -69,17 +71,13 @@ macro_rules! vec {
 }
 ```
 
-Woaw, what's going on here?
-
-_insert pattern matching and pre-compilation steps blah blah_
-
-In elixir we can begin like so:
+In elixir we're going to begin by using a mix project called [`ExVec`](https://github.com/hailelagi/ex_vec) with a similiar api:
 
 ```elixir
-defmodule Vector do
+defmodule ExVec do
   defmacro vec!(arguments, do: expression) do
     quote do
-      Array.new(arguments)
+      ExVec.Vector.new(arguments)
     end
   end
 end
@@ -91,11 +89,9 @@ end
 
 [2] RubyVM::AST : <https://ruby-doc.org/core-trunk/RubyVM/AST.html>
 
-[3] (footnote) I don't touch on Javascript(ECMAScript) as the language itself doesn't provide (afaik) useful apis to introspect and modify it's compile time state at runtime,
-added to that is the ballooned complexity of _which_ version of the AST, what about typescript? which engine? you get unwanted complexity that is out of scope.
+[3] Javascript(since ECMAScript6): <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect>
 
-- <https://nodejs.dev/en/learn/the-v8-javascript-engine/>
-- <https://basarat.gitbook.io/typescript/overview/ast>
+[4] Typescript: <https://basarat.gitbook.io/typescript/overview>
 
 [4] Go's AST : <https://pkg.go.dev/go/ast>
 
