@@ -5,7 +5,7 @@ pygmentsUseClasses = true
 pygmentsCodeFences = true
 [params]
   description = "A repository for my thoughts"
-  copyright = "Copyright © 2022 Haile Lagi"
+  copyright = "Copyright © 2023 Haile Lagi"
   dark = "off"
   highlight = true
   mainSections = ['writing', 'personal', 'hacks']
