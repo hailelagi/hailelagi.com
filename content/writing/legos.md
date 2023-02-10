@@ -47,13 +47,22 @@ If you're interested in the details of what's happening here, checkout [crafting
 
 First, some background. Elixir is a (mostly) functional language with (mostly) immutable datastructures, it doesn't encourage the use of
 or provide a dynamic array out of the box like most functional languages, as the implementation of one
-requires random access read/write via internal mutable state.
+requires random access read/write via mutable state. Nor does it have "constructors", a typical pattern is creating an instance of data returned from 
+a function and ["piping"](https://elixirschool.com/en/lessons/basics/pipe_operator) it through several other functions:
+```elixir
+defmodule MyApp.Array do
+  defstruct field: nil
 
-If you _really_ need one though, you can reach into the [erlang stdlib](https://www.erlang.org/doc/man/array.html).
+  def new(_options) do
+    __MODULE__{field: options}
+  end
+end
 
-For this we're going to piggyback off the rust standard library's [Vector](https://doc.rust-lang.org/std/vec/struct.Vec.html) and
-creating a [foreign function interface](https://en.wikipedia.org/wiki/Foreign_function_interface) in elixir by re-creating rust's `vec!` macro api
-eventually supporting either the erlang or rust version as a backend.
+iex(1)> MyApp.Array.new() |> do_stuff() |> do_other_stuff()
+```
+
+For this example, we're going to piggyback off the rust standard library's [Vector](https://doc.rust-lang.org/std/vec/struct.Vec.html) by
+creating a [foreign function interface](https://en.wikipedia.org/wiki/Foreign_function_interface) in elixir and utilizing a data structure implemented in the [erlang stdlib](https://www.erlang.org/doc/man/array.html) in order to re-create something like `vec!`
 
 As we'll see the "backend" implementation of the data structure is not important, what we're focused on is providing an easy to use syntactic abstraction
 of a common datastructure.
@@ -75,7 +84,7 @@ macro_rules! vec {
 }
 ```
 
-In elixir we're going to begin by using a mix project called [`ExVec`](https://github.com/hailelagi/ex_vec) with a similiar api:
+In elixir we're going to begin by using a mix project called [`ExVec`](https://github.com/hailelagi/ex_vec) and defining a similiar api:
 
 ```elixir
 defmodule ExVec do
