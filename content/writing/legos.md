@@ -1,7 +1,7 @@
 ---
 title: "It's legos all the way down"
 date: 2023-01-25T22:42:06+01:00
-draft: false
+draft: true
 ---
 
 Often as folks who create useful software things we tend to think of ourselves as people who write software for the mythical "user". A "user" clicks a button and
