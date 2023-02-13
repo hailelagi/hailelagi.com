@@ -85,7 +85,7 @@ macro_rules! vec {
 }
 ```
 
-Here we see a pattern match `( $( $x:expr ),* )` like our humble `eval('2 + 2')` instead of representing the computation as a string, it's a tree like data-structure 
+Here we see a pattern match `( $( $x:expr ),* )` like our humble `eval('2 + 2')` instead of representing the computation as a string, it's a tree like data-structure
 where we can assert at compile time, if some code looks like what we think it looks like, replace it with what's in the match arm,
 a process known as `macro expansion`.
 
@@ -149,6 +149,35 @@ defmodule ExVec do
 end
 ```
 
+The `ex_vec` library has two backends `ExVec.Array` which is a thin wrapper around `:array` and `ExVec.Vector` which is a NIF wrapper that
+implements what an array might look like in elixir:
+
+1. The `Access` behaviour
+2. A protocol implementation of `Enumerable` and `Collectable`
+
+By specifying these functions we can safely use things from stdlib like `Enum` and even `Stream` and just like that in any other elixir project
+and letting the client choose the backend:
+
+```
+defmodule MyApp.DoStuff do
+  use ExVec, implementation: :rust
+
+  @test_data [1, 2, 3, 4, 5]
+
+  def len do
+    vec!(1, 2, 3, 4) |> Enum.count()
+  end
+
+  def map_by_2 do
+    vec!(1, 2, 3, 4) |> Enum.map(fn n -> n * 2 end)
+  end
+end
+```
+
+Thanks for reading!
+
+You can find the full source for this example [here](https://github.com/hailelagi/ex_vec)
+
 ## References
 
 [1] Python3's excellent `ast` library: <https://docs.python.org/3/library/ast.html>
@@ -169,6 +198,6 @@ end
 
 [8] Awesome example of the `hook pattern` into ruby's object lifecyle: <https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/hooks.rb>
 
-[9] RSpec public DSL class: <https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/dsl.rb>
+[9] RSpec public DSL module: <https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/dsl.rb>
 
 [10] doPrint: <https://cs.opensource.google/go/go/+/refs/tags/go1.20:src/fmt/print.go;drc=261fe25c83a94fc3defe064baed3944cd3d16959;l=1204>
