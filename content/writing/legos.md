@@ -158,11 +158,9 @@ implements what an array might look like in elixir:
 By specifying these functions we can safely use things from stdlib like `Enum` and even `Stream` and just like that in any other elixir project
 and letting the client choose the backend:
 
-```
+```elixir
 defmodule MyApp.DoStuff do
   use ExVec, implementation: :rust
-
-  @test_data [1, 2, 3, 4, 5]
 
   def len do
     vec!(1, 2, 3, 4) |> Enum.count()
