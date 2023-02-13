@@ -4,6 +4,7 @@ date: 2023-01-25T22:42:06+01:00
 draft: false
 ---
 
+### Introduction
 Often as folks who create useful software things we tend to think of ourselves as people who write software for the mythical "user". A "user" clicks a button and
 something magical happens. This is commonly reffered to as an [abstraction](https://en.wikipedia.org/wiki/Abstraction_(computer_science)).
 Abstractions are all around us in software and clever programmers create good abstractions for other programmers to save them valuable time and or other resources.
@@ -12,18 +13,18 @@ A really common example of this is an [Application Programming Interface](https:
 some transport. Like an API, there are other interesting kinds of abstractions -- let's talk about the one between the language creator and language user by _inventing
 syntax!_
 
-How? we'll define a [constructor](https://en.wikipedia.org/wiki/Constructor_(object-oriented_programming)) for a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) in `elixir`.
-
 This involves a subtle shift in the paradigm used to understand computation, at the core is the idea of viewing _computation_ as _data_. I would guess for most people,
 the typical mental model when reading at first is mostly _procedural_, a top-down scan with familiarity of syntax and semantics, then another important shift occurs in
 understanding runtime execution with the introduction of concurrency and parallelism, here we'll be peeling back at the layer between _compile time_ and _runtime_.
 
-Before we begin, a caveat. Although metaprogramming applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references)) but not typescript[[4]](#references)
+As a refresher compile time occurs when program text is being "parsed and transformed" into a form the computer underneath can understand all the way to bits and runtime
+is when the program is actually executing ie "running", in this paradigm of viewing programs as textual input to other programs and to the program itself while running, is known as metaprogramming.
 
-### AST what?
+Before we begin, a caveat. Although this technique applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references)) but not typescript[[4]](#references)
 
-Abstract Syntax Tree. Okay but what is it? As this is intended to be written in a more hands-on style, at the risk
-of oversimplification, think of an AST as a way to meaningfully represent the textual source of a program that sometimes allows you to do something resembling [string interpolation](https://en.wikipedia.org/wiki/String_interpolation) operations on your program's text source. Consider for example the humble `eval()` function:
+### Computation is data
+
+ Consider for example the humble `eval()` function:
 
 ```javascript
 // javascript
@@ -43,7 +44,14 @@ puts eval('2 + 2')
 The computation `2 + 2` is represented as data, in this case a `string`. That's kind of neat isn't it? however we can take this much futher.
 If you're interested in the details of what's happening here, checkout [crafting interpreters](https://craftinginterpreters.com/).
 
+Since programming languages contain all sorts of elements like _expressions_ and _statements_, we need some 
+way to hold hold information about what the program or computation is trying to do, this representation is most commonly known as an Abstract Syntax Tree.
+
+At the risk of oversimplification, think of an AST as a way to meaningfully represent the textual source of a program that sometimes allows you to do something resembling [string interpolation](https://en.wikipedia.org/wiki/String_interpolation) operations on your program's text source.
+
 ### Prelude, why meta?
+
+To illustrate this concept, we'll see the steps of creating a [constructor](https://en.wikipedia.org/wiki/Constructor_(object-oriented_programming)) for a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) in `elixir`.
 
 First, some background. Elixir is a (mostly) functional language with (mostly) immutable datastructures, it doesn't encourage the use of
 or provide a dynamic array out of the box like most functional languages, as the implementation of one
