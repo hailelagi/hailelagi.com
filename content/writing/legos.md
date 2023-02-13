@@ -157,12 +157,12 @@ end
 ```
 
 The `ex_vec` library has two backends `ExVec.Array` which is a thin wrapper around `:array` and `ExVec.Vector` which is a NIF wrapper that
-implements what an array might look like in elixir:
+implements what an array might look like in elixir by defining:
 
 1. The `Access` behaviour
 2. A protocol implementation of `Enumerable` and `Collectable`
 
-By specifying these functions we can safely use things from stdlib like `Enum` and even `Stream` and just like that in any other elixir project
+By implementing these specifications we can safely use things from stdlib like `Enum` and even `Stream` and just like that in any other elixir project
 and letting the client choose the backend:
 
 ```elixir
