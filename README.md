@@ -3,6 +3,5 @@
 
 ## todo/roadmap
 - fix alignment issues (footer, images, article content)
-- preffered/dynamic language selection for conceptual language agnostic topics
 - integration with dynamic graphic rendering provider (tbd - miro?, draw.io etc)
 - create warning and error level callout partials
