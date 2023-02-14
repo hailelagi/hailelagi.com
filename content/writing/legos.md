@@ -169,11 +169,10 @@ defmodule ExVec do
 end
 ```
 
-The `ex_vec` library has two backends `ExVec.Array` which is a thin wrapper around [`:array`](https://www.erlang.org/doc/man/array.html) and `ExVec.Vector` which is a NIF wrapper that
-implements what an array might look like in elixir by defining:
+The `ex_vec` library has two backends `ExVec.Array` which is a thin wrapper around [`:array`](https://www.erlang.org/doc/man/array.html) and `ExVec.Vector` which is a NIF wrapper that leverages rustler's `Encoder` and `Decoder` to encode an elixir `List` as a `Vec` then implementing interfaces for what an array might look like in elixir by defining:
 
 1. The `Access` behaviour
-2. A protocol implementation of `Enumerable` and `Collectable`
+2. A protocol implementation of `Enumerable`
 
 By implementing these specifications we can safely use things from stdlib like `Enum` and even `Stream` and just like that in any other elixir project
 and letting the client choose the backend while keep the macro's syntax:
@@ -183,7 +182,17 @@ defmodule MyApp.DoStuff do
   use ExVec, implementation: :rust
 
   def len do
+    # O(1) traversal
     vec!(1, 2, 3, 4) |> Enum.count()
+
+    # O(n) traversal
+    [1, 2, 3, 4] |> Enum.count()
+  end
+
+  def random_access do
+    # O(1) read
+    my_array = vec!(0..10)
+    my_array[5]
   end
 
   def map_by_2 do
@@ -192,9 +201,20 @@ defmodule MyApp.DoStuff do
 end
 ```
 
-Thanks for reading!
+unfortunately as of the time of this writing, `rustler` [does not support](https://github.com/rusterlium/rustler/issues/424) generic type intefaces so I
+guess this is impossible? and a serious limitation of this toy example is it only works for `i32` integers :)
 
-You can find the full source for this example [here](https://github.com/hailelagi/ex_vec), please let me know if you've found a bug, typo or error somewhere!
+```rust
+#[derive(Debug, NifStruct)]
+#[module = "ExVec.Vector"]
+pub struct Vector<T> {
+   fields: Vec<T>,
+   size: isize
+}
+```
+
+You can find the full source for this example [here](https://github.com/hailelagi/ex_vec), please let me know if you have a comment, found a bug or typo.
+Thanks for reading!
 
 ## References
 
