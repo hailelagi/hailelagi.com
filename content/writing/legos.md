@@ -1,6 +1,6 @@
 ---
-title: "It's legos all the way down *[wip-preview]*"
-date: 2023-01-25T22:42:06+01:00
+title: "It's legos all the way down"
+date: 2023-02-14T04:59:26+01:00
 draft: false
 ---
 
@@ -8,7 +8,7 @@ draft: false
 
 Often as folks who create useful software things we tend to think of ourselves as people who write software for the mythical "user". A "user" clicks a button and
 something magical happens. This is commonly reffered to as an [abstraction](https://en.wikipedia.org/wiki/Abstraction_(computer_science)).
-Abstractions are all around us in software and clever programmers create good abstractions for other programmers to remove complexity.
+Abstractions are all around us in software and clever programmers create good abstractions for other programmers often to manage complexity.
 
 A really common example of this is an [Application Programming Interface](https://en.wikipedia.org/wiki/API) which allows two "applications" to share useful data with each other over some transport while being platform-agnostic as to how this data is used. Like an API, there are other interesting kinds of abstractions -- let's peel back the abstraction between the language creator and language user by _inventing syntax!_
 
@@ -16,8 +16,15 @@ This involves a subtle shift in the paradigm used to understand computation, at 
 the typical mental model when reading at first is mostly _procedural_, a top-down scan with familiarity of syntax and semantics, then another important shift occurs in
 understanding runtime execution with the introduction of concurrency and parallelism, here we'll be peeling back at the layer between _compile time_ and _runtime_.
 
-As a refresher compile time occurs when program text is being "parsed and transformed" into many forms all the way to bits and runtime
+Compile time occurs when program text is being "parsed and transformed" into many forms all the way to bits and runtime
 is when the program is actually executing ie "running", in this paradigm of viewing programs as textual input to other programs and to the program itself while running, is known as metaprogramming.
+
+```
+ This distinction between what is "compile" and "runtime" is
+ a useful mental model illustrated here for simplicity, odds
+ are what's happening in your favorite language is probably 
+ more interesting![11]
+```
 
 Before we begin, a caveat. Although this technique applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references)) but not typescript[[4]](#references)
 
@@ -50,19 +57,21 @@ At the risk of oversimplification, think of an AST as a way to meaningfully repr
 
 ### Prelude, why meta?
 
-To illustrate this concept, we'll see the steps of creating a [constructor](https://en.wikipedia.org/wiki/Constructor_(object-oriented_programming)) for a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) in `elixir`.
+To illustrate this concept, lets see how one might add syntax to create a [constructor](https://en.wikipedia.org/wiki/Constructor_(object-oriented_programming)) for a [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array) in `elixir`.
 
 First, some background. Elixir is a (mostly) functional language with (mostly) immutable datastructures, it doesn't encourage the use of
 or provide a dynamic array out of the box like most functional languages, as the implementation of one
-requires random access read/write via mutable state. Nor does it have "constructors", a typical pattern is creating an instance of data returned from
+requires random access read/write via mutable state. Nor does it have "constructors", a typical pattern is creating structured data returned from
 a function and ["piping"](https://elixirschool.com/en/lessons/basics/pipe_operator) it through several other functions:
 
 ```elixir
 defmodule MyApp.Array do
+  alias MyApp.Array
+
   defstruct field: nil
 
   def new(options \\ []) do
-    __MODULE__{field: options}
+    %Array{field: options}
   end
 end
 
@@ -70,7 +79,7 @@ iex(1)> MyApp.Array.new() |> do_stuff() |> do_other_stuff()
 ```
 
 For this example, we're going to piggyback off the rust standard library's [Vector](https://doc.rust-lang.org/std/vec/struct.Vec.html) by
-creating a [foreign function interface](https://en.wikipedia.org/wiki/Foreign_function_interface) in elixir and utilizing a data structure implemented in the [erlang stdlib](https://www.erlang.org/doc/man/array.html) in order to re-create something like `vec!`
+creating a [foreign function interface](https://en.wikipedia.org/wiki/Foreign_function_interface) in elixir and alternatively a data structure implemented in the [erlang stdlib](https://www.erlang.org/doc/man/array.html) in order to re-create something like `vec!`
 
 As we'll see the "backend" implementation of the data structure is not important, the fact that it's in rust or erlang doesn't matter, what we're focused on is providing an easy to use syntactic abstraction
 of a common datastructure.
@@ -100,10 +109,10 @@ In elixir, we can write something similar, the pattern match is a three-element 
 
 `{node, execution_context or meta_data, arguments}`
 
-Go and ruby share some superficial similarities as their metaprogramming api doesn't give you direct access to the AST, in ruby DSL's like `RSpec` and inside `rails` heavily use metaprogramming techniques via "monkey patching" -- modifying at _runtime_ various
-properties of an object[[6]](#references) and since in ruby's _extremely dynamic_ and _untyped_[[7]](#references) world there is no notion of "compile time expansion" during execution but that gives you incredible introspection and malleability via `hooks`[[8]](#references) to alter nearly almost anything about the language, syntax or not.
+Go and ruby share some superficial similarities as their metaprogramming api doesn't give you direct access to the AST, in ruby DSL's like `RSpec` and `rails` router and html templates use metaprogramming techniques via "monkey patching" -- modifying at _runtime_ various
+properties of an object[[6]](#references) and since in ruby's _extremely dynamic_ and _untyped_[[7]](#references) world there is no notion of "compile time expansion" during execution but that gives you incredible introspection and malleability via `hooks`[[8]](#references) to alter nearly almost anything about the language via object properties, syntax or not.
 
-Take this small excerpt[[9]](#references) from [rspec-core](https://github.com/rspec/rspec-core) of how `describe` is defined:
+Take this small excerpt[[9]](#references) from [rspec-core](https://github.com/rspec/rspec-core) of the `describe` public api:
 
 ```ruby
 # @private
@@ -122,10 +131,9 @@ def self.expose_example_group_alias(name)
 end
 ```
 
-There's alot happening but the important thing to note is `RSpec::Core::ExampleGroup` is an object that "pun intended" is being modified at the test-runner's runtime which describes the linguistic structure of the dsl.
+There's alot happening but the important thing to note is `RSpec::Core::ExampleGroup` is an object that is being modified at the test-runner's runtime which specifies the linguistic structure of the dsl.
 
-In go like ruby we have `reflection` that allows runtime introspection, unlike ruby it is statically typed and compiled. Reflection gives a temporary "escape hatch" out of the rigid
-syntatical constructs and allows modification based on dynamic `interfaces`, the most idiomatic example of this are the printing family[[10]](#references) functions.
+In go like ruby we have `reflection` that allows runtime introspection, unlike ruby it is statically typed and compiled. Reflection gives a temporary "escape hatch" out of the rigid type system and allows modification based on dynamic `interfaces` the most idiomatic example of this I can find are the printing family[[10]](#references) functions like `fmt.Sprintf`.
 
 ```go
 func (p *pp) doPrint(a []any) {
@@ -144,26 +152,31 @@ func (p *pp) doPrint(a []any) {
 
 ### Building a (Dynamic) Array "constructor" in Elixir
 
-Now we're finally ready! We're going to begin by starting a mix project called [`ExVec`](https://github.com/hailelagi/ex_vec) and defining a similiar api:
+Now, let's get hands on. Everything here lives in a mix project called [`ExVec`](https://github.com/hailelagi/ex_vec) and defining the macro's public api:
 
 ```elixir
 defmodule ExVec do
   defmacro vec!(arguments, do: expression) do
     quote do
-      ExVec.Vector.new(arguments)
+      case implementation do
+        :rust -> ExVec.Vector.new(arguments)
+        :erlang -> ExVec.Array.new(arguments)
+        _ -> raise "invalid, did you mean to pass in `:rust`?"
+      end
+      
     end
   end
 end
 ```
 
-The `ex_vec` library has two backends `ExVec.Array` which is a thin wrapper around `:array` and `ExVec.Vector` which is a NIF wrapper that
+The `ex_vec` library has two backends `ExVec.Array` which is a thin wrapper around [`:array`](https://www.erlang.org/doc/man/array.html) and `ExVec.Vector` which is a NIF wrapper that
 implements what an array might look like in elixir by defining:
 
 1. The `Access` behaviour
 2. A protocol implementation of `Enumerable` and `Collectable`
 
 By implementing these specifications we can safely use things from stdlib like `Enum` and even `Stream` and just like that in any other elixir project
-and letting the client choose the backend:
+and letting the client choose the backend while keep the macro's syntax:
 
 ```elixir
 defmodule MyApp.DoStuff do
@@ -181,7 +194,7 @@ end
 
 Thanks for reading!
 
-You can find the full source for this example [here](https://github.com/hailelagi/ex_vec)
+You can find the full source for this example [here](https://github.com/hailelagi/ex_vec), please let me know if you've found a bug, typo or error somewhere!
 
 ## References
 
@@ -206,3 +219,5 @@ You can find the full source for this example [here](https://github.com/hailelag
 [9] RSpec public DSL module: <https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/dsl.rb>
 
 [10] doPrint: <https://cs.opensource.google/go/go/+/refs/tags/go1.20:src/fmt/print.go;drc=261fe25c83a94fc3defe064baed3944cd3d16959;l=1204>
+
+[11] Just in Time compilation: <https://en.wikipedia.org/wiki/Just-in-time_compilation>
