@@ -5,9 +5,7 @@ and [go](https://go.dev/) on the server side and javascript([vue.js](https://vue
 I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
 My interests outside **computer science** are primarily **philosophy** and **economics**.
-I'm currently reading: _metaprogramming elixir_
-
-I'm currently learning metaprogramming, sql and network programming. Eventually diving into distributed systems and cryptography.
+I'm currently reading: _Designing Data Intensive Systems_
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)
@@ -15,11 +13,11 @@ or [twitter](https://www.twitter.com/haile_lagi)
 2023:
 
 - [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content) [up next]
-- [Erlang in Anger](https://www.erlang-in-anger.com/) [Feb | '23 (hopefully)]
+- [Erlang in Anger](https://www.erlang-in-anger.com/) [March | '23 (hopefully)]
 - [crafting interpreters](https://craftinginterpreters.com/) [April '23]
-- Thinking, Fast and Slow by Daniel Kahneman [Feb '23|planned]
-- Designing Data Intensive Systems by Martin Kleppmann [Feb '23|planned]
-- [How to Design Programs](<https://htdp.org/>) [Feb '23|planned]
+- Thinking, Fast and Slow by Daniel Kahneman ['23|planned]
+- [How to Design Programs](https://htdp.org/) ['23|planned]
+- ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
 - ~~[Programming Ecto](https://pragprog.com/titles/wmecto/programming-ecto/)~~[January '23]
 - ~~[The little Ecto Cookbook](https://dashbit.co/ebooks/the-little-ecto-cookbook)~~ [January '23]
 
