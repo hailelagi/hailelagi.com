@@ -109,8 +109,8 @@ In elixir, we can write something similar, the pattern match is a three-element 
 
 `{node, execution_context or meta_data, arguments}`
 
-Go and ruby share some superficial similarities as their metaprogramming api doesn't give you direct access to the AST, in ruby DSL's like `RSpec` and `rails` router and html templates use metaprogramming techniques via "monkey patching" -- modifying at _runtime_ various
-properties of an object[[6]](#references) and since in ruby's _extremely dynamic_ and _untyped_[[7]](#references) world there is no notion of "compile time expansion" during execution but that gives you incredible introspection and malleability via `hooks`[[8]](#references) to alter nearly almost anything about the language via object properties, syntax or not.
+Go and ruby share some superficial similarities as their metaprogramming api doesn't give you direct access to the AST. In ruby libraries like `RSpec`,`rails` router and `erb` html templates often use metaprogramming techniques via "monkey patching" -- modifying at _runtime_ various
+properties of an object[[6]](#references) and since in ruby's _extremely dynamically typed_[[7]](#references) interpreted world there is no notion of "compile time expansion" instead you have powerful introspection and malleability at runtime giving rise to patterns like `hooks`[[8]](#references) to alter nearly almost anything about the language via object properties, syntax or not.
 
 Take this small excerpt[[9]](#references) from [rspec-core](https://github.com/rspec/rspec-core) of the `describe` public api:
 
@@ -131,7 +131,7 @@ def self.expose_example_group_alias(name)
 end
 ```
 
-There's alot happening but the important thing to note is `RSpec::Core::ExampleGroup` is an object that is being modified at the test-runner's runtime which specifies the linguistic structure of the dsl.
+There's alot happening but the important thing to note is `RSpec::Core::ExampleGroup` is an object that is being modified at the test-runner's runtime which specifies the linguistic structure of the _domain's specific language_ of what `describe` means.
 
 In go like ruby we have `reflection` that allows runtime introspection, unlike ruby it is statically typed and compiled. Reflection gives a temporary "escape hatch" out of the rigid type system and allows modification based on dynamic `interfaces` the most idiomatic example of this I can find are the printing family[[10]](#references) functions like `fmt.Sprintf`.
 
