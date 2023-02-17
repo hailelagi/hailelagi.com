@@ -156,14 +156,34 @@ Now, let's get hands on. Everything here lives in a mix project called [`ExVec`]
 
 ```elixir
 defmodule ExVec do
-  defmacro vec!(arguments, do: expression) do
+  alias ExVec.{Array, Vector}
+
+  defmacro __using__(implementation: impl) do
     quote do
-      case implementation do
-        :rust -> ExVec.Vector.new(arguments)
-        :erlang -> ExVec.Array.new(arguments)
-        _ -> raise "invalid, did you mean to pass in `:rust`?"
-      end
-      
+      import unquote(__MODULE__)
+      Module.put_attribute(__MODULE__, :implementation, unquote(impl))
+    end
+  end
+
+  defmacro vec!([_h | _t] = args) do
+    quote bind_quoted: [args: args] do
+      dispatch_constructor(@implementation, args)
+    end
+  end
+
+  defmacro vec!({:.., _, [first, last]}) do
+    args = Range.new(first, last) |> Enum.to_list()
+
+    quote bind_quoted: [args: args] do
+      dispatch_constructor(@implementation, args)
+    end
+  end
+
+  def dispatch_constructor(impl, args) do
+    case impl do
+      :rust -> Vector.new(args)
+      :erlang -> Array.new(args)
+      _ -> raise "invalid constructor type, did you mean :rust?"
     end
   end
 end
@@ -179,13 +199,16 @@ and letting the client choose the backend while keep the macro's syntax:
 
 ```elixir
 defmodule MyApp.DoStuff do
+  alias ExVec.Vector
   use ExVec, implementation: :rust
 
-  def len do
-    # O(1) traversal
-    vec!(1, 2, 3, 4) |> Enum.count()
 
-    # O(n) traversal
+  def len do
+    # serialised as a rust Vec<i32>
+    vec!(1..4) |> Enum.count()
+    vec!([1, 2, 3, 4]) |> Enum.count()
+
+    # plain old linked-list
     [1, 2, 3, 4] |> Enum.count()
   end
 
@@ -193,28 +216,37 @@ defmodule MyApp.DoStuff do
     # O(1) read
     my_array = vec!(0..10)
     my_array[5]
-  end
 
-  def map_by_2 do
-    vec!(1, 2, 3, 4) |> Enum.map(fn n -> n * 2 end)
+     # serialised random write access
+    Vector.get_and_update(my_array, 0, fn n -> {n, 42} end)
+  end
+end
+
+defmodule MyApp.DoOtherStuff do
+  use ExVec, implementation: :erlang
+
+  def len do
+    # this is an erlang :array!
+    vec!([1, 2, 3, 4]) |> Enum.count()
   end
 end
 ```
 
 unfortunately as of the time of this writing, `rustler` [does not support](https://github.com/rusterlium/rustler/issues/424) generic type intefaces so I
-guess this is impossible? and a serious limitation of this toy example is it only works for `i32` integers :)
+guess this is impossible?
 
 ```rust
 #[derive(Debug, NifStruct)]
 #[module = "ExVec.Vector"]
 pub struct Vector<T> {
-   fields: Vec<T>,
+   fields: Vec<T>,o
    size: isize
 }
 ```
 
-You can find the full source for this example [here](https://github.com/hailelagi/ex_vec), please let me know if you have a comment, found a bug or typo.
-Thanks for reading!
+Therefore a serious limitation of this toy example is it only works for `i32` integers :) I also glossed over some behaviours and protocols with defaults.
+
+ You can find the full source for this example [here](https://github.com/hailelagi/ex_vec), please let me know if you have a comment, found a bug or typo. Thanks for reading!
 
 ## References
 
