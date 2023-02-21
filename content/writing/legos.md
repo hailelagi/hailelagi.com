@@ -26,7 +26,7 @@ is when the program is actually executing ie "running", in this paradigm of view
  more interesting![11]
 ```
 
-Before we begin, a caveat. Although this technique applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references)) but not typescript[[4]](#references)
+Before we begin, a caveat. Although this technique applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references) but not typescript[[4]](#references)
 
 ### Computation is data
 
@@ -202,7 +202,6 @@ defmodule MyApp.DoStuff do
   alias ExVec.Vector
   use ExVec, implementation: :rust
 
-
   def len do
     # serialised as a rust Vec<i32>
     vec!(1..4) |> Enum.count()
@@ -239,7 +238,7 @@ guess this is impossible?
 #[derive(Debug, NifStruct)]
 #[module = "ExVec.Vector"]
 pub struct Vector<T> {
-   fields: Vec<T>,o
+   fields: Vec<T>,
    size: isize
 }
 ```
