@@ -5,7 +5,8 @@ and [go](https://go.dev/) on the server side and javascript([vue.js](https://vue
 I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
 
 My interests outside **computer science** are primarily **philosophy** and **economics**.
-I'm currently reading: _Designing Data Intensive Systems_
+
+I'm currently reading: _Designing Data Intensive Systems_ and _The Go Programming Language_
 
 I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
 or [twitter](https://www.twitter.com/haile_lagi)
