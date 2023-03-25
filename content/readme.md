@@ -14,8 +14,8 @@ or [twitter](https://www.twitter.com/haile_lagi)
 2023:
 
 - [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content) [up next]
-- [Erlang in Anger](https://www.erlang-in-anger.com/) [March | '23 (hopefully)]
-- [crafting interpreters](https://craftinginterpreters.com/) [April '23]
+- [Erlang in Anger](https://www.erlang-in-anger.com/) [April | '23 (hopefully)]
+- [crafting interpreters](https://craftinginterpreters.com/) [May '23]
 - Thinking, Fast and Slow by Daniel Kahneman ['23|planned]
 - [How to Design Programs](https://htdp.org/) ['23|planned]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]

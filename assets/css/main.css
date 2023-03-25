@@ -276,6 +276,15 @@ main#content section.footnotes {
     font-size: 0.9em;
 }
 
+/* TODO: snap to bottom when more entries
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2.5rem; 
+}
+*/
+
 footer#footer {
     font-size: 14px;
     font-size: 1.4rem;
@@ -289,4 +298,8 @@ footer#footer a {
     text-decoration: none;
     padding: 0.5em;
     margin-left: 2em;
+}
+
+footer#footer #sign-key {
+        margin-left: 3em;
 }
