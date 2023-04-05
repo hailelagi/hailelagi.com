@@ -18,6 +18,7 @@ or [twitter](https://www.twitter.com/haile_lagi)
 - [crafting interpreters](https://craftinginterpreters.com/) [July '23]
 - Thinking, Fast and Slow by Daniel Kahneman ['23|planned]
 - [How to Design Programs](https://htdp.org/) [Dec '23|planned]
+- Distributed Systems - Maarten & Andrew ['23|planned]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
 - ~~[Programming Ecto](https://pragprog.com/titles/wmecto/programming-ecto/)~~[January '23]
