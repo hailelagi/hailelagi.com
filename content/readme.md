@@ -14,6 +14,7 @@ or [twitter](https://www.twitter.com/haile_lagi)
 2023:
 
 - [Erlang in Anger](https://www.erlang-in-anger.com/) [up next]
+- Networking & Kubernetes - A Layered Approach ['23|planned]
 - The Kubernetes Book ['23|planned]
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
 - [The Beam Book](https://github.com/happi/theBeamBook) [May]
