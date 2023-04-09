@@ -15,6 +15,7 @@ or [twitter](https://www.twitter.com/haile_lagi)
 
 - [Erlang in Anger](https://www.erlang-in-anger.com/) [up next]
 - The Kubernetes Book ['23|planned]
+- [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
 - [The Beam Book](https://github.com/happi/theBeamBook) [May]
 - [crafting interpreters](https://craftinginterpreters.com/) [July '23]
 - Thinking, Fast and Slow by Daniel Kahneman ['23|planned]
