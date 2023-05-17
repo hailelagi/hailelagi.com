@@ -1,9 +1,12 @@
-<h4 class="category"> Experiments/Projects </h4>
+<h4 class="category"> Stuff I've Made </h4>
 {{ range where (where .Site.Pages "Section" "hacks" ) ".IsPage" "==" true }}
 <ul id="posts">
     <li>
         <a href="{{ .Permalink }}">
             {{ .Title }}
+            {{ if .Params.publicDraft }}
+            <span id="wip">🚧🚧</span>
+            {{- end }}
             <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
         </a>
         <span id="badge"> {{ .Params.tags }} </span>
