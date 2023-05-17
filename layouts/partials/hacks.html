@@ -5,11 +5,11 @@
         <a href="{{ .Permalink }}">
             {{ .Title }}
             {{ if .Params.publicDraft }}
-            <span id="wip">🚧🚧</span>
+            <span id="wip">🚧</span>
             {{- end }}
-            <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
         </a>
         <span id="badge"> {{ .Params.tags }} </span>
+        <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
     </li>
     {{- end }}
 </ul>
