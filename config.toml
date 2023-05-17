@@ -73,7 +73,7 @@ pygmentsCodeFences = true
 
   [[menu.main]]
     identifier = "readme"
-    name = "readme"
+    name = "readlist"
     title = "readme"
     url = "/readme"
     weight = 25

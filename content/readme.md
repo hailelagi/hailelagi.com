@@ -1,24 +1,24 @@
-Hi, I'm Haile (pronunciation: [haɪlə](https://en.wikipedia.org/wiki/File:Haile_Selassie.ogg)).
+I'm trying to learn more about:
 
-I've had previous production experience with [elixir](https://elixir-lang.org/), [ruby](https://www.ruby-lang.org/en/)
-and [go](https://go.dev/) on the server side and javascript([vue.js](https://vuejs.org/) and [react](https://reactjs.org/)) on the client.
-I hope to write more elixir and/or [rust](https://www.rust-lang.org/).
+- distributed systems
+- databases/storage systems
+- runtimes
+- cryptography
 
-My interests outside **computer science** are primarily **philosophy** and **economics**.
+In elixir, go and/or [rust](https://www.rust-lang.org/).
 
-I'm currently reading: [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)  and _Designing Data Intensive Systems_(mostly paused)
-
-I am _always_ looking for great recommendations! via [github](https://gist.github.com/hailelagi/26263ee81eebd06c5e62b98617854581)
-or [twitter](https://www.twitter.com/haile_lagi)
+My interests outside computer science are primarily **philosophy** and **economics**.
+Currently reading:  _Designing Data Intensive Systems_
 
 2023:
 
-- [Erlang in Anger](https://www.erlang-in-anger.com/) [up next]
+- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content) [up next]
+- [Erlang in Anger](https://www.erlang-in-anger.com/)
 - Networking & Kubernetes - A Layered Approach ['23|planned]
 - The Kubernetes Book ['23|planned]
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
-- [The Beam Book](https://github.com/happi/theBeamBook) [May]
-- [crafting interpreters](https://craftinginterpreters.com/) [July '23]
+- [The Beam Book](https://github.com/happi/theBeamBook)
+- [crafting interpreters](https://craftinginterpreters.com/)
 - Thinking, Fast and Slow by Daniel Kahneman ['23|planned]
 - [How to Design Programs](https://htdp.org/) [Dec '23|planned]
 - Distributed Systems - Maarten & Andrew ['23|planned]
@@ -36,3 +36,5 @@ or [twitter](https://www.twitter.com/haile_lagi)
 - ~~[elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)~~ [July '22]
 - ~~how to solve it - George Pólya~~ [June '22][due for re-read]
 - ~~[algorithms and data structure basics](https://runestone.academy/ns/books/published/pythonds/index.html)~~ [March - June '22]
+
+This is a _living document_ and **not** a linear historical timeline! My direction and interests are in flux. Got a great recommendation? let me know on [twitter](https://www.twitter.com/haile_lagi)

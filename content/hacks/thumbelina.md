@@ -5,6 +5,7 @@ draft: false
 tags: elixir, rust
 recommend: true
 ---
+🚧🚧🚧🚧🚧 **WIP - Public Unfinished Draft** 🚧🚧🚧🚧🚧🚧
 
 This is my first entry in a new series called "hacks". Technical demos for the random junk I build.
 Thumbelina is an experiment in _extending_ elixir.
