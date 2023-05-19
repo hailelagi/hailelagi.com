@@ -5,4 +5,4 @@ Always open to good recommendations!
 - [Gossip Glomers](https://github.com/hailelagi/gossip-glomers) [🚧 - trying to solve these rn!]
 - [Protohackers](https://github.com/hailelagi/protohackers)
 - [CryptoPals](https://github.com/hailelagi/matasano)
-- [Teller - codeBEAM America](https://gist.github.com/hailelagi/b260b8546843b635208d24306e64aa00)
+- [Teller - codeBEAM America 2022](https://gist.github.com/hailelagi/b260b8546843b635208d24306e64aa00)
