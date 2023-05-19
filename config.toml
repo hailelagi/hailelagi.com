@@ -85,6 +85,13 @@ pygmentsCodeFences = true
     url = "https://www.github.com/hailelagi"
     weight = 25
 
+  [[menu.main]]
+    identifier = "challenges"
+    name = "solved challenges 😈"
+    title = "challenges"
+    url = "/challenges"
+    weight = 25
+
 #  [[menu.main]]
 #    identifier = "ethereum"
 #    name = "ethereum"
