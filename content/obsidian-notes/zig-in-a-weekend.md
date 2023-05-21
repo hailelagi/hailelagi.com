@@ -35,6 +35,14 @@ do-not-render: true
 main.zig:18:32: error: type 'main.Vector' does not support array initialization syntax
 ```
 
+- looping syntax...is very weird:
+
+```zig
+    for (array | slice) |value| {
+        // use value do thing
+    }
+```
+
 ## Hello -- `hello world`
 
 ```zig
