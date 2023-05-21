@@ -5,3 +5,5 @@
 - fix alignment issues (footer, images, article content)
 - integration with dynamic graphic rendering provider (tbd - miro?, draw.io etc)
 - create warning and error level callout partials
+- fix obsidian imports
+- fix zig import for code block embeds
