@@ -20,6 +20,7 @@ Currently reading:  _Designing Data Intensive Systems_
 - [The Beam Book](https://github.com/happi/theBeamBook)
 - [High Performance Browser Networking](https://hpbn.co/)
 - [crafting interpreters](https://craftinginterpreters.com/)
+-[Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - Thinking, Fast and Slow by Daniel Kahneman
 - [How to Design Programs](https://htdp.org/)
 - Distributed Systems - Maarten & Andrew
