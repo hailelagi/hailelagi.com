@@ -72,10 +72,10 @@ pygmentsCodeFences = true
     weight = 25
 
   [[menu.main]]
-    identifier = "readme"
-    name = "readlist"
-    title = "readme"
-    url = "/readme"
+    identifier = "roadmap"
+    name = "roadmap"
+    title = "roadmap"
+    url = "/roadmap"
     weight = 25
 
   [[menu.main]]
