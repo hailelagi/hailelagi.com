@@ -14,14 +14,15 @@ Currently reading:  _Designing Data Intensive Systems_
 
 - [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content) [up next]
 - [Erlang in Anger](https://www.erlang-in-anger.com/)
-- Networking & Kubernetes - A Layered Approach ['23|planned]
-- The Kubernetes Book ['23|planned]
+- Networking & Kubernetes - A Layered Approach
+- The Kubernetes Book
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
 - [The Beam Book](https://github.com/happi/theBeamBook)
+- [High Performance Browser Networking](https://hpbn.co/)
 - [crafting interpreters](https://craftinginterpreters.com/)
-- Thinking, Fast and Slow by Daniel Kahneman ['23|planned]
-- [How to Design Programs](https://htdp.org/) [Dec '23|planned]
-- Distributed Systems - Maarten & Andrew ['23|planned]
+- Thinking, Fast and Slow by Daniel Kahneman
+- [How to Design Programs](https://htdp.org/)
+- Distributed Systems - Maarten & Andrew
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
 - ~~[Programming Ecto](https://pragprog.com/titles/wmecto/programming-ecto/)~~[January '23]
