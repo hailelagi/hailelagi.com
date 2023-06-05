@@ -1,3 +1,5 @@
+[Shuhari](https://en.wikipedia.org/wiki/Shuhari) is a meta learning framework.
+
 A non-exhaustive list of programming challenges I've solved, currently solving or plan to at some point.
 Always open to good recommendations!
 

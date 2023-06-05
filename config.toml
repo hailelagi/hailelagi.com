@@ -87,7 +87,7 @@ pygmentsCodeFences = true
 
   [[menu.main]]
     identifier = "challenges"
-    name = "solved challenges 😈"
+    name = "shuhari"
     title = "challenges"
     url = "/challenges"
     weight = 25
