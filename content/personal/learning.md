@@ -1,5 +1,5 @@
 ---
-title: "Learning is a non-complete graph problem"
+title: "Learning"
 date: 2023-06-01T11:37:27+01:00
 draft: false
 ---
@@ -37,7 +37,7 @@ We needed to communicate with each other, a basis on which to share perception.
 
 This shared perception lends itself to be a [consensus-communication problem](https://www.jstor.org/stable/1882010).
 
-In the model of a capitalistic world, a job is a function is determined by the ability to draw upon this arbitrary sub-set and perform some activity
+In the model of a capitalistic world, a job is a function determined by the ability to draw upon some arbitrary sub-set as a base and perform some activity
 that generates a profit and provides some value to a society.
 
 Should every programmer know what [`mmap(2)`](https://man7.org/linux/man-pages/man2/mmap.2.html) is?
@@ -50,6 +50,8 @@ Nodes that have value are nodes that reach consensus because somehow they genera
 
 How do you know what has value? You don't, not your peers or the experts nor does any member of society apriori.
 
-The meta question.. what should I be working on? Is worthy of serious consideration.
-Answering it seems to be nearly an accidental discovery via iterative experiements. You explore and most likely you're going to fail.
-_There is no royal road to geometry_ indeed.
+The meta question.. what should I be working on?
+
+{{< youtube a1zDuOPkMSw >}}
+
+Is worthy of serious consideration. Answering it seems to be nearly an accidental discovery via iterative experiements. You explore and most likely you're going to fail. _There is no royal road to geometry_ indeed.
