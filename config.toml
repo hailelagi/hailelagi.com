@@ -85,12 +85,12 @@ pygmentsCodeFences = true
     url = "https://www.github.com/hailelagi"
     weight = 25
 
-  [[menu.main]]
-    identifier = "challenges"
-    name = "shuhari"
-    title = "challenges"
-    url = "/challenges"
-    weight = 25
+#  [[menu.main]]
+#    identifier = "challenges"
+#    name = "shuhari"
+#    title = "challenges"
+#    url = "/challenges"
+#    weight = 25
 
 #  [[menu.main]]
 #    identifier = "ethereum"
