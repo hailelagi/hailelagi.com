@@ -63,14 +63,6 @@ pygmentsCodeFences = true
     ordered = false
     startLevel = 2
 
-[menu]
-  [[menu.main]]
-    identifier = "resume"
-    name = "resume"
-    title = "resume"
-    url = "/resume"
-    weight = 25
-
   [[menu.main]]
     identifier = "roadmap"
     name = "roadmap"
