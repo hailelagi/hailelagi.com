@@ -17,13 +17,13 @@ Currently reading:  _Designing Data Intensive Systems_
 - Networking & Kubernetes - A Layered Approach
 - The Kubernetes Book
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
-- [The Beam Book](https://github.com/happi/theBeamBook)
 - [High Performance Browser Networking](https://hpbn.co/)
 - [crafting interpreters](https://craftinginterpreters.com/)
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - Thinking, Fast and Slow by Daniel Kahneman
 - [How to Design Programs](https://htdp.org/)
 - Distributed Systems - Maarten & Andrew
+- ~~[The Beam Book](https://github.com/happi/theBeamBook)~~[reference]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
 - ~~[Programming Ecto](https://pragprog.com/titles/wmecto/programming-ecto/)~~[January '23]
