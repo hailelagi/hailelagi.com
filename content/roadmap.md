@@ -19,10 +19,12 @@ Currently reading:  _Designing Data Intensive Systems_
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
 - [High Performance Browser Networking](https://hpbn.co/)
 - [crafting interpreters](https://craftinginterpreters.com/)
+- [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - Thinking, Fast and Slow by Daniel Kahneman
 - [How to Design Programs](https://htdp.org/)
 - Distributed Systems - Maarten & Andrew
+- [Testing Elixir](https://pragprog.com/titles/lmelixir/testing-elixir/)
 - ~~[The Beam Book](https://github.com/happi/theBeamBook)~~[reference]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
