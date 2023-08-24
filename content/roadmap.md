@@ -10,20 +10,22 @@ In elixir, go and/or [rust](https://www.rust-lang.org/).
 My interests outside computer science are primarily **philosophy** and **economics**.
 Currently reading:  _Designing Data Intensive Systems_
 
+2024:
+
+- [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
+- [High Performance Browser Networking](https://hpbn.co/)
+- Distributed Systems - Maarten & Andrew
+- [How to Design Programs](https://htdp.org/)
+
 2023:
 
-- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content) [up next]
-- [Erlang in Anger](https://www.erlang-in-anger.com/)
+- The Kubernetes Book - Poulton N. [up next]
 - Networking & Kubernetes - A Layered Approach
-- The Kubernetes Book
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
-- [High Performance Browser Networking](https://hpbn.co/)
 - [crafting interpreters](https://craftinginterpreters.com/)
+- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)
+- [Erlang in Anger](https://www.erlang-in-anger.com/)
 - [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
-- [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
-- Thinking, Fast and Slow by Daniel Kahneman
-- [How to Design Programs](https://htdp.org/)
-- Distributed Systems - Maarten & Andrew
 - [Testing Elixir](https://pragprog.com/titles/lmelixir/testing-elixir/)
 - ~~[The Beam Book](https://github.com/happi/theBeamBook)~~[reference]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
