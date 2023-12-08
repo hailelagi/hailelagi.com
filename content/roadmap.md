@@ -5,7 +5,7 @@ I'm trying to learn more about:
 - runtimes
 - cryptography
 
-In elixir, go and/or [rust](https://www.rust-lang.org/).
+In go and/or [rust](https://www.rust-lang.org/).
 
 My interests outside computer science are primarily **philosophy** and **economics**.
 Currently reading:  _Designing Data Intensive Systems_

@@ -2,6 +2,7 @@
 title: "Work Hard"
 date: 2022-11-06T02:44:14+01:00
 draft: false
+tags: ['archive']
 ---
 
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">This is how great new things are built, more often than anyone has been willing to say during the last decade&#39;s cultural revolution in Silicon Valley. <a href="https://t.co/5yIN62nUBb">https://t.co/5yIN62nUBb</a></p>&mdash; Nat Friedman (@natfriedman) <a href="https://twitter.com/natfriedman/status/1589051044369420288?ref_src=twsrc%5Etfw">November 6, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
