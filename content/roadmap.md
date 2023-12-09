@@ -1,24 +1,16 @@
-I'm trying to learn more about:
-
-- distributed systems
-- databases/storage systems
-- runtimes
-- cryptography
+I'm trying to learn more about distributed systems and operating systems.
 
 In go and/or [rust](https://www.rust-lang.org/).
 
 My interests outside computer science are primarily **philosophy** and **economics**.
-Currently reading:  _Designing Data Intensive Systems_
 
 2024:
 
+- [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X) [Up Next]
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [High Performance Browser Networking](https://hpbn.co/)
 - Distributed Systems - Maarten & Andrew
 - [How to Design Programs](https://htdp.org/)
-
-2023:
-
 - The Kubernetes Book - Poulton N. [up next]
 - Networking & Kubernetes - A Layered Approach
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
@@ -27,6 +19,10 @@ Currently reading:  _Designing Data Intensive Systems_
 - [Erlang in Anger](https://www.erlang-in-anger.com/)
 - [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
 - [Testing Elixir](https://pragprog.com/titles/lmelixir/testing-elixir/)
+
+2023:
+
+- ~~[Designing Data Intensive Systems](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)
 - ~~[The Beam Book](https://github.com/happi/theBeamBook)~~[reference]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
