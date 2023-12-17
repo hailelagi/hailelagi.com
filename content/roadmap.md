@@ -1,4 +1,4 @@
-I'm trying to learn more about distributed systems and operating systems.
+I'm trying to re-learn algorithms and datastructures fundamentals.
 
 In go and/or [rust](https://www.rust-lang.org/).
 
@@ -7,6 +7,8 @@ My interests outside computer science are primarily **philosophy** and **economi
 2024:
 
 - [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X) [Up Next]
+- [crafting interpreters](https://craftinginterpreters.com/)
+- [Nand2Tetris](https://www.nand2tetris.org/)
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [High Performance Browser Networking](https://hpbn.co/)
 - Distributed Systems - Maarten & Andrew
@@ -14,7 +16,6 @@ My interests outside computer science are primarily **philosophy** and **economi
 - The Kubernetes Book - Poulton N. [up next]
 - Networking & Kubernetes - A Layered Approach
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
-- [crafting interpreters](https://craftinginterpreters.com/)
 - [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)
 - [Erlang in Anger](https://www.erlang-in-anger.com/)
 - [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
@@ -22,7 +23,8 @@ My interests outside computer science are primarily **philosophy** and **economi
 
 2023:
 
-- ~~[Designing Data Intensive Systems](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)
+- [The Algorithm Design Manual](https://www.amazon.com/Algorithm-Design-Manual-Steven-Skiena/dp/1848000693/)
+- ~~[Designing Data Intensive Systems][https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/](paused/brb)
 - ~~[The Beam Book](https://github.com/happi/theBeamBook)~~[reference]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
 - ~~[Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)~~ [February '23]
