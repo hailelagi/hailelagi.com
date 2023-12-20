@@ -8,7 +8,7 @@ tags: producer-consumer, FFI
 recommend: false
 ---
 
-Re-re-re-introducing thumbelina ⚗️🧪🔮.
+Re-re-re-introducing [thumbelina](https://github.com/hailelagi/thumbelina) ⚗️🧪🔮.
 
 Thumbelina was a project I started thinking about sometime in late 2022 when I was a wee little inexperienced with elixir. The problem I set out to solve was simple, I wanted to manipulate images using elixir, specifically I wanted to generate thumbnails. Seems straightfoward no?
 
