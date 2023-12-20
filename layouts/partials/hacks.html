@@ -1,5 +1,4 @@
-<!-- Can we like just finish stuff? -->
-<!-- <h4 class="category"> Stuff I've Made </h4>
+<h4 class="category"> Stuff I've Made/Making </h4>
 {{ range where (where .Site.Pages "Section" "hacks" ) ".IsPage" "==" true }}
 <ul id="posts">
     <li>
@@ -8,9 +7,12 @@
             {{ if .Params.publicDraft }}
             <span id="wip">🚧</span>
             {{- end }}
+            {{ if .Params.publicArchive }}
+            <span id="wip"> 📂</span>
+            {{- end }}
         </a>
         <span id="badge"> {{ .Params.tags }} </span>
         <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
     </li>
     {{- end }}
-</ul> -->
+</ul>
