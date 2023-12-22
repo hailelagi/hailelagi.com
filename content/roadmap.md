@@ -1,8 +1,9 @@
-I'm trying to re-learn algorithms and datastructures fundamentals.
+I'm currently trying to brush up on algorithms and datastructures fundamentals by
+re-reading Skiena's The Algorithm Design Manual.
 
-In go and/or [rust](https://www.rust-lang.org/).
+I'm open to working with elixir, go and/or rust.
 
-My interests outside computer science are primarily **philosophy** and **economics**.
+Here's my not at all realistic list of stuff I'd like to learn or re-learn one day!
 
 2024:
 
