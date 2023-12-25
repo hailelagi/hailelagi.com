@@ -41,7 +41,7 @@ which uses a unix pipe to communicate with the ImageMagick binary via streams of
 Or to use a similar mechanism and implement the functionality yourself plugging into the VM,
 known as "linked-in drivers" or as a "hidden node" via a network pipe such as a TCP socket, the advantage of doing this is you get fault tolerant mechanisms like supervisors. The second node can be in go, rust or elixir itself. The job scheduler Oban has a way to send workers over to other servers too if you don't wanna manage the networking yourself or want a db intermediary. You can mix and match. This is a good overview of the [solution space](https://www.theerlangelist.com/article/outside_elixir).
 
-I used the Natively Implemented Function(NIF) C api. This is a managed space outside the BEAM ie rustler
+I used the Natively Implemented Function(NIF) C ABI. This is a managed space outside the BEAM ie rustler
 which implements this binary interface and provides high level types in lovely rust.
 
 
@@ -136,7 +136,7 @@ B producer consumer (process thumbnail using message passing)
 C consumer await result out do stuff with output
 ```
 You may be wondering doesn't reading entire large bytes of images into memory lead to sudden spikes in memory?
-You're right. I considered providing a stream/yeilding api but the [cost/benefit doesn't seem worth it](https://github.com/hailelagi/thumbelina/pull/10).
+You're right. I considered providing a stream/yeilding between the runtime and the C ABI but the [cost/benefit doesn't seem worth it](https://github.com/hailelagi/thumbelina/pull/10).
 
 In theory by inheriting the complexity of owning such a system end to end you can really tune peformance by mixing and matching cool features. BEAM
 for simple concurrency and distributed networking and rust for it's type system, memory safety and speed.
@@ -149,5 +149,5 @@ are interesting applications/usecases in the wild:
 1. [wasmex](https://github.com/tessi/wasmex) - which provides a low-level interface to wasm/wasi via wasmtime.
 2. [explorer](https://github.com/elixir-explorer/explorer) which brings dataframe processing to elixir via polar-rs.
 3. [Tigerbeetlex](https://github.com/rbino/tigerbeetlex) a database client, it's
-pretty much the same ideas explained here but is written in zig, handles interacting with the C binary api
+pretty much the same ideas explained here but is written in zig, handles interacting with the C binary ABI
 and implements the [TigerBeetle](https://tigerbeetle.com/) client spec by embedding the Zig client.
