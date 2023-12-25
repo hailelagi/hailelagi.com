@@ -7,3 +7,5 @@
 - create warning and error level callout partials
 - fix obsidian imports
 - fix zig import for code block embeds
+- add a polite please share note to each article
+- 
