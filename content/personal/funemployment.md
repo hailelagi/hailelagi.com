@@ -8,6 +8,19 @@ draft: false
 
 tldr; I quit my day job! <3
 
+**Update - Dec 30th 2023**
+
+I didn't want to speculate/burn bridges by detailing the reasoning why I resigned but
+there were warning signs -- a lack of transparency e.g (I still haven't been paid for my last month),
+high "bug" rates and invariants that made no sense among others lead me to suspect something was very wrong and
+my only real option was to resign -- I didn't realise the full extent:
+
+- <https://www.newswire.ca/news-releases/catalx-cts-ltd-announces-security-breach-loss-of-crypto-assets-and-ongoing-investigation-805146446.html>
+
+This... sucks, terribly.
+
+**End Update**
+
 ## Why?
 
 Simply I'm burntout. Burnout is an overloaded term in the software industry, often it's taken to
