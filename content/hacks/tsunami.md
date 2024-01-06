@@ -52,7 +52,7 @@ type Store[Key comparable, Value any] interface {
 ```
 
 and you might be thinking why not just throw a hashmap underneath and that works! Infact hashmaps are ubiquitious and contain excellent
-properties, however most implementations in standard libraries are not thread safe.
+properties, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
 
 In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
 
@@ -76,8 +76,7 @@ but we can do better! We're trying to build a _general purpose_ data store for
 key-value data. Global Mutexes are a good solution but you tend to deal with _lock contention_ on higher values of R/W data access,
 especially where your hardware allows parallel access when the underlying memory region's slots are partioned due to hashing across independent regions.
 
-A clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex
-we serialise access to specific partitions[1]:
+A clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions[1]:
 
 ```go
 type Map [K string, V any] struct {
@@ -87,9 +86,7 @@ type Map [K string, V any] struct {
 }
 ```
 
-This is much more complex but can be more performant. This bottleneck is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC)
-semantics for reading and writing using transactions. We'll come back to exploring this concept. Next, we'd like to be able to store both ordered and unordered key
-value data, hash maps store unordered data so this calls for some sort of additional self balancing tree data structure.
+This is much more complex but can be more performant. This bottleneck is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for reading and writing using transactions. We'll come back to exploring this concept. Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional self balancing tree data structure.
 
 Let's go with the conceptually simplest the Binary Search Tree:
 
@@ -112,7 +109,11 @@ tdlr; crash course in just enough webassembly
 
 ## Concurrency, Correctness & Going web scale - are you ACID compliant? 👮
 
-Previously we mentioned fine-grained locking as a technique that could lead to better performance but at the cost of complexity. Let's revist that. Most databases need to ensure certain guarantees with respect to performance, concurrency and correctness. This is commonly encapsulated with ACID - Atomicity, Consistency, Isolation and Durability. Lucky for us, we can cast away the durability requirement as our data set must fit in working memory.
+These days are you a serious software craftsman [if you're not at web scale?](https://www.youtube.com/watch?v=b2F-DItXtZs).
+
+In our undying, unending pursuit to scale systems further and further we spin webs of complexity. [Why? who knows, it's provocative.](https://www.youtube.com/watch?v=RlwlV4hcBac)
+
+Let's scale this bad boy. Previously we mentioned fine-grained locking as a technique that could lead to better performance but at the cost of complexity. Let's revist that. Most databases need to ensure certain guarantees with respect to performance, concurrency and correctness. This is commonly encapsulated with ACID - Atomicity, Consistency, Isolation and Durability. Lucky for us, we can cast away the durability requirement as our data set must fit in working memory.
 
 That leaves us with:
 
