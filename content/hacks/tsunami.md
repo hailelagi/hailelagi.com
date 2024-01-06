@@ -106,9 +106,24 @@ is automatic and opaque to the user we didn't have to worry about it. The resour
 we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of
 low-level memory management.
 
-## Just enough web assembly
+## A detour for just enough web assembly
 
-tdlr; crash course in webassembly
+tdlr; crash course in just enough webassembly
+
+## Concurrency, Correctness & Going web scale - are you ACID compliant? 👮
+
+Previously we mentioned fine-grained locking as a technique that could lead to better performance but at the cost of complexity. Let's revist that. Most databases need to ensure certain guarantees with respect to performance, concurrency and correctness. This is commonly encapsulated with ACID - Atomicity, Consistency, Isolation and Durability. Lucky for us, we can cast away the durability requirement as our data set must fit in working memory.
+
+That leaves us with:
+
+- Atomicity
+- Consistency
+- Isolation
+
+intro to lock free techniques
+what to be done etc
+
+#
 
 ## More complex Types
 
