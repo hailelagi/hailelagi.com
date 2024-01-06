@@ -106,6 +106,10 @@ is automatic and opaque to the user we didn't have to worry about it. The resour
 we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of
 low-level memory management.
 
+## Just enough web assembly
+
+tdlr; crash course in webassembly
+
 ## More complex Types
 
 So far these examples have been somewhat generic but the underlying implementation only allowed simple types a key of type `string` and a value of `int`.
