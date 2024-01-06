@@ -18,22 +18,23 @@ either a lack time, grit or knowledge/skill I just couldn't make meaningful prog
 To be fair - at first it _seemed_ like a simple "good first issue" kind of thing I had no idea what I was opting into, so here's a disclaimer!
 We're going to build a type of database! No It's not enough machinery akin to say postgres but there's a fair bit of stuff going on!
 
-Give or take some of the outline:
+Give or take some pre-requisites:
 
-- some knowledge of programming - you've built a crud app
-- an idea of rust's ownership system or exposure to some memory management ala C, C++ or Zig.
+- some knowledge of programming - you've built/know what a crud app is
+- an idea of rust's ownership system or exposure to some memory management ala C, C++ or Zig
 - a rough sense of lexical parsing
 - some idea about trees and or graph traversal in general
 - some concurrency (shared state or message passing)
-- Garbage collection in a managed runtime
-- Scheduling - how does a runtime handle busy CPU/IO?
+- Some knowledge of go's syntax/semantics or a similar C syntax based language like javascript
 
-Bonus(but not important):
+This covers some wide ranging and complex important topics, it's impossible to explain everything indepth clearly nor do I have the expertise/knowledge to do so, there are likely gaps or subtle errors -- but I'll try. Bonus helpful concepts for a google search/chatGPT (but not critical):
 
-- Atomics/Compare & Swap
-- Some exposure to the CPU Cache/cache line movement
-- Some knowledge of the BEAM - elixir or erlang (especially :ets)
-- Some knowledge of go's syntax/semantics
+- What is the BEAM? What is the erlang runtime system?
+- What is garbage collection?
+- Scheduling - how does a runtime handle IO? what's a syscall?
+- Atomics/Compare & Swap/Test & Set, what is a critical section?
+- What is a CPU Register/cache line movement?
+- uniprocessors vs multiprocessors(SMP) (SIMD, MIMD)?
 
 You've been warned! Grab a coffee or tea and let's scope it out! I'll be using a mixture of go/rust for the examples.
 
@@ -148,3 +149,11 @@ however we don't want to feel left out, let's build a tiny(compared to sql) quer
 
 - [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
 - [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
+
+
+## What's a Mutex really it's just a sephamore
+
+In a reader-writer lock, a read acquisition has to be visible to
+writers, so they can wait for the reads to finish before succeeding to take a write lock. One way to implement this is to have
+a shared counter that is incremented and decremented atomically
+when reading threads are entering and exiting their critical section.
