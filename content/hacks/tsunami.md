@@ -126,5 +126,5 @@ however we don't want to feel left out, let's build a tiny(compared to sql) quer
 
 ## References
 
-- [1] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
--
+- [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
+- [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
