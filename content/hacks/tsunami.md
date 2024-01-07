@@ -122,10 +122,11 @@ That leaves us with:
 - Consistency
 - Isolation
 
-intro to lock free techniques
 what to be done etc
 
-#
+# Gotta Go Fast
+
+intro to lock free techniques[3]
 
 ## More complex Types
 
@@ -149,6 +150,7 @@ however we don't want to feel left out, let's build a tiny(compared to sql) quer
 
 - [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
 - [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
+- [3] [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
 
 ## What's a Mutex really it's just a sephamore
 
