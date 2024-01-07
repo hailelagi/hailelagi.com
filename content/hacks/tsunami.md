@@ -34,7 +34,7 @@ This covers some wide ranging and complex important topics, it's impossible to e
 - Scheduling - how does a runtime handle IO? what's a syscall?
 - Atomics/Compare & Swap/Test & Set, what is a critical section?
 - What is a CPU Register/cache line movement?
-- uniprocessors vs multiprocessors(SMP) (SIMD, MIMD)?
+- uniprocessors vs multiprocessors(SMP/MIMD)?
 
 You've been warned! Grab a coffee or tea and let's scope it out! I'll be using a mixture of go/rust for the examples.
 
@@ -82,12 +82,12 @@ A clever way of getting around this is by using an advanced concurrency techniqu
 ```go
 type Map [K string, V any] struct {
  Data  map[K]V
- locks   map[K]*sync.Mutex
+ locks []*sync.Mutex
  global sync.Mutex
 }
 ```
 
-This is much more complex but can be more performant. This bottleneck is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for reading and writing using transactions. We'll come back to exploring this concept. Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional self balancing tree data structure.
+This is much more complex but can be more write performant but suffer slighly slower reads. The bottleneck of mutexes and serialisation is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions. We'll come back to exploring this concept and its tradeoffs. Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional self balancing tree data structure.
 
 Let's go with the conceptually simplest the Binary Search Tree:
 
@@ -114,7 +114,7 @@ These days are you a serious software craftsman [if you're not at web scale?](ht
 
 In our undying, unending pursuit to scale systems further and further we spin webs of complexity. [Why? who knows, it's provocative.](https://www.youtube.com/watch?v=RlwlV4hcBac)
 
-Let's scale this bad boy. Previously we mentioned fine-grained locking as a technique that could lead to better performance but at the cost of complexity. Let's revist that. Most databases need to ensure certain guarantees with respect to performance, concurrency and correctness. This is commonly encapsulated with ACID - Atomicity, Consistency, Isolation and Durability. Lucky for us, we can cast away the durability requirement as our data set must fit in working memory.
+Let's scale! Previously we mentioned fine-grained locking as a technique that could lead to better write performance but at the cost of complexity and read performance -- a related application of this technique is called "sharding". Most databases need to ensure certain guarantees with respect to performance, concurrency and correctness. This is commonly encapsulated with ACID - Atomicity, Consistency, Isolation and Durability. Lucky for us, we can cast away the durability requirement as our data set must fit in working memory.
 
 That leaves us with:
 
@@ -149,7 +149,6 @@ however we don't want to feel left out, let's build a tiny(compared to sql) quer
 
 - [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
 - [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
-
 
 ## What's a Mutex really it's just a sephamore
 
