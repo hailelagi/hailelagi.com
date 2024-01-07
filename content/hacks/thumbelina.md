@@ -117,9 +117,7 @@ end
 
 ```
 
-Now things get interesting, because the magic of the BEAM is really in distributed networking we can be even more clever, by sending over our
-`destination` as the pid of a process on a remote server -- this is possilbe because elixir/erlang has location transparency. I kept it simple by
-only allowing a single result store in a clustered setup.
+Now things get interesting, because the magic of the BEAM is really in distributed networking we can try to be even more clever, say we send over our `destination` as the pid of a process on a remote server -- this seems possible because elixir/erlang has location transparency of pids/processes. However allowing the resolving of pids with networked references violates this exact principle, however it's entirely possible to rebroadcast the result of this operation in a genserver.
 
 ```elixir
 GenServer.start_link(__MODULE__, [], name: {:global, __MODULE__})
