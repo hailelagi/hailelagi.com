@@ -12,6 +12,7 @@ Here's my ever growing, not at all realistic list of stuff I'd like to learn or 
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [High Performance Browser Networking](https://hpbn.co/)
 - Distributed Systems - Maarten & Andrew
+- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 - [How to Design Programs](https://htdp.org/)
 - The Kubernetes Book - Poulton N. [up next]
 - Networking & Kubernetes - A Layered Approach
