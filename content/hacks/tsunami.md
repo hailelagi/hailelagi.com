@@ -8,7 +8,7 @@ recommend: false
 
 WIP public draft, come back later. <https://github.com/hailelagi/wavl-ets>
 
-Last updated: 6th Jan 2023.
+Last updated: 12th Jan 2023.
 
 # Outline
 
@@ -44,7 +44,7 @@ Before we get into the bells and whistles of it all, what are we _really_ trying
 What you want is an abstract interface that can store data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
 
 ```go
-type Store[Key comparable, Value any] interface {
+type Table[Key comparable, Value any] interface {
   Read(Key) (Value, error)
   Write(Key, Value)
   Delete(Key)
@@ -87,12 +87,23 @@ type Map [K string, V any] struct {
 }
 ```
 
-This is much more complex but can be more write performant but suffer slighly slower reads. The bottleneck of mutexes and serialisation is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions. We'll come back to exploring this concept and its tradeoffs. Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered abstract Map operations.
+This is much more complex but can be more write performant but suffer slighly slower reads. The bottleneck of mutexes and serialisation is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions. We'll come back to exploring this concept and its tradeoffs.
 
-Let's go with the conceptually simplest/fastest* the Binary Search Tree:
+Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered abstract Map operations. We must redefine our interface, depending on our needs, we'll want different abstract properties:
 
 ```go
-type BST[Key comparable, Value any] struct {
+type OrderTable[Key cmp.Ordered, Value any] interface {
+ Get(Key) (Value, error)
+ Put(Key, Value)
+ Del(Key)
+ In(Key) bool
+}
+```
+
+For a concrete implementation, let's start with the conceptually simplest/fastest* the Binary Search Tree and a global RWMutex:
+
+```go
+type BST[Key cmp.Ordered, Value any] struct {
  key   Key
  value any
 
@@ -144,7 +155,9 @@ That leaves us with:
 what to be done etc
 
 # Gotta Go Fast
+
 at what cost?
+
 - use of lock free data structures/behaviour across reads - concurrent skip list crash course, why?
 
 intro to lock free techniques[3]
