@@ -87,15 +87,34 @@ type Map [K string, V any] struct {
 }
 ```
 
-This is much more complex but can be more write performant but suffer slighly slower reads. The bottleneck of mutexes and serialisation is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions. We'll come back to exploring this concept and its tradeoffs. Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional self balancing tree data structure.
+This is much more complex but can be more write performant but suffer slighly slower reads. The bottleneck of mutexes and serialisation is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions. We'll come back to exploring this concept and its tradeoffs. Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered abstract Map operations.
 
-Let's go with the conceptually simplest the Binary Search Tree:
+Let's go with the conceptually simplest/fastest* the Binary Search Tree:
 
 ```go
-type BST[K comparable, V any] struct {
-  // todo
+type BST[Key comparable, Value any] struct {
+ key   Key
+ value any
+
+ parent *BST[Key, Value]
+ left   *BST[Key, Value]
+ right  *BST[Key, Value]
+
+ global sync.RWMutex
 }
 ```
+
+Search trees are the "go to" structure for keeping performant ordered data with balanced read/write performance, by ensuring we keep the "search property" we can perform on average operations in O(logN) -- if the tree is balanced. Sadly they're bounded by the worst time-complexity of O(h) where h is the height of the tree. What that means is if we get unlucky
+with the data - searches can devolve into searching a linked-list. That wouldn't do. Here there are many flavors thankfully.
+
+Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
+
+In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
+layout in memory, are the leaves holding a page cache? what kind of concurrent access patterns are enabled? how do they map to our eventual high level API?
+
+This is where conceptually we take a different road from what exists in the current erlang runtime system. The data structure chosen previously of which we'll be benchmarking against is something called a Contention Adapting Tree [2]. Briefly a CA Tree, dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention.
+
+What are we finally choosing to implement, why?
 
 ## The dumpster fire that is garbage collection
 
@@ -125,10 +144,14 @@ That leaves us with:
 what to be done etc
 
 # Gotta Go Fast
+at what cost?
+- use of lock free data structures/behaviour across reads - concurrent skip list crash course, why?
 
 intro to lock free techniques[3]
 
 ## More complex Types
+
+- conformance and integration with/into the firefly runtime
 
 So far these examples have been somewhat generic but the underlying implementation only allowed simple types a key of type `string` and a value of `int`.
 This is intentionally done in order not to distract from other concepts, but if we really want a general key value store we need to allow many types.
@@ -139,12 +162,13 @@ In this case we want to allow every type supported by the erlang runtime systems
 Every good database needs ergonimics features fo good querying! SQL is amazing but is insanely complex to implement and tightly coupled to transaction semantics,
 however we don't want to feel left out, let's build a tiny(compared to sql) query syntax and engine.
 
-## Scope/Goals
+## Testing & Benchmarks
 
+- unit testing challenges, tight coupling etc
 - conformance with the upstream erts(erlang runtime system) ETS public api and behaviour
 - 100% erts TEST SUITE coverage
-- use of lock free data structures/behaviour across reads
-- conformance and integration with/into the firefly runtime
+
+methodology, coverage, tools, loom, address sanitizer etc insert graphs of benchmark results
 
 ## References
 
