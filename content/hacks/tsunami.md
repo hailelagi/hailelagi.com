@@ -121,7 +121,8 @@ with the data - searches can devolve into searching a linked-list. That wouldn't
 Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
 
 In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
-layout in memory, are the leaves holding a page cache? what kind of concurrent access patterns are enabled? how do they map to our eventual high level API?
+layout in memory, are the leaves holding a page cache? - there's a fundamental difference between sorting data that can fit in main memory (internal) and
+sorting data that exists on disk(external), what kind of concurrent access patterns are enabled? how do they map to our eventual high level API?
 
 This is where conceptually we take a different road from what exists in the current erlang runtime system. The data structure chosen previously of which we'll be benchmarking against is something called a Contention Adapting Tree [2]. Briefly a CA Tree, dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention.
 
