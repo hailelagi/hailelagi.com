@@ -19,12 +19,14 @@ To be fair - at first it _seemed_ like a simple "good first issue" kind of thing
 We're going to build a type of database! Specifically an in-memory key-value data store -- like Redis! kinda... sorta.
 
 But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent & parallel(distributed) programs on modern
-CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a shared nothing arhitecture that's **multi-core by default** and scales IO bound work incredibly well with a simple model of concurrency with primitives that encourage thinking about fault tolerance -- did I mention functional programming?
+CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a shared nothing architecture that's **multi-core by default** and scales IO bound work incredibly well with a simple model of concurrency with primitives that encourage thinking about fault tolerance -- did I mention functional programming?
 
 {{< youtube bo5WL5IQAd0 >}}
 
-This covers some wide ranging and complex important topics but let's peek under the covers, how do key value store work?
-what are they? why are there so many?
+This covers some wide ranging and complex important topics but before a peek under the covers of what we say "yes" to when we want shared
+memory concurrency, but alas we're rebels and rust has _fearless concurrency_ right?:
+
+![Danger](/crit.png)
 
 ## Shaping performance constraints
 
