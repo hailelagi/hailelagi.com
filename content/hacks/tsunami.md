@@ -6,8 +6,6 @@ tags: rust, erts, wasm, k-v store
 recommend: false
 ---
 
-<https://www.youtube.com/watch?v=bo5WL5IQAd0>
-
 WIP public draft, come back later. <https://github.com/hailelagi/wavl-ets>
 
 # Introduction
@@ -18,20 +16,23 @@ either a lack time, grit or knowledge/skill I just couldn't make meaningful prog
 To be fair - at first it _seemed_ like a simple "good first issue" kind of thing I had no idea what I was opting into, so here's a disclaimer!
 We're going to build a type of database! Specifically an in-memory key-value data store -- like Redis! kinda... sorta.
 
-But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent & parallel(distributed) programs on modern
-CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a shared nothing architecture that's **multi-core by default** and scales IO bound work incredibly well with a simple model of concurrency with primitives that encourage thinking about fault tolerance -- did I mention functional programming?
+But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent & parallel(distributed) programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** that's **multi-core by default** and scales IO bound soft-realtime applications incredibly well with a simple model of concurrency and primitives that encourage thinking about fault tolerance -- did I mention functional programming?
 
 {{< youtube bo5WL5IQAd0 >}}
 
-This covers some wide ranging and complex important topics but before a peek under the covers of what we say "yes" to when we want shared
-memory concurrency, but alas we're rebels and rust has _fearless concurrency_ right?:
+This covers some wide ranging and complex important topics let's take a peek under the covers of what we say "yes" to when we want shared
+memory concurrency -- spoiler it's hard, but alas we're rebels and rust has _fearless concurrency_ right?:
 
 ![Danger](/crit.png)
 
 ## Shaping performance constraints
 
-Before we get into the bells and whistles of it all, what are we _really_ trying to achieve? Conceputally a key-value store is simple.
-What you want is an abstract interface that can store data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
+It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything. In the erlang/elixir ecosystem this is called erlang term storage(ets), and it's a key component of the distributed database mnesia.
+
+>It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [1]
+
+Before we get into the bells and whistles of it all, what is it at its core? Conceputally a key-value store seems simple.
+What you want to model is an abstract interface that can store data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
 
 ```go
 type Table[Key comparable, Value any] interface {
@@ -50,10 +51,9 @@ In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it 
 1. an atomic reference count `Arc<T>`
 2. a mutex or some other sync mechanism because the type does not impl `Send` & `Sync`
 
-If your data only has to exist within a single thread that's great, but applications tend to need to handle _concurrent_ data access.
-Practical examples of this are caches, rate limiting middleware, session storage, distributed config, simple message queues etc
+If your program and data only has to exist within a single thread of execution that's great, but _web servers_ tend to need to handle _concurrent_ data access. Practical examples of this are caches, rate limiting middleware, session storage, distributed config, simple message queues etc
 
-Let's wrap it in a mutex from std lib's `sync` package:
+Let's wrap it in a mutex from go's std lib's `sync` package:
 
 ```go
 type Map[K string, V any] struct {
@@ -64,33 +64,33 @@ type Map[K string, V any] struct {
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global Mutexes are a good solution but you tend to deal with _lock contention_ on higher values of R/W data access,
-especially where your hardware allows parallel access when the underlying memory region's slots are partioned due to hashing across independent regions.
+key-value data. Global Mutexes are a good solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize access when the underlying memory region's slots are partioned perhaps due to hashing across independent memory regions.
 
-A clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions[1]:
+One clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions[1]:
 
 ```go
-type Map [K string, V any] struct {
+type Map[K string, V any] struct {
  Data  map[K]V
  locks []*sync.Mutex
  global sync.Mutex
 }
 ```
 
-This is much more complex but can be more write performant but suffer slighly slower reads. The bottleneck of mutexes and serialisation is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions. We'll come back to exploring this concept and its tradeoffs.
+This is much more complex but can be more write performant but suffer slightly slower reads. This bottleneck of locks and linearization is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels. We'll come back to exploring these fun problems and the tradeoffs and ask the question are locks truely necessary?
 
-Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered abstract Map operations. We must redefine our interface, depending on our needs, we'll want different abstract properties:
+Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `Table` operations. We must define a new interface:
 
 ```go
-type OrderTable[Key cmp.Ordered, Value any] interface {
- Get(Key) (Value, error)
- Put(Key, Value)
- Del(Key)
- In(Key) bool
+type OrderedTable[Key cmp.Ordered, Value any] interface {
+  Read(Key) (Value, error)
+  Write(Key, Value)
+  Delete(Key)
+  In(Key) bool
+  Range(Key, Key) []Value
 }
 ```
 
-For a concrete implementation, let's start with the conceptually simplest/fastest* the Binary Search Tree and a global RWMutex:
+For a concrete implementation, let's start with the conceptually simplest/fastest* the Binary Search Tree and a global `RWMutex`:
 
 ```go
 type BST[Key cmp.Ordered, Value any] struct {
@@ -105,14 +105,14 @@ type BST[Key cmp.Ordered, Value any] struct {
 }
 ```
 
-Search trees are the "go to" structure for keeping performant ordered data with balanced read/write performance, by ensuring we keep the "search property" we can perform on average operations in O(logN) -- if the tree is balanced. Sadly they're bounded by the worst time-complexity of O(h) where h is the height of the tree. What that means is if we get unlucky
+Search trees are the "go to" structure for keeping performant ordered data with balanced read/write performance, by ensuring we keep the "search property" we can perform on average operations in `O(logN)` -- if the tree is balanced. Sadly in reality they're bounded by the worst time-complexity of `O(h)` where h is the height of the tree. What that means is if we get unlucky
 with the data - searches can devolve into searching a linked-list. That wouldn't do. Here there are many flavors thankfully.
 
 Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
 
 In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
-layout in memory, are the leaves holding a page cache? - there's a fundamental difference between sorting data that can fit in main memory (internal) and
-sorting data that exists on disk(external), what kind of concurrent access patterns are enabled? how do they map to our eventual high level API?
+layout in memory, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory or random access?
+what kind of concurrent access patterns are enabled? how do they map to our eventual high level API?
 
 This is where conceptually we take a different road from what exists in the current erlang runtime system. The data structure chosen previously of which we'll be benchmarking against is something called a Contention Adapting Tree [2]. Briefly a CA Tree, dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention.
 
