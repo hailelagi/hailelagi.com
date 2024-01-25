@@ -27,7 +27,7 @@ memory concurrency -- spoiler it's hard, but alas we're rebels and rust has _fea
 
 ## Shaping performance constraints
 
-It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything. In the erlang/elixir ecosystem this is called erlang term storage(ets), and it's a key component of the distributed database mnesia.
+It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia.
 
 >It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [1]
 
