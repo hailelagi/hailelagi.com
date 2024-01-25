@@ -6,37 +6,27 @@ tags: rust, erts, wasm, k-v store
 recommend: false
 ---
 
+<https://www.youtube.com/watch?v=bo5WL5IQAd0>
+
 WIP public draft, come back later. <https://github.com/hailelagi/wavl-ets>
 
 Last updated: 12th Jan 2023.
 
-# Outline
+# Introduction
 
 This was one of the first really hard ambitious things I tried to build, but sadly because of
 either a lack time, grit or knowledge/skill I just couldn't make meaningful progress.
 
 To be fair - at first it _seemed_ like a simple "good first issue" kind of thing I had no idea what I was opting into, so here's a disclaimer!
-We're going to build a type of database! No It's not enough machinery akin to say postgres but there's a fair bit of stuff going on!
+We're going to build a type of database! Specifically an in-memory key-value data store -- like Redis! kinda... sorta.
 
-Give or take some pre-requisites:
+But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent & parallel(distributed) programs on modern
+CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a shared nothing arhitecture that's **multi-core by default** and scales IO bound work incredibly well with a simple model of concurrency with primitives that encourage thinking about fault tolerance -- did I mention functional programming?
 
-- some knowledge of programming - you've built/know what a crud app is
-- an idea of rust's ownership system or exposure to some memory management ala C, C++ or Zig
-- a rough sense of lexical parsing
-- some idea about trees and or graph traversal in general
-- some concurrency (shared state or message passing)
-- Some knowledge of go's syntax/semantics or a similar C syntax based language like javascript
+{{< youtube bo5WL5IQAd0 >}}
 
-This covers some wide ranging and complex important topics, it's impossible to explain everything indepth clearly nor do I have the expertise/knowledge to do so, there are likely gaps or subtle errors -- but I'll try. Bonus helpful concepts for a google search/chatGPT (but not critical):
-
-- What is the BEAM? What is the erlang runtime system?
-- What is garbage collection?
-- Scheduling - how does a runtime handle IO? what's a syscall?
-- Atomics/Compare & Swap/Test & Set, what is a critical section?
-- What is a CPU Register/cache line movement?
-- uniprocessors vs multiprocessors(SMP/MIMD)?
-
-You've been warned! Grab a coffee or tea and let's scope it out! I'll be using a mixture of go/rust for the examples.
+This covers some wide ranging and complex important topics but let's peek under the covers, how do key value store work?
+what are they? why are there so many?
 
 ## Shaping performance constraints
 
@@ -190,9 +180,11 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 - [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
 - [3] [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
 
-## What's a Mutex really it's just a sephamore
+## Notes - maybe include
 
 In a reader-writer lock, a read acquisition has to be visible to
 writers, so they can wait for the reads to finish before succeeding to take a write lock. One way to implement this is to have
 a shared counter that is incremented and decremented atomically
 when reading threads are entering and exiting their critical section.
+
+<https://preshing.com/20120612/an-introduction-to-lock-free-programming/>
