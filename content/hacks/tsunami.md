@@ -10,8 +10,6 @@ recommend: false
 
 WIP public draft, come back later. <https://github.com/hailelagi/wavl-ets>
 
-Last updated: 12th Jan 2023.
-
 # Introduction
 
 This was one of the first really hard ambitious things I tried to build, but sadly because of
