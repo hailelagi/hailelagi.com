@@ -44,13 +44,12 @@ known as "linked-in drivers" or as a "hidden node" via a network pipe such as a 
 I used the Natively Implemented Function(NIF) C ABI. This is a managed space outside the BEAM ie rustler
 which implements this binary interface and provides high level types in lovely rust.
 
-
 ### In the Weeds
 
 These subroutines are expected to be pre-emptively scheduled in <1ms and are appropriate for `synchronous` operations such as short CPU burst computations and custom data structures, you don't want to copy around the runtime ala sorted set, so we don't wait but exit early, here's how making a thumbnail works:
 
 ```elixir
-# you can also stream from a network handle!
+# you can also read the binary from a network
 # but let's keep it simple by reading from disk
 {:ok, image} = Thumbelina.open("./path_to_image.jpg") 
 width = 50.0
@@ -71,7 +70,7 @@ static TOKIO: Lazy<Runtime> = Lazy::new(|| {
 });
 ```
 
-now we can start scheduling on the first invocation of this subroutine since there is no `main` [macro to expand](https://tokio.rs/tokio/topics/bridging) in this binary, this is afterall an embed that's statically linked:
+now we can start scheduling on the first invocation of this subroutine since there is no `main` [macro to expand](https://tokio.rs/tokio/topics/bridging) in this binary, this is afterall an embed that's [dynamically linked](https://www.erlang.org/doc/tutorial/nif.html):
 
 ```rust
 // Asynchronously spawn a green thread on one physical thread
@@ -85,24 +84,21 @@ where
 }
 ```
 
-It gets busy unbeknownst to the BEAM and sends a message when it's done to `destination` with a result, note that you can
-also do this with bare [operating system threads](https://docs.rs/rustler/latest/rustler/thread/struct.ThreadSpawner.html) and
-in the worker/job:
+It gets busy in a seperate OS thread space unbeknownst to the BEAM and sends a message when it's done to `destination` with a result, note that you can
+also do this without tokio with [operating system threads](https://docs.rs/rustler/latest/rustler/thread/struct.ThreadSpawner.html), the worker looks like:
 
 ```rust
-// take ownership of the smart pointer to the image binary at runtime
+// move ownership of the smart pointer to the image binary 
+// outside the lifetime of the NIF sync call
 if let Some(buffer) = binary.to_owned() {
     let buffered_lock = Arc::new(RwLock::new(buffer));
 
     task::spawn(async move {
         let buffer = Arc::clone(&buffered_lock);
         let buffer = buffer.read().unwrap()
-        // you pay a serialisation cost
-        // we know this is a thumbnail operation via enums
         let result = operation::perform(operation, width, height, extension, &buffer).unwrap();
 
         Ok(image) => env.send_and_clear(&pid, move |env| {
-            // you pay a deserialisation cost
             Success {op: thumbelina::atoms::ok(), result} .encode(env)})
         });
 }
@@ -117,13 +113,13 @@ end
 
 ```
 
-Now things get interesting, because the magic of the BEAM is really in distributed networking we can try to be even more clever, say we send over our `destination` as the pid of a process on a remote server -- this seems possible because elixir/erlang has location transparency of pids/processes. However allowing the resolving of pids with networked references violates this exact principle, however it's entirely possible to rebroadcast the result of this operation in a genserver.
+The magic of the BEAM is really in easy distributed networking, say we try to send over our `destination` as the pid of a process on a remote server -- this seems possible because elixir/erlang has [location transparency of pids/processes](https://livebook.manning.com/book/erlang-and-otp-in-action/chapter-8/). However the NIF ABI is tightly coupled to the internals of the host's runtime and behaviour and therefore only allows `LocalPid`. However it's entirely possible to rebroadcast the result of this operation in a genserver.
 
 ```elixir
 GenServer.start_link(__MODULE__, [], name: {:global, __MODULE__})
 ```
 
-However, you can see how this idea can be expanded on, perhaps you want to model this in a
+This idea can perhaps be expanded on, maybe you want to model this in a
 producer-consumer pipeline? using GenStage?
 
 ```
@@ -133,11 +129,13 @@ A producer continually ingests data from data lake
 B producer consumer (process thumbnail using message passing)
 C consumer await result out do stuff with output
 ```
+
 You may be wondering doesn't reading entire large bytes of images into memory lead to sudden spikes in memory?
 You're right. I considered providing a stream/yeilding between the runtime and the C ABI but the [cost/benefit doesn't seem worth it](https://github.com/hailelagi/thumbelina/pull/10).
 
 In theory by inheriting the complexity of owning such a system end to end you can really tune peformance by mixing and matching cool features. BEAM
-for simple concurrency and distributed networking and rust for it's type system, memory safety and speed.
+for simple concurrency and distributed networking and rust for it's type system, low-level memory safety and speed. This is still true, but in practice this
+idea falls flat. The most value in this domain from being able to re-use bindings to highly optimised C/Rust libraries like [Vix](https://github.com/akash-akya/vix).
 
 ### Going forward
 
