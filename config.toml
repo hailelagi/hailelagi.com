@@ -65,10 +65,10 @@ pygmentsCodeFences = true
     startLevel = 2
 
   [[menu.main]]
-    identifier = "roadmap"
-    name = "roadmap"
-    title = "roadmap"
-    url = "/roadmap"
+    identifier = "bookshelf"
+    name = "bookshelf"
+    title = "bookshelf"
+    url = "/bookshelf"
     weight = 25
 
   [[menu.main]]

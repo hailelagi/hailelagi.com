@@ -1,29 +1,32 @@
-I'm currently trying to brush up on algorithms and datastructures fundamentals by
-re-reading Skiena's The Algorithm Design Manual.
+I'm currently reading Skiena's The Algorithm Design Manual.
 
-I'm open to working with elixir, go and/or rust.
+Here's my ever growing, list of stuff I'd like to learn or re-learn one day!
 
-Here's my ever growing, not at all realistic list of stuff I'd like to learn or re-learn one day!
+What seems worth reading:
 
-- [The Algorithm Design Manual](https://www.amazon.com/Algorithm-Design-Manual-Steven-Skiena/dp/1848000693/) [ current ]
-- [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X) [ Maybe Up Next ]
+- [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 - [crafting interpreters](https://craftinginterpreters.com/)
 - [Nand2Tetris](https://www.nand2tetris.org/)
+- [How to Design Programs](https://htdp.org/)
+- [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
+
+Interesting but low priority:
+
+- [Testing Elixir](https://pragprog.com/titles/lmelixir/testing-elixir/)
+- The Kubernetes Book - Poulton N
+- Networking & Kubernetes - A Layered Approach
+- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)
+- [Erlang in Anger](https://www.erlang-in-anger.com/)
+- [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
+- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [High Performance Browser Networking](https://hpbn.co/)
 - Distributed Systems - Maarten & Andrew
-- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
-- [How to Design Programs](https://htdp.org/)
-- The Kubernetes Book - Poulton N. [up next]
-- Networking & Kubernetes - A Layered Approach
-- [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
-- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)
-- [Erlang in Anger](https://www.erlang-in-anger.com/)
-- [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
-- [Testing Elixir](https://pragprog.com/titles/lmelixir/testing-elixir/)
+- design patterns elements of reusable object-oriented software
 
-Previously Explored:
+Previously read:
 
+- ~~[The Algorithm Design Manual](https://www.amazon.com/Algorithm-Design-Manual-Steven-Skiena/dp/1848000693/)~~ [ now ]
 - ~~[Designing Data Intensive Systems](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)~~ [ July '22 - incomplete/revisit]
 - ~~[The Beam Book](https://github.com/happi/theBeamBook)~~[reference]
 - ~~[The Go Programming Language](https://www.gopl.io/)~~ [April '23]
