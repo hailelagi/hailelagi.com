@@ -1,12 +1,10 @@
 ---
 title: "Making a Tsunami"
 date: 2023-12-23T00:19:58+01:00
-draft: false
+draft: true
 tags: rust, erts, wasm, k-v store
 recommend: false
 ---
-
-WIP public draft, come back later. <https://github.com/hailelagi/wavl-ets>
 
 # Introduction
 
