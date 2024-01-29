@@ -4,7 +4,7 @@ date: 2023-12-20T17:44:15+01:00
 draft: false
 publicDraft: false
 publicArchive: true
-tags: producer-consumer, FFI
+tags: elixir, rust, FFI
 recommend: false
 ---
 

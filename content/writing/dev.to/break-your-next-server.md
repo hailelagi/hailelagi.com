@@ -1,7 +1,7 @@
 ---
 title: 'Break your next server'
 date: 2020-10-24T15:03:16.225Z
-draft: false
+draft: true
 tags: ['elixir', 'otp', 'concurrency', 'architecture']
 original: "https://atimetravellingghost.wordpress.com/"
 ---

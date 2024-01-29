@@ -8,6 +8,10 @@ draft: false
 
 tldr; I quit my day job! <3
 
+<!-- 
+
+If you really want to know ask me! I don't owe anyone an explaination. I joined a shit company. Whoops. Shit happens.
+
 **Update - Dec 30th 2023**
 
 I didn't want to speculate/burn bridges by detailing the reasoning why I resigned but
@@ -19,7 +23,7 @@ my only real option was to resign -- I didn't realise the full extent:
 
 This... sucks, terribly.
 
-**End Update**
+**End Update** -->
 
 ## Why?
 
