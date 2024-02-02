@@ -1,9 +1,10 @@
 ---
 title: "Making a Tsunami"
 date: 2023-12-23T00:19:58+01:00
-draft: true
-tags: rust, erts, wasm, k-v store
-recommend: false
+draft: false
+tags: rust, k-v store
+publicDraft: true
+recommend: true
 ---
 
 # Introduction
@@ -41,8 +42,17 @@ type Table[Key comparable, Value any] interface {
 }
 ```
 
-and you might be thinking why not just throw a hashmap underneath and that works! Infact hashmaps are ubiquitious and contain excellent
-properties, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
+In terms of an api for this `Table`, we're looking to define the options `bag`, `duplicate_bag`, `set` and `ordered_set`.
+If familiar with `table relations` in relational databases, think of the key-value mapping like so:
+
+1. one to one(1:1) = `set`
+2. one to one(but with order) = `ordered_set`
+3. one to many(1:N) = `bag`
+4. many to many(N:N) `duplicate_bag`
+
+These allow us to model all sorts of interesting properties like _referential integrity_ this will be important _later_. For now,
+you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. 
+Infact hashmaps are ubiquitious [4] [5] [6] and contain excellent properties when the data model fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
 
 In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
 
@@ -109,19 +119,15 @@ with the data - searches can devolve into searching a linked-list. That wouldn't
 Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
 
 In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
-layout in memory, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory or random access?
-what kind of concurrent access patterns are enabled? how do they map to our eventual high level API?
+interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory or random access? sorting files in a directory is a common example of this problem. What kind of concurrent patterns are enabled? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design.
 
-This is where conceptually we take a different road from what exists in the current erlang runtime system. The data structure chosen previously of which we'll be benchmarking against is something called a Contention Adapting Tree [2]. Briefly a CA Tree, dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention.
+What exists in the current erlang runtime system? The data structure chosen previously of which we'll be benchmarking against is something called a Contention Adapting Tree [2]. Briefly a CA Tree, dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention --
 
 What are we finally choosing to implement, why?
 
 ## The dumpster fire that is garbage collection
 
-So far we haven't really had to worry about garbage collection. A brief mention of rust mentioned using atomic reference counts, and in go where this operation
-is automatic and opaque to the user we didn't have to worry about it. The resource allocation strategy is tightly coupled to the programming language and environment
-we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of
-low-level memory management.
+So far we haven't really had to worry about garbage collection. A brief mention of rust mentioned using atomic reference counts, and in go where this operation is automatic and opaque to the user we didn't have to worry about it. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of low-level memory management.
 
 ## A detour for just enough web assembly
 
@@ -177,6 +183,9 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 - [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
 - [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
 - [3] [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
+- [4] [Hash Indexes](https://www.postgresql.org/docs/16/hash-intro.html)
+- [5] [Adaptive Hash Index in mysql](https://dev.mysql.com/doc/refman/8.3/en/innodb-adaptive-hash.html)
+- [6] [Hstore - key/value datatype in postgres](https://www.postgresql.org/docs/current/hstore.html)
 
 ## Notes - maybe include
 
