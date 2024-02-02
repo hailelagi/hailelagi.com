@@ -51,7 +51,7 @@ If familiar with `table relations` in relational databases, think of the key-val
 4. many to many(N:N) `duplicate_bag`
 
 These allow us to model all sorts of interesting properties like _referential integrity_ this will be important _later_. For now,
-you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. 
+you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`.
 Infact hashmaps are ubiquitious [4] [5] [6] and contain excellent properties when the data model fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
 
 In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
@@ -86,7 +86,7 @@ type Map[K string, V any] struct {
 
 This is much more complex but can be more write performant but suffer slightly slower reads. This bottleneck of locks and linearization is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels. We'll come back to exploring these fun problems and the tradeoffs and ask the question are locks truely necessary?
 
-Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `Table` operations. We must define a new interface:
+Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `Table` operations for our `ordered_set`. We must define a new interface:
 
 ```go
 type OrderedTable[Key cmp.Ordered, Value any] interface {
@@ -121,33 +121,75 @@ Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, 
 In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory or random access? sorting files in a directory is a common example of this problem. What kind of concurrent patterns are enabled? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design.
 
-What exists in the current erlang runtime system? The data structure chosen previously of which we'll be benchmarking against is something called a Contention Adapting Tree [2]. Briefly a CA Tree, dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention --
+What exists in the current erlang runtime system? The data structure chosen previously of which we'll be benchmarking against is something called a [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) [2]. Briefly what's interesting about CA Tree is it dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
 
-What are we finally choosing to implement, why?
-
-## The dumpster fire that is garbage collection
-
-So far we haven't really had to worry about garbage collection. A brief mention of rust mentioned using atomic reference counts, and in go where this operation is automatic and opaque to the user we didn't have to worry about it. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of low-level memory management.
-
-## A detour for just enough web assembly
-
-tdlr; crash course in just enough webassembly
-
-## Concurrency, Correctness & Going web scale - are you ACID compliant? 👮
+## Concurrency, Correctness & Going web scale
 
 These days are you a serious software craftsman [if you're not at web scale?](https://www.youtube.com/watch?v=b2F-DItXtZs).
 
 In our undying, unending pursuit to scale systems further and further we spin webs of complexity. [Why? who knows, it's provocative.](https://www.youtube.com/watch?v=RlwlV4hcBac)
 
-Let's scale! Previously we mentioned fine-grained locking as a technique that could lead to better write performance but at the cost of complexity and read performance -- a related application of this technique is called "sharding". Most databases need to ensure certain guarantees with respect to performance, concurrency and correctness. This is commonly encapsulated with ACID - Atomicity, Consistency, Isolation and Durability. Lucky for us, we can cast away the durability requirement as our data set must fit in working memory.
+Let's put on our scaling cap. Previously we mentioned fine-grained locking as a technique that could lead to better write performance but at the cost of complexity and read performance -- a related application of this technique is called "sharding".
 
-That leaves us with:
+Sharding is a wonderful idea, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two?
+Java's `ConcurrentHashMap` and rust's `DashMap` are defacto examples of this. However we need to ask isn't this getting complex? can we still understand the system? most importantly can we guarantee _correctness?_
+
+As it turns out most databases need to ensure certain guarantees with respect to performance, concurrency and correctness and here we discuss the elusive idea of a "transaction".  You've probably heard the acronymn ACID - Atomicity, Consistency, Isolation and Durability. What does that mean for ets? Lucky for us, we can cast away the durability requirement as our data set must fit in working memory(for now). That leaves us with:
 
 - Atomicity
 - Consistency
 - Isolation
 
-what to be done etc
+### Atomicity
+
+At the level of hardware what is atomicity? It's a special instruction set.
+An example of an interface to this is go's [sync/atomic](https://pkg.go.dev/sync/atomic).
+This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_ like another process
+peeking a half-baked result. You get a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
+
+Now here's where we have to be careful. ETS operations are semantically -- **independently atomic**[9].
+
+Every operation such as a read, write or multi_write on a table are atomic for a single process. In the relational model
+you have BEGIN, COMMIT & ROLLBACK semantics where you can group multiple write operations and pretend they're a single atomic operation. Mnesia builds upon
+ets and supports [grouping multiple writers](https://www.erlang.org/doc/apps/mnesia/mnesia_chap4#atomicity) with [transactions](https://www.erlang.org/doc/man/mnesia#transaction-1) but ets does not.
+
+## Isolation
+
+Isolation is really about how we define the _access_ rules of a `Table`. In ets we have different access modes:
+
+- public - Reader/Writer groups
+- protected - RWMutex in principle
+- private - exclusive Mutex
+
+todo:
+We hinted at why the MVCC paradigm [8] exists. Another optimisation inline with the _more is better_ philosophy are reader and writer groups like we saw when we introduced the concept of fine-grained locks. In relational database like postgres you might be familiar with the table access patterns such as FOR UPDATE or ACCESS EXCLUSIVE in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2)
+
+todo:
+
+## Consistency
+
+Consistency is a tricky topic. In one definition we can think of _referential integrity_ as consistent property and in another 
+we can think of 
+
+## The dumpster fire that is garbage collection
+
+So far we haven't really had to worry about garbage collection. We've disscussed reading and writing data to the `Table`, but not deletion.
+
+We know we cannot statically allocate memory for our `Table` because we don't know its contents at compile time and we must do dynamic memory allocation.
+What happens when we delete a node in the `Table` or `OrderedTable`?
+
+A brief mention of rust mentioned using atomic reference counts an implementation of the strategy [reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in go where this operation is automatic and opaque to the user we didn't really have to worry about it. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of low-level memory management in rust.
+
+Garbage collection is a complex topic but a brief overview of options are:
+
+- malloc, calloc(), free() and realloc()
+- refrence counting
+- automatic garbage collection (tracing & mark and sweep etc)
+- Custom memory allocation
+
+## A detour for just enough web assembly
+
+tdlr; crash course in just enough webassembly
 
 # Gotta Go Fast
 
@@ -164,6 +206,10 @@ intro to lock free techniques[3]
 So far these examples have been somewhat generic but the underlying implementation only allowed simple types a key of type `string` and a value of `int`.
 This is intentionally done in order not to distract from other concepts, but if we really want a general key value store we need to allow many types.
 In this case we want to allow every type supported by the erlang runtime systems.
+
+## Persistence
+
+Implementing the DETS api
 
 ## The query parser
 
@@ -183,13 +229,16 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 - [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
 - [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
 - [3] [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
-- [4] [Hash Indexes](https://www.postgresql.org/docs/16/hash-intro.html)
+- [4] [Hash Indexes in postgres](https://www.postgresql.org/docs/16/hash-intro.html)
 - [5] [Adaptive Hash Index in mysql](https://dev.mysql.com/doc/refman/8.3/en/innodb-adaptive-hash.html)
 - [6] [Hstore - key/value datatype in postgres](https://www.postgresql.org/docs/current/hstore.html)
+- [7] [Index Locking in postgres](https://www.postgresql.org/docs/current/index-locking.html)
+- [8] [MVCC introduction](https://www.postgresql.org/docs/current/mvcc.html)
+- [9] [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
 
-## Notes - maybe include
-
-In a reader-writer lock, a read acquisition has to be visible to
+## Notes
+>
+> In a reader-writer lock, a read acquisition has to be visible to
 writers, so they can wait for the reads to finish before succeeding to take a write lock. One way to implement this is to have
 a shared counter that is incremented and decremented atomically
 when reading threads are entering and exiting their critical section.
