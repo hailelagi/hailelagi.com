@@ -148,7 +148,7 @@ peeking a half-baked result. You bake a pie or you don't -- however we're gettin
 Now here's where we have to be careful. ETS operations are semantically -- **independently atomic**[9].
 
 Every operation such as a read, write or multi_write on a table are atomic for a single process. In the relational model
-you have BEGIN, COMMIT & ROLLBACK semantics where you can group multiple write operations and pretend they're a single atomic operation. Mnesia builds upon
+you have `BEGIN`, `COMMIT` & `ROLLBACK` semantics where you can group multiple write operations and pretend they're a single atomic operation. Mnesia builds upon
 ets and supports [grouping multiple writers](https://www.erlang.org/doc/apps/mnesia/mnesia_chap4#atomicity) with [transactions](https://www.erlang.org/doc/man/mnesia#transaction-1) but ets does not.
 
 ## Isolation
@@ -170,9 +170,9 @@ their execution's progress and reassemble them as A, B then C -- sequential, nic
 There's a hint of that infamous word here -- a tradeoff, in a concurrent universe performance or correctness pick one? Sadly reality is more complex
 and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is in the details](https://en.wikipedia.org/wiki/Consistency_model).
 
-What to do? Inline with the _more is better_ philosophy of scaling are (read/write) locking groups, have you tried adding more _specialised_ locks? We can seperate our read access from our writes and scale those patterns somewhat independently -- this is the working principle of _snapshot insolation_. The concurrency control works by keeping multiple versions on each write and match transactions to specific version of the database at a checkpoint. In a database like postgres you might be familiar with  row or table level locks such as FOR UPDATE or ACCESS EXCLUSIVE, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
+What to do? Inline with the _more is better_ philosophy of scaling are (read/write) locking groups, have you tried adding more _specialised_ locks? We can seperate our read access from our writes and scale those patterns somewhat independently -- this is the working principle of _snapshot insolation_. The concurrency control works by keeping multiple versions on each write and match transactions to specific version of the database at a checkpoint. In a database like postgres you might be familiar with  row or table level locks such as `FOR UPDATE` or `ACCESS EXCLUSIVE`, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
 
-What does this mean for ets? unlike Mnesia ets has no need for MVCC because it does not model the idea of a "transaction", nor does it have [quorum](https://www.erlang.org/doc/man/mnesia_registry) or [consistency](https://www.erlang.org/doc/man/mnesia#sync_transaction-1) problems, nonetheless the ideas of having reader and writer groups prove useful.
+What does this mean for ets? unlike Mnesia ets has no need for MVCC because it does not model the idea of a "transaction", nor does it have [quorum](https://www.erlang.org/doc/man/mnesia_registry) problems simplifying the implementation and api, nonetheless the ideas of having specialised reader and writer modes provides flexibility to the consumer to make informed choices on what concurrent data patterns make sense in the domain problem being solved.
 
 ## Consistency
 
@@ -180,23 +180,51 @@ Consistency is a tricky topic. In a way we can think of _referential integrity_ 
 
 ## The dumpster fire that is garbage collection
 
-So far we haven't really had to worry about garbage collection. We've disscussed reading and writing data to the `Table`, but not deletion.
+So far we've explored reading and writing data to the `Table` and `OrderedTable` but not deletion, what is deletion?
 
-We know we cannot statically allocate memory for our `Table` because we don't know its contents at compile time and we must do dynamic memory allocation.
-What happens when we delete a node in the `Table` or `OrderedTable`?
+Deleting data can be thought about as _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually the compiler's problem. Interfacing with a kernel or raw memory is complex and if a group of smart people can spend alot of time to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection. What happens when this model breaks down?
 
-A brief mention of rust mentioned using atomic reference counts an implementation of the strategy [reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in go where this operation is automatic and opaque to the user we didn't really have to worry about it. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go and carry on with the intricacies of low-level memory management in rust.
+A brief mention of rust mentioned using atomic reference counts an implementation of [reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in go this operation is seemingly automatic and opaque. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go snippets and explore the problems of lifetimes, alignment & fragementation in rust.
 
-Garbage collection is a complex topic but a brief overview of options are:
+#### Lifetimes, Fragmentation & Alignment
 
-- malloc, calloc(), free() and realloc()
-- refrence counting
-- automatic garbage collection (tracing & mark and sweep etc)
-- Custom memory allocation
+What really happens when you dynamically need memory? The compiler throws up its hand decides it [can't figure it out](https://en.wikipedia.org/wiki/Undecidable_problem). You do it.
 
-## A detour for just enough web assembly
+When the need arises... as it often does, you politely ask a kernel for some (and sometimes it says no!), and even when it does say yes, it typically lies to you about what you're getting -- and once you get it, it's this weird stuff that you doesn't make sense to your program and eventually... you have to give it back otherwise memory keeps growing forever (B)OOM.
 
-tdlr; crash course in just enough webassembly
+Let's recap:
+
+- You need to keep _track of this memory_ -- it's _lifetime_
+- You need to give it back
+
+As it turns out keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)). It's a huge & complex topic but a brief overview of some common APIs are:
+
+1. In C - malloc//free or similar e.g [Jemalloc](https://github.com/jemalloc/jemalloc)
+2. reference counting
+3. the tracing algorithm
+4. mark and sweep alogrithm
+5. DIY <-- (we're here, oh no!)
+
+Why are we resorting to such a low, possibly error prone approach?
+
+#### A detour for just enough web assembly
+
+[Webassembly](https://webassembly.org/) is a pretty cool project. The web has four official langauges: html, css, javascript and webassembly. It'd be nice
+if you could write rust for your browser no? perhaps you'd like to ship a runnable binary? Games, figma and containers -- without docker. If this key-value store is going to exists agnostic of wheter it happens to run inside webassembly or `x86-64 linux` wouldn't that be nice?
+
+The current ETS exists tightly coupled to the internal of the erlang runtime system (erts) -- ETS has it's has it's private own memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's in `erl_alloc.c` via `HAlloc`. There's far more going on than
+we're interested in knowing but the gist is these modules know how to allocate memory on a wide variety of architecture targets and environments.
+
+#### Stacking stacks, Being in the Arena, Skipping and Freeing Lists
+
+todo:
+
+## More complex Types
+
+(todo: maybe collapse this as a sub header)
+So far these examples have been somewhat generic but the underlying implementation only allowed simple types a key of type `string` and a value of `int`.
+This is intentionally done in order not to distract from other concepts, but if we really want a general key value store we need to allow many types.
+In this case we want to allow every type supported by the erlang runtime system known as a `Term`.
 
 # Gotta Go Fast
 
@@ -206,17 +234,9 @@ at what cost?
 
 intro to lock free techniques[3]
 
-## More complex Types
-
-- conformance and integration with/into the firefly runtime
-
-So far these examples have been somewhat generic but the underlying implementation only allowed simple types a key of type `string` and a value of `int`.
-This is intentionally done in order not to distract from other concepts, but if we really want a general key value store we need to allow many types.
-In this case we want to allow every type supported by the erlang runtime systems.
-
 ## Persistence and Durability
 
-ETS has an alternative implementation call Disk-Based Term Storage -- however to implement it we have to re-examine what durability in ACID means.
+ETS has an alternative implementation call Disk-Based Term Storage -- I have no interest in wrastling with the complexities of fsync but for completeness, in theory however would one implement it? To do that we have to re-examine what durability in ACID means.
 
 Implementing the DETS api
 
