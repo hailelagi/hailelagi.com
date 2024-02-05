@@ -26,12 +26,12 @@ memory concurrency -- spoiler it's hard, but alas we're rebels and rust has _fea
 
 ## Shaping performance constraints
 
-It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia.
+It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia all built aware of the language runtime.
 
 >It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [1]
 
 Before we get into the bells and whistles of it all, what is it at its core? Conceputally a key-value store seems simple.
-What you want to model is an abstract interface that can store data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
+What you want to model is an abstract interface that can store _schemaless_ data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
 
 ```go
 type Table[Key comparable, Value any] interface {
@@ -42,7 +42,7 @@ type Table[Key comparable, Value any] interface {
 }
 ```
 
-In terms of an api for this `Table`, we're looking to define the options `bag`, `duplicate_bag`, `set` and `ordered_set`.
+In terms of an api for this `Table`, we're looking to define the instance options `bag`, `duplicate_bag`, `set` and `ordered_set`.
 If familiar with `table relations` in relational databases, think of the key-value mapping like so:
 
 1. one to one(1:1) = `set`
@@ -50,9 +50,7 @@ If familiar with `table relations` in relational databases, think of the key-val
 3. one to many(1:N) = `bag`
 4. many to many(N:N) `duplicate_bag`
 
-These allow us to model all sorts of interesting properties like _referential integrity_ this will be important _later_. For now,
-you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`.
-Infact hashmaps are ubiquitious [4] [5] [6] and contain excellent properties when the data model fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
+These in theory allow us to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables but we'll get to that _later_. For now, you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [4] [5] [6] and contain excellent properties especially when the data set fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
 
 In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
 
@@ -145,7 +143,7 @@ As it turns out most databases need to ensure certain guarantees with respect to
 At the level of hardware what is atomicity? It's a special instruction set.
 An example of an interface to this is go's [sync/atomic](https://pkg.go.dev/sync/atomic).
 This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_ like another process
-peeking a half-baked result. You get a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
+peeking a half-baked result. You bake a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
 
 Now here's where we have to be careful. ETS operations are semantically -- **independently atomic**[9].
 
@@ -155,21 +153,30 @@ ets and supports [grouping multiple writers](https://www.erlang.org/doc/apps/mne
 
 ## Isolation
 
-Isolation is really about how we define the _access_ rules of a `Table`. In ets we have different access modes:
+Isolation is really about how we define the _logical concurrent access rules_ of a `Table`. In ets we have different access modes for processes:
 
-- public - Reader/Writer groups
-- protected - RWMutex in principle
-- private - exclusive Mutex
+- public: all processes may read or write.
+- protected: all process may read but one exclusive writer.
+- private: single reader and writer.
 
-todo:
-We hinted at why the MVCC paradigm [8] exists. Another optimisation inline with the _more is better_ philosophy are reader and writer groups like we saw when we introduced the concept of fine-grained locks. In relational database like postgres you might be familiar with the table access patterns such as FOR UPDATE or ACCESS EXCLUSIVE in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2)
+Why does this matter? Before it was hinted at why the MVCC paradigm [8] exists -- naive locking hurts all query performance, yet locks are desirable
+because they ensure correct logical ordering -- linearizability.
 
-todo:
+It's worth pausing to consider this for a moment.
+
+Concurrency is a powerful concept, we can take three logically independent events A, B then C -- potentially reorder them by alternating or _interleaving_
+their execution's progress and reassemble them as A, B then C -- sequential, nice & correct. Systems must be correct, but not necessarily sequential.
+
+There's a hint of that infamous word here -- a tradeoff, in a concurrent universe performance or correctness pick one? Sadly reality is more complex
+and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is in the details](https://en.wikipedia.org/wiki/Consistency_model).
+
+What to do? Inline with the _more is better_ philosophy of scaling are (read/write) locking groups, have you tried adding more _specialised_ locks? We can seperate our read access from our writes and scale those patterns somewhat independently -- this is the working principle of _snapshot insolation_. The concurrency control works by keeping multiple versions on each write and match transactions to specific version of the database at a checkpoint. In a database like postgres you might be familiar with  row or table level locks such as FOR UPDATE or ACCESS EXCLUSIVE, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
+
+What does this mean for ets? unlike Mnesia ets has no need for MVCC because it does not model the idea of a "transaction", nor does it have [quorum](https://www.erlang.org/doc/man/mnesia_registry) or [consistency](https://www.erlang.org/doc/man/mnesia#sync_transaction-1) problems, nonetheless the ideas of having reader and writer groups prove useful.
 
 ## Consistency
 
-Consistency is a tricky topic. In one definition we can think of _referential integrity_ as consistent property and in another 
-we can think of 
+Consistency is a tricky topic. In a way we can think of _referential integrity_ as a consistent property of a database. You define a primary key and a foreign key and specify a logical relationship between entities based on this -- but really you're defining an interface and specifying a contract with an invariant that must be implemented. ETS does not have referential integrity, check constraints or schema validation, it stores/retrieves data agnostic of the kind or shape and enforces a serializable/linearizable api for concurrent reads and writes to every function API.
 
 ## The dumpster fire that is garbage collection
 
@@ -207,9 +214,13 @@ So far these examples have been somewhat generic but the underlying implementati
 This is intentionally done in order not to distract from other concepts, but if we really want a general key value store we need to allow many types.
 In this case we want to allow every type supported by the erlang runtime systems.
 
-## Persistence
+## Persistence and Durability
+
+ETS has an alternative implementation call Disk-Based Term Storage -- however to implement it we have to re-examine what durability in ACID means.
 
 Implementing the DETS api
+
+ > disks have relatively long seek times, reflecting how long it takes the desired part of the disk to rotate under the read/write head. Once the head is in the right place, the data moves relatively quickly, and it costs about the same to read a large data block as it does to read a single byte
 
 ## The query parser
 
