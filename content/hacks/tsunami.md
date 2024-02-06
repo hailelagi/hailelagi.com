@@ -182,9 +182,11 @@ Consistency is a tricky topic. In a way we can think of _referential integrity_ 
 
 So far we've explored reading and writing data to the `Table` and `OrderedTable` but not deletion, what is deletion?
 
-Deleting data can be thought about as _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually the compiler's problem. Interfacing with a kernel or raw memory is complex and if a group of smart people can spend alot of time to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection. What happens when this model breaks down?
+Deleting data can be thought about as _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually a well understood [let the compiler handle it problem](https://en.wikipedia.org/wiki/Stack-based_memory_allocation). Interfacing with a kernel or raw memory is complex and if a group of smart people can spend alot of time to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection. What happens when this model breaks down?
 
 A brief mention of rust mentioned using atomic reference counts an implementation of [reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in go this operation is seemingly automatic and opaque. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go snippets and explore the problems of lifetimes, alignment & fragementation in rust.
+
+⚠️⚠️ trigger warning `unsafe` rust ahead! ⚠️⚠️
 
 #### Lifetimes, Fragmentation & Alignment
 
@@ -197,13 +199,11 @@ Let's recap:
 - You need to keep _track of this memory_ -- it's _lifetime_
 - You need to give it back
 
-As it turns out keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)). It's a huge & complex topic but a brief overview of some common APIs are:
+As it turns out keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph and packaging it into nice APIs. In automatic garbage collection algorithms such as tracing algorithm // mark and sweep serve this function otherwise:
 
 1. In C - malloc//free or similar e.g [Jemalloc](https://github.com/jemalloc/jemalloc)
 2. reference counting
-3. the tracing algorithm
-4. mark and sweep alogrithm
-5. DIY <-- (we're here, oh no!)
+3. DIY <-- (we're here, oh no!)
 
 Why are we resorting to such a low, possibly error prone approach?
 
@@ -213,9 +213,49 @@ Why are we resorting to such a low, possibly error prone approach?
 if you could write rust for your browser no? perhaps you'd like to ship a runnable binary? Games, figma and containers -- without docker. If this key-value store is going to exists agnostic of wheter it happens to run inside webassembly or `x86-64 linux` wouldn't that be nice?
 
 The current ETS exists tightly coupled to the internal of the erlang runtime system (erts) -- ETS has it's has it's private own memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's in `erl_alloc.c` via `HAlloc`. There's far more going on than
-we're interested in knowing but the gist is these modules know how to allocate memory on a wide variety of architecture targets and environments.
+we're interested in knowing but the gist is these modules know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble malloc/free albeit with caveats.
 
-#### Stacking stacks, Being in the Arena, Skipping and Freeing Lists
+#### Making a bad contrived allocator
+
+Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant than relying on an automatic garbage collector. In rust there are several common _implicit_ RAII inspired strategies to manage heap memory allocation all within the ownership/borrowing model.
+
+Here we have well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator? A typical data structure is a [_free list_](https://en.wikipedia.org/wiki/Free_list):
+
+```rust
+// 20 slots of 4096 bytes
+const INITIAL_BLOCKS: usize = 20;
+// typical page size in bytes on linux x86-64
+const DEFAULT_BLOCK_SIZE: usize = 4096;
+
+struct ListNode {
+    size: usize,
+    next: Option<Box<ListNode>>,
+}
+
+pub struct FreeList {
+    head: Option<Box<ListNode>>,
+}
+
+```
+
+a free list is a linked list where each node is a reference to a contigous block of homogeneous memory _somewhere_ on the heap. To allocate we specify 
+the block size of virtual memory we need, how many blocks and how to align said raw memory:
+
+```rust
+impl FreeList {
+    pub fn allocate(&mut self, size: usize, align: usize) -> *mut u8 {
+      unimplemented()!
+    }
+}
+```
+
+Deallocation is as simple as dereferencing the raw pointer and marking that block as safe for reuse back to the kernel:
+
+todo:
+```rust
+```
+
+Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to
 
 todo:
 
