@@ -190,20 +190,21 @@ A brief mention of rust mentioned using atomic reference counts an implementatio
 
 #### Lifetimes, Fragmentation & Alignment
 
-What really happens when you dynamically need memory? The compiler throws up its hand decides it [can't figure it out](https://en.wikipedia.org/wiki/Undecidable_problem). You do it.
+What really happens when you dynamically need memory? The compiler throws up its hand and decides it [can't figure it out](https://en.wikipedia.org/wiki/Undecidable_problem). You do it.
 
-When the need arises... as it often does, you politely ask a kernel for some (and sometimes it says no!), and even when it does say yes, it typically lies to you about what you're getting -- and once you get it, it's this weird stuff that you doesn't make sense to your program and eventually... you have to give it back otherwise memory keeps growing forever (B)OOM.
+When the need arises... as it often does, you politely ask a kernel for some (and sometimes it says no!), and even when it does say yes, it typically lies to you about what you're getting -- and once you get it, it's this weird stuff that doesn't make sense to your program and eventually... you have to give it back otherwise memory keeps growing forever (B)OOM.
 
 Let's recap:
 
+- You need to ask for memory
 - You need to keep _track of this memory_ -- it's _lifetime_
 - You need to give it back
 
-As it turns out keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph and packaging it into nice APIs. In automatic garbage collection algorithms such as tracing algorithm // mark and sweep serve this function otherwise:
+As it turns out, the hard part is in the middle, keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph and packaging it into nice APIs so nice, it's essentially automatic! Algorithms such as the tracing algorithm // mark and sweep serve this function and much more sophisticated systems exist in real languages, otherwise:
 
 1. In C - malloc//free or similar e.g [Jemalloc](https://github.com/jemalloc/jemalloc)
 2. reference counting
-3. DIY <-- (we're here, oh no!)
+3. [DIY](https://zig.guide/standard-library/allocators/) <-- (we're here, oh no!)
 
 Why are we resorting to such a low, possibly error prone approach?
 
@@ -212,18 +213,21 @@ Why are we resorting to such a low, possibly error prone approach?
 [Webassembly](https://webassembly.org/) is a pretty cool project. The web has four official langauges: html, css, javascript and webassembly. It'd be nice
 if you could write rust for your browser no? perhaps you'd like to ship a runnable binary? Games, figma and containers -- without docker. If this key-value store is going to exists agnostic of wheter it happens to run inside webassembly or `x86-64 linux` wouldn't that be nice?
 
-The current ETS exists tightly coupled to the internal of the erlang runtime system (erts) -- ETS has it's has it's private own memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's in `erl_alloc.c` via `HAlloc`. There's far more going on than
-we're interested in knowing but the gist is these modules know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble malloc/free albeit with caveats.
+The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these apis know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble malloc/free albeit with caveats.
 
 #### Making a bad contrived allocator
 
-Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant than relying on an automatic garbage collector. In rust there are several common _implicit_ RAII inspired strategies to manage heap memory allocation all within the ownership/borrowing model.
+Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant[10] than relying on an automatic garbage collector. In rust there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model.
 
-Here we have well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator? A typical data structure is a [_free list_](https://en.wikipedia.org/wiki/Free_list):
+Here we have well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
+
+What do you need? -- it's entirely dependent on the nature of the program!
+
+An illustrative example is a [slab allocator](https://en.wikipedia.org/wiki/Slab_allocation) using a [_free list_](https://en.wikipedia.org/wiki/Free_list):
 
 ```rust
-// 20 slots of 4096 bytes
-const INITIAL_BLOCKS: usize = 20;
+// statically start with 10 slots of 4096 bytes
+const INITIAL_BLOCKS: usize = 10;
 // typical page size in bytes on linux x86-64
 const DEFAULT_BLOCK_SIZE: usize = 4096;
 
@@ -238,26 +242,30 @@ pub struct FreeList {
 
 ```
 
-a free list is a linked list where each node is a reference to a contigous block of homogeneous memory _somewhere_ on the heap. To allocate we specify 
+a free list is a linked list where each node is a reference to a contigous block of homogeneous memory _somewhere_ on the heap. To allocate we specify
 the block size of virtual memory we need, how many blocks and how to align said raw memory:
 
 ```rust
 impl FreeList {
     pub fn allocate(&mut self, size: usize, align: usize) -> *mut u8 {
-      unimplemented()!
+      todo()!
     }
 }
 ```
 
 Deallocation is as simple as dereferencing the raw pointer and marking that block as safe for reuse back to the kernel:
 
-todo:
 ```rust
+impl FreeList {
+    pub fn deallocate(&mut self, ptr: *mut u8, size: usize, align: usize) {
+        todo()!
+    }
+}
 ```
 
-Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to
+Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this.
 
-todo:
+In practice todo:
 
 ## More complex Types
 
@@ -306,6 +314,7 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 - [7] [Index Locking in postgres](https://www.postgresql.org/docs/current/index-locking.html)
 - [8] [MVCC introduction](https://www.postgresql.org/docs/current/mvcc.html)
 - [9] [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
+- [10] [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
 
 ## Notes
 >
