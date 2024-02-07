@@ -211,13 +211,14 @@ Why are we resorting to such a low, possibly error prone approach?
 #### A detour for just enough web assembly
 
 [Webassembly](https://webassembly.org/) is a pretty cool project. The web has four official langauges: html, css, javascript and webassembly. It'd be nice
-if you could write rust for your browser no? perhaps you'd like to ship a runnable binary? Games, figma and containers -- without docker. If this key-value store is going to exists agnostic of wheter it happens to run inside webassembly or `x86-64 linux` wouldn't that be nice?
+if you could write rust for your browser no? perhaps you'd like to ship a runnable binary? Games, figma and containers -- without docker. If this key-value store is going to exists agnostic of wheter it happens to run inside webassembly or `x86-64 linux` wouldn't it be nice to virtualize all the things?
 
-The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these apis know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble malloc/free albeit with caveats.
+The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble C's malloc/free albeit with caveats.
 
 #### Making a bad contrived allocator
 
-Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant[10] than relying on an automatic garbage collector. In rust there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model.
+Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant[10] than relying on an automatic garbage collector and in _hard real-time systems_ this is a
+table stakes requirement. In rust there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model.
 
 Here we have well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
 
@@ -242,8 +243,7 @@ pub struct FreeList {
 
 ```
 
-a free list is a linked list where each node is a reference to a contigous block of homogeneous memory _somewhere_ on the heap. To allocate we specify
-the block size of virtual memory we need, how many blocks and how to align said raw memory:
+a free list is a linked list where each node is a reference to a contigous block of homogeneous memory _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory:
 
 ```rust
 impl FreeList {

@@ -6,6 +6,7 @@ What seems worth reading:
 
 - [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 - [crafting interpreters](https://craftinginterpreters.com/)
+- [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [Nand2Tetris](https://www.nand2tetris.org/)
 - [How to Design Programs](https://htdp.org/)
 - [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
@@ -19,7 +20,6 @@ Interesting but low priority:
 - [Erlang in Anger](https://www.erlang-in-anger.com/)
 - [Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)
 - The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
-- [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [High Performance Browser Networking](https://hpbn.co/)
 - Distributed Systems - Maarten & Andrew
 - design patterns elements of reusable object-oriented software
