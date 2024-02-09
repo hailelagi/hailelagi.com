@@ -292,8 +292,8 @@ Implementing the DETS api
 
 ## The query parser
 
-Every good database needs ergonimics features fo good querying! SQL is amazing but is insanely complex to implement and tightly coupled to transaction semantics,
-however we don't want to feel left out, let's build a tiny(compared to sql) query syntax and engine.
+Every good database needs ergonimics features for querying! SQL is amazing but is an insanely complex and large standard to implement and tightly coupled to transaction semantics and makes assumptions about the underlying structure of data -- being that its a 2-D array of rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one 
+and even postgres has one! This is too much information for a single article so this is shelled out into [part two](./tsunami_two.md).
 
 ## Testing & Benchmarks
 
