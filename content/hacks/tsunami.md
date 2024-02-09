@@ -202,11 +202,11 @@ Let's recap:
 
 As it turns out, the hard part is in the middle, keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph and packaging it into nice APIs so nice, it's essentially automatic! Algorithms such as the tracing algorithm // mark and sweep serve this function and much more sophisticated systems exist in real languages, otherwise:
 
-1. In C - malloc//free or similar e.g [Jemalloc](https://github.com/jemalloc/jemalloc)
+1. In C everytime we always malloc//free or similar e.g [Jemalloc](https://github.com/jemalloc/jemalloc)
 2. reference counting
 3. [DIY](https://zig.guide/standard-library/allocators/) <-- (we're here, oh no!)
 
-Why are we resorting to such a low, possibly error prone approach?
+Although it's _possible_ to do this in rust, it's [atypical and has all sorts of nuances](https://matklad.github.io/2022/10/06/hard-mode-rust.html). Why are we resorting to such a low, possibly error prone approach?
 
 #### A detour for just enough web assembly
 
@@ -218,13 +218,13 @@ The current ETS exists tightly coupled to the internals of the erlang runtime sy
 #### Making a bad contrived allocator
 
 Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant[10] than relying on an automatic garbage collector and in _hard real-time systems_ this is a
-table stakes requirement. In rust there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model.
+table stakes requirement. In rust there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait.
 
 Here we have well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
 
 What do you need? -- it's entirely dependent on the nature of the program!
 
-An illustrative example is a [slab allocator](https://en.wikipedia.org/wiki/Slab_allocation) using a [_free list_](https://en.wikipedia.org/wiki/Free_list):
+Here we can model the space required to fit each key-value as a node on a linkedlist. An illustrative example is a [slab allocator](https://en.wikipedia.org/wiki/Slab_allocation) using a [_free list_](https://en.wikipedia.org/wiki/Free_list):
 
 ```rust
 // statically start with 10 slots of 4096 bytes
@@ -243,7 +243,7 @@ pub struct FreeList {
 
 ```
 
-a free list is a linked list where each node is a reference to a contigous block of homogeneous memory _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory:
+A free list is a linked list where each node is a reference to a contigous block of homogeneous memory unallocated _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory:
 
 ```rust
 impl FreeList {
@@ -265,7 +265,7 @@ impl FreeList {
 
 Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this.
 
-In practice todo:
+In practice
 
 ## More complex Types
 
