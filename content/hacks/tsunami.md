@@ -265,14 +265,7 @@ impl FreeList {
 
 Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this.
 
-In practice
-
-## More complex Types
-
-(todo: maybe collapse this as a sub header)
-So far these examples have been somewhat generic but the underlying implementation only allowed simple types a key of type `string` and a value of `int`.
-This is intentionally done in order not to distract from other concepts, but if we really want a general key value store we need to allow many types.
-In this case we want to allow every type supported by the erlang runtime system known as a `Term`.
+We must now consider the `types` of the key and value. In erlang every value is a `Term`[11].
 
 # Gotta Go Fast
 
@@ -284,7 +277,7 @@ intro to lock free techniques[3]
 
 ## Persistence and Durability
 
-ETS has an alternative implementation call Disk-Based Term Storage -- I have no interest in wrastling with the complexities of fsync but for completeness, in theory however would one implement it? To do that we have to re-examine what durability in ACID means.
+ETS has an alternative implementation call Disk-Based Term Storage -- I have no interest in [wrastling](https://www.youtube.com/watch?v=4HC5GDoixiA) with the complexities of fsync but for completeness, in theory however would one implement it? To do that we have to re-examine what durability in ACID means.
 
 Implementing the DETS api
 
@@ -295,7 +288,7 @@ Implementing the DETS api
 Every good database needs ergonimics features for querying! SQL is amazing but is an insanely complex and large standard to implement and tightly coupled to transaction semantics and makes assumptions about the underlying structure of data -- being that its a 2-D array of rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one 
 and even postgres has one! This is too much information for a single article so this is shelled out into [part two](./tsunami_two.md).
 
-## Testing & Benchmarks
+## Testing Methodology
 
 - unit testing challenges, tight coupling etc
 - conformance with the upstream erts(erlang runtime system) ETS public api and behaviour
@@ -315,6 +308,7 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 - [8] [MVCC introduction](https://www.postgresql.org/docs/current/mvcc.html)
 - [9] [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
 - [10] [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
+- [11] [Erlang data types](https://www.erlang.org/doc/reference_manual/data_types)
 
 ## Notes
 >
@@ -324,3 +318,8 @@ a shared counter that is incremented and decremented atomically
 when reading threads are entering and exiting their critical section.
 
 <https://preshing.com/20120612/an-introduction-to-lock-free-programming/>
+
+## Further Resources
+
+- Book: https://cs-people.bu.edu/mathan/publications/fnt23-athanassoulis.pdf
+- Video/Course: https://www.youtube.com/watch?v=a70jRWLjQFk&list=PLSE8ODhjZXjasmrEd2_Yi1deeE360zv5O&index=2
