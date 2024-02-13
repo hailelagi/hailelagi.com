@@ -1,13 +1,24 @@
 ---
 title: "Making a Tsunami"
 date: 2023-12-23T00:19:58+01:00
-draft: true
-tags: rust, k-v store
+draft: false
+tags: rust, storage engine
 publicDraft: true
 recommend: true
 ---
 
-# Introduction
+⚠️⚠️⚠️⚠️
+This a WIP draft
+⚠️⚠️⚠️⚠️
+
+This is a two part series on building an in-memory [key value store](https://en.wikipedia.org/wiki/In-memory_database):
+
+1. [The storage engine](./)
+2. [The query engine/parser](../tsunami_two)
+
+# Part One - The storage engine
+
+## Introduction
 
 This was one of the first really hard ambitious things I tried to build, but sadly because of
 either a lack time, grit or knowledge/skill I just couldn't make meaningful progress.
@@ -26,7 +37,7 @@ memory concurrency -- spoiler it's hard, but alas we're rebels and rust has _fea
 
 ## Shaping performance constraints
 
-It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia all built aware of the language runtime.
+It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything[†2]. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia all built aware of the language runtime.
 
 >It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [1]
 
@@ -263,17 +274,24 @@ impl FreeList {
 }
 ```
 
-Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this.
+Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this rather than allocating and dellocating everytime we can amortize memory per value stored.
 
-We must now consider the `types` of the key and value. In erlang every value is a `Term`[11].
+We must now consider the `types` of the key and value. In erlang every value is a `Term`[11] and serializing and deserializing to a specific Term's size and type will also be the responsibility of our Allocator, here we need to be careful as we traverse the cache line that we aren't unnecessarily thrashing the CPU and minimizing context switches -- more on that later.
 
 # Gotta Go Fast
 
-at what cost?
+![Speed racer 1967](/Speed_Racer_behind_the_wheel.webp)
+
+It might not seem like it,  but we've covered a lot of ground, our key value store's [storage engine](https://en.wikipedia.org/wiki/Database_engine) is almost ready. We have a basis to discuss algorithmic complexity and data structure design, concurrency control with ACID, and a vocabulary to express its bit for bit layout in-memory and access path, however can we do better than lock groups? -- the answer is maybe!
+
+There are two optimisation architectures we haven't discussed yet:
+
+- no shared state, message passing and thread per core pinning[12]
+- lock free/wait free techniques[3]
+
+Hold on?! Message passing concurrency? Isn't this what elixir/erlang has native support for?
 
 - use of lock free data structures/behaviour across reads - concurrent skip list crash course, why?
-
-intro to lock free techniques[3]
 
 ## Persistence and Durability
 
@@ -285,8 +303,8 @@ Implementing the DETS api
 
 ## The query parser
 
-Every good database needs ergonimics features for querying! SQL is amazing but is an insanely complex and large standard to implement and tightly coupled to transaction semantics and makes assumptions about the underlying structure of data -- being that its a 2-D array of rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one 
-and even postgres has one! This is too much information for a single article so this is shelled out into [part two](./tsunami_two.md).
+Every good database needs ergonimics features for querying! SQL is amazing but is an insanely complex and large standard to implement and tightly coupled to transaction semantics and makes assumptions about the underlying structure of data -- being that its a 2-D array of rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one
+and even postgres has one! This is too much information for a single article so this is shelled out into [part two](../tsunami_one).
 
 ## Testing Methodology
 
@@ -309,17 +327,18 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 - [9] [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
 - [10] [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
 - [11] [Erlang data types](https://www.erlang.org/doc/reference_manual/data_types)
+- [12] [Glommio - thread per core](https://github.com/DataDog/glommio)
 
 ## Notes
->
-> In a reader-writer lock, a read acquisition has to be visible to
+
+[†1] In a reader-writer lock, a read acquisition has to be visible to
 writers, so they can wait for the reads to finish before succeeding to take a write lock. One way to implement this is to have
 a shared counter that is incremented and decremented atomically
 when reading threads are entering and exiting their critical section.
 
-<https://preshing.com/20120612/an-introduction-to-lock-free-programming/>
+[†2] Immutability is not necessarily performance bottleneck in a database -- or any application for that matter. Flavors of LSM-Tree based persistent key-value stores or append-only Log-Structured Hash Tables have been modelled using functional language semantics in erlang.
 
 ## Further Resources
 
-- Book: https://cs-people.bu.edu/mathan/publications/fnt23-athanassoulis.pdf
-- Video/Course: https://www.youtube.com/watch?v=a70jRWLjQFk&list=PLSE8ODhjZXjasmrEd2_Yi1deeE360zv5O&index=2
+- Book: <https://cs-people.bu.edu/mathan/publications/fnt23-athanassoulis.pdf>
+- Video/Course: <https://www.youtube.com/watch?v=a70jRWLjQFk&list=PLSE8ODhjZXjasmrEd2_Yi1deeE360zv5O&index=2>
