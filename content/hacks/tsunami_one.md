@@ -336,7 +336,7 @@ writers, so they can wait for the reads to finish before succeeding to take a wr
 a shared counter that is incremented and decremented atomically
 when reading threads are entering and exiting their critical section.
 
-[†2] Immutability is not necessarily performance bottleneck in a database -- or any application for that matter. Flavors of LSM-Tree based persistent key-value stores or append-only Log-Structured Hash Tables have been modelled using functional language semantics in erlang.
+[†2] Immutability is not necessarily a performance bottleneck in a database -- or any application for that matter. This is a common misconception about functional languages/semantics. Flavors of LSM-Tree based persistent key-value stores or append-only Log-Structured Hash Tables can and have been modelled in erlang. It just so happens _this_ key value store's properties are hard to model with functional semantics.
 
 ## Further Resources
 
