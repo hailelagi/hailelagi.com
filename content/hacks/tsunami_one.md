@@ -153,14 +153,13 @@ As it turns out most databases need to ensure certain guarantees with respect to
 
 At the level of hardware what is atomicity? It's a special instruction set.
 An example of an interface to this is go's [sync/atomic](https://pkg.go.dev/sync/atomic).
-This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_ like another process
-peeking a half-baked result. You bake a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
+This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_. You bake a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
 
-Now here's where we have to be careful. ETS operations are semantically -- **independently atomic**[9].
+Now here's where we have to be careful. ETS operations are **atomic in a single operation per object/table**[9].
 
-Every operation such as a read, write or multi_write on a table are atomic for a single process. In the relational model
-you have `BEGIN`, `COMMIT` & `ROLLBACK` semantics where you can group multiple write operations and pretend they're a single atomic operation. Mnesia builds upon
-ets and supports [grouping multiple writers](https://www.erlang.org/doc/apps/mnesia/mnesia_chap4#atomicity) with [transactions](https://www.erlang.org/doc/man/mnesia#transaction-1) but ets does not.
+Every operation such as a read, write or multi_insert on a table are atomic as long as it's within a single function call/table access but _not across multiple_. In optimistic concurrency control a typical mechanism exposed by
+row oriented OLTP databases like postgres, you have `BEGIN`, `COMMIT` & `ROLLBACK` semantics where you can **group multiple write operations** and pretend they're a single atomic operation. Mnesia builds upon
+ets and supports [grouping multiple writers](https://www.erlang.org/doc/apps/mnesia/mnesia_chap4#atomicity) with [transactions](https://www.erlang.org/doc/man/mnesia#transaction-1) but ets does not. The atomicity contract only extends per single operation on a Table(s) read/write.
 
 ## Isolation
 
@@ -171,7 +170,7 @@ Isolation is really about how we define the _logical concurrent access rules_ of
 - private: single reader and writer.
 
 Why does this matter? Before it was hinted at why the MVCC paradigm [8] exists -- naive locking hurts all query performance, yet locks are desirable
-because they ensure correct logical ordering -- linearizability.
+because they ensure correct logical ordering -- serializable/linearizability.
 
 It's worth pausing to consider this for a moment.
 
@@ -179,15 +178,22 @@ Concurrency is a powerful concept, we can take three logically independent event
 their execution's progress and reassemble them as A, B then C -- sequential, nice & correct. Systems must be correct, but not necessarily sequential.
 
 There's a hint of that infamous word here -- a tradeoff, in a concurrent universe performance or correctness pick one? Sadly reality is more complex
-and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is in the details](https://en.wikipedia.org/wiki/Consistency_model).
+and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is in the details](https://en.wikipedia.org/wiki/Consistency_model). You can tune consistency and change what isolation means -- but that's yet further ahead, this problem is further compounded when you introduce a network call across tables but let's not try that optimisation tempting as it is.
 
-What to do? Inline with the _more is better_ philosophy of scaling are (read/write) locking groups, have you tried adding more _specialised_ locks? We can seperate our read access from our writes and scale those patterns somewhat independently -- this is the working principle of _snapshot insolation_. The concurrency control works by keeping multiple versions on each write and match transactions to specific version of the database at a checkpoint. In a database like postgres you might be familiar with  row or table level locks such as `FOR UPDATE` or `ACCESS EXCLUSIVE`, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
+What to do? Inline with the _more is better_ philosophy of scaling are (read/write) locking groups, have you tried adding more _specialised_ locks? We can seperate our read access from our writes and scale those patterns somewhat independently -- this is the working principle of _snapshot insolation_ the [cannonical isolation level](https://en.wikipedia.org/wiki/Snapshot_isolation). The concurrency control works by keeping multiple versions on each write and matches read transactions to specific version of the database at a checkpoint matching both with a logical but not actual order. In a database like postgres you might be familiar with  row or table level locks such as `FOR UPDATE` or `ACCESS EXCLUSIVE`, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
 
-What does this mean for ets? unlike Mnesia ets has no need for MVCC because it does not model the idea of a "transaction", nor does it have [quorum](https://www.erlang.org/doc/man/mnesia_registry) problems simplifying the implementation and api, nonetheless the ideas of having specialised reader and writer modes provides flexibility to the consumer to make informed choices on what concurrent data patterns make sense in the domain problem being solved.
+What does this mean for ets? unlike Mnesia in :ets has no need for optimistic concurrency control mechanisms such as MVCC because it does not model the idea of a "transaction", nor does it have [quorum](https://www.erlang.org/doc/man/mnesia_registry) problems in a distributed/replicated setting which mask failures in a net-split mutiplying the difficulty and these are out of scope and are the key features mnesia provides.
+
+Instead the time instantiation of a lock acquistion on a single node gives enough information to order reads or writes correctly relatively simpler between interleaving processes and enforcing the invariants `public`, `private` & `protected` leaving it up to the consumer to make informed choices on what concurrent data patterns make sense in the domain problem being solved.
 
 ## Consistency
 
-Consistency is a tricky topic. In a way we can think of _referential integrity_ as a consistent property of a database. You define a primary key and a foreign key and specify a logical relationship between entities based on this -- but really you're defining an interface and specifying a contract with an invariant that must be implemented. ETS does not have referential integrity, check constraints or schema validation, it stores/retrieves data agnostic of the kind or shape and enforces a serializable/linearizable api for concurrent reads and writes to every function API.
+Consistency is a tricky topic. In a way we can think of _referential integrity_ as a consistent property of a database but is it? You define a primary key and a foreign key and specify a logical relationship between entities based on this -- but really you're defining an interface and specifying a contract with an invariant that must be implemented. ETS does not have referential integrity, check constraints or schema validation, it stores/retrieves data agnostic of the kind or shape and enforces a serializable/linearizable api for concurrent reads and writes to every function API.
+
+ACID/BASE whatever are strange mental models for two reasons:
+
+- There's diverging understanding/interpretation of what this means
+- Although distinct are interwined concepts and are often garbled up in modern systems with distributed systems problems/concepts which further commingle the whole thing, it's a mess.
 
 ## The dumpster fire that is garbage collection
 
