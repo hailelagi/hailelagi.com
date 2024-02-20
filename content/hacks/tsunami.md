@@ -11,7 +11,7 @@ recommend: true
 This a WIP draft
 ⚠️⚠️⚠️⚠️
 
-How to build an in-memory [key value store](https://en.wikipedia.org/wiki/In-memory_database):
+How to build a [runtime-embedded](https://en.wikipedia.org/wiki/Embedded_database) in-memory [key value store](https://en.wikipedia.org/wiki/In-memory_database):
 
 1. [The storage engine](./)
 2. ~~[The query engine/parser](https://github.com/hailelagi/hailelagi.com/issues/1)~~
@@ -315,7 +315,7 @@ Why does the Kernel/OS want you to buffer or write to "fake" memory in the first
 
  > disks have relatively long seek times, reflecting how long it takes the desired part of the disk to rotate under the read/write head. Once the head is in the right place, the data moves relatively quickly, and it costs about the same to read a large data block as it does to read a single byte
 
-There's some nuance wheter this is an SSD or HDD, but the gist is it's an optimisation. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wondeful complexity an OS hides -- syscalls are an abstraction remember? Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), so perhaps you definitely want to directly write to memory. It's obviously the "right" choice no? -- but now you start talking about pages, caches, pools and all sorts of hidden fun goodies that shave off years from your limited life. No wonder [getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors) and [riddled with ugly bugs](https://danluu.com/fsyncgate/). However there's [renewed hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in a [shiny new api](https://github.com/axboe/liburing) that's perhaps the future once the [bugs gets ironed out](https://lwn.net/Articles/902466/).
+There's some nuance wheter this is an SSD or HDD, but the gist is it's an optimisation. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wondeful complexity an OS hides -- syscalls are an abstraction remember? Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), so perhaps you definitely want to directly write to memory. It's obviously the "right" choice no? -- but now you start talking about pages, caches, pools and all [sorts of hidden fun goodies](https://15445.courses.cs.cmu.edu/fall2020/notes/05-bufferpool.pdf) that shave off years from your limited life. No wonder [getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors) and [riddled with ugly bugs](https://danluu.com/fsyncgate/). However there's [renewed hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in a [shiny new api](https://github.com/axboe/liburing) that's perhaps the future once the [bugs gets ironed out](https://lwn.net/Articles/902466/).
 
 
 ## Querying
