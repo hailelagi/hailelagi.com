@@ -11,10 +11,10 @@ recommend: true
 This a WIP draft
 ⚠️⚠️⚠️⚠️
 
-This is a two part series on building an in-memory [key value store](https://en.wikipedia.org/wiki/In-memory_database):
+How to build an in-memory [key value store](https://en.wikipedia.org/wiki/In-memory_database):
 
 1. [The storage engine](./)
-2. [The query engine/parser](../tsunami_two)
+2. ~~[The query engine/parser](https://github.com/hailelagi/hailelagi.com/issues/1)~~
 
 # Part One - The storage engine
 
@@ -318,10 +318,10 @@ Why does the Kernel/OS want you to buffer or write to "fake" memory in the first
 There's some nuance wheter this is an SSD or HDD, but the gist is it's an optimisation. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wondeful complexity an OS hides -- syscalls are an abstraction remember? Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), so perhaps you definitely want to directly write to memory. It's obviously the "right" choice no? -- but now you start talking about pages, caches, pools and all sorts of hidden fun goodies that shave off years from your limited life. No wonder [getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors) and [riddled with ugly bugs](https://danluu.com/fsyncgate/). However there's [renewed hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in a [shiny new api](https://github.com/axboe/liburing) that's perhaps the future once the [bugs gets ironed out](https://lwn.net/Articles/902466/).
 
 
-## The query parser
+## Querying
 
-Every good database needs ergonimics features for querying! SQL is amazing but is an insanely complex and large standard to implement and tightly coupled to transaction semantics and makes assumptions about the underlying structure of data -- being that its a 2-D array of rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one
-and even postgres has one! This is too much information for a single article so this is shelled out into [part two](../tsunami_one).
+Every good database needs good ergonimics for querying! SQL is popular but is a complex and large standard to implement, it's tightly coupled to transactional semantics and makes assumptions about the properties and shape of data -- it's relational and the underlying structure of data being that its structured as rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one and even postgres patched in one! There are probably thousands of these kinds of languages -- and 
+of course ets has one called a `match_spec` -- I may or may not write a followup about this! It's old and somewhat niche. However if you'd like to see this [leave a thumbs up!](https://github.com/hailelagi/hailelagi.com/issues/1)
 
 ## Testing Methodology
 

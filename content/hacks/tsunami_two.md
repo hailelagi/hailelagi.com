@@ -1,7 +1,7 @@
 ---
 title: "PAM - The match specification"
 date: 2024-02-09T12:52:27+01:00
-draft: false
+draft: true
 tags: rust, query parsing
 publicDraft: true
 ---
