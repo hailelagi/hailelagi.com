@@ -192,9 +192,9 @@ Consistency is a tricky topic. In a way we can think of _referential integrity_ 
 
 ACID/BASE whatever are strange mental models for a few reasons:
 
-- There's diverging understanding/interpretation of what this means
+- There's diverging understanding/interpretation of  [what this means](https://stackoverflow.com/questions/3736533/why-doesnt-mongodb-use-fsync/3737121#3737121)
 - Although distinct are interwined concepts and are often garbled up in modern systems with distributed systems problems/concepts which further commingle the whole thing, it's a mess.
-- These models are supposed to _simplify_ and _abstract_ complex concurrency control but this is doubtful given that perhaps the non-trivial implementation complexity is removed but you still have to understand _how_ databases (esp distributed ones) do this stuff which 
+- These models are supposed to _simplify_ and _abstract_ complex concurrency control but this is doubtful given that perhaps the non-trivial implementation complexity is removed but you still have to understand _how_ databases (esp distributed ones) do this stuff which
 [feels terribly leaky](https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/).
 
 ## The dumpster fire that is garbage collection
@@ -303,11 +303,20 @@ Hold on?! Message passing concurrency? Isn't this what elixir/erlang has native 
 
 ## Persistence and Durability
 
-ETS has an alternative implementation call Disk-Based Term Storage -- I have no interest in [wrastling](https://www.youtube.com/watch?v=4HC5GDoixiA) with the complexities of fsync but for completeness, in theory however would one implement it? To do that we have to re-examine what durability in ACID means.
+ETS has an alternative implementation call Disk-Based Term Storage -- I have no interest in [wrastling](https://www.youtube.com/watch?v=4HC5GDoixiA) with the complexities of `fsync` but for completeness, in theory however would one implement it? To do that we have to re-examine the assumption of durability. What happens when you write some data to disk?
 
-Implementing the DETS api
+There are roughly three odd roads/paths on a single node db:
+
+- you write to a buffered read/write stream (you've probably done this, but your writes aren't actually written - only scheduled.)
+- you write to virtual memory and negotiate magic with the kernel.
+- you ACTUALLY write directly to memory.
+
+Why does the Kernel/OS want you to buffer or write to "fake" memory in the first place? -- it's half performance and half complexity concerns.
 
  > disks have relatively long seek times, reflecting how long it takes the desired part of the disk to rotate under the read/write head. Once the head is in the right place, the data moves relatively quickly, and it costs about the same to read a large data block as it does to read a single byte
+
+There's some nuance wheter this is an SSD or HDD, but the gist is it's an optimisation. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wondeful complexity an OS hides -- syscalls are an abstraction remember? Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), so perhaps you definitely want to directly write to memory. It's obviously the "right" choice no? -- but now you start talking about pages, caches, pools and all sorts of hidden fun goodies that shave off years from your limited life. No wonder [getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors) and [riddled with ugly bugs](https://danluu.com/fsyncgate/). However there's [renewed hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in a [shiny new api](https://github.com/axboe/liburing) that's perhaps the future once the [bugs gets ironed out](https://lwn.net/Articles/902466/).
+
 
 ## The query parser
 
