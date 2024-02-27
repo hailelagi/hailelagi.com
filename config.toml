@@ -72,23 +72,16 @@ pygmentsCodeFences = true
     weight = 25
 
   [[menu.main]]
+    identifier = "notes"
+    name = "notes"
+    title = "notes"
+    url = "/notes"
+    weight = 25
+
+  [[menu.main]]
     identifier = "github"
     name = "github"
     title = "github"
     url = "https://www.github.com/hailelagi"
     weight = 25
-
-#  [[menu.main]]
-#    identifier = "challenges"
-#    name = "shuhari"
-#    title = "challenges"
-#    url = "/challenges"
-#    weight = 25
-
-#  [[menu.main]]
-#    identifier = "ethereum"
-#    name = "ethereum"
-#    title = "ethereum"
-#    url = "https://app.zerion.io/0x3430b8b776c531e01736ddfc15b11d9e14afe793/overview?name=haile.eth"
-#    weight = 25
 

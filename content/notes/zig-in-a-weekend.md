@@ -2,8 +2,7 @@
 title: "Zig In a Weekend"
 date: 2023-05-21T07:47:25+01:00
 obsidian-import: true
-draft: true
-do-not-render: true
+draft: false
 ---
 
 ## Quick Start

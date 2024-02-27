@@ -1,0 +1,21 @@
+<h4 class="category"> Notes </h4>
+
+<p>Interesting snippets, less serious writing and random stuff </p>
+
+{{ range where (where .Site.Pages "Section" "notes") ".IsPage" "==" true }}
+
+<ul id="posts">
+    {{ if in .Params.tags "archive"}}
+    {{ else }}
+    <li>
+        <a href="{{ .Permalink }}">
+            {{ .Title }}
+            {{ if .Params.recommend }}
+            <span id="recommend">⭐</span>
+            {{- end }}
+            <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
+        </a>
+    </li>
+    {{- end }}
+    {{- end }}
+</ul>
