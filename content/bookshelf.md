@@ -1,4 +1,4 @@
-I'm currently reading Skiena's The Algorithm Design Manual.
+I'm currently reading Skiena's The Algorithm Design Manual & - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/), why two at a time? I have no interest in algorithms for their own sake but only as they relate to databases and I'm approaching the second half of Skienna which is very reference-y.
 
 Here's my ever growing, list of stuff I'd like to learn or re-learn one day!
 
@@ -6,7 +6,6 @@ What seems worth reading:
 
 - [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 - [crafting interpreters](https://craftinginterpreters.com/)
-- [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [Nand2Tetris](https://www.nand2tetris.org/)
 - [How to Design Programs](https://htdp.org/)
 - [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
