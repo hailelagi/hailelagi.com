@@ -16,6 +16,7 @@ assumptions:
 ## Insertion
 Inserting, find target leaf and insert the keys `1` and `2` target == root.
 
+**[figure 1]**
 ![init](/init.png)
 
 
@@ -23,10 +24,13 @@ When we insert key `3`? we have our first _overflow_ causing a split:
 ![split](/split.png)
 `2` is _promoted_ and contents are split in two, we recurse from the bottom up.
 
+**[figure 2]**
 What if we add key `4` our tree looks weird doesn't it:
 ![balance](/balance.png)
 
-and now have to "rebalance" our tree with incoming five:
+and now have to "rebalance" our tree with incoming key `5`:
+
+**[figure 3]**
 ![rebalance](/rebalance.png)
 
 ## Search
@@ -44,6 +48,7 @@ num keys = branching factor ^ height - 1 * branching factor - 1
 
 point and range queries follow the same logarithmic path.
 
+**[figure 4]**
 ![search](/search.png)
 
 
@@ -52,7 +57,8 @@ point and range queries follow the same logarithmic path.
 Let's remove 4.
 
 First we find 4 using binary search, then re-arrange our pointers and rebalance:
+**[figure 5]**
 ![delete](/delete.png)
 
 Rebalancing involves restoring our ordered structure and keeping pointers valid and 
-performing a merge.
+performing a merge or (*redistribution.)

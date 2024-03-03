@@ -11,10 +11,14 @@ Data structures contiguous vs pointer based.
 * Honorable mention hashmap
 Binary Search Trees - Dictionary Data type/Map
 balancing
+going beyond Big-O
+mutability vs immutability
+briefly concurrency
 
 disk considerations
 data set cannot fit in memory, we must cache and page in and out of memory.
 > “we have to perform balancing, relocate nodes, and update pointers rather frequently. Increased maintenance costs make BSTs impractical as on-disk data structuree”
+
 
 HDDs vs SSDs
 how they work
@@ -29,6 +33,7 @@ goals:
 B Trees:
 we actually mean Bplus Tree.
 sorted data structure, pointer based = binary search.
+why do we want search trees? balancing and order
 
 B-Trees are useful for:
 1. In-memory indexes (also used here!)
@@ -36,16 +41,18 @@ B-Trees are useful for:
 
 “Since B-Trees are a page organization technique (i.e., they are used to organize and navigate fixed-size pages), we often use terms node and page interchangeably.”
 
+terminology:
+seperator key
+root
+internal node contains seperator key
+leaf node
+degree/branching factor
+occupancy
 
 desired properties:
 - high fanout
 - low height
 
-terms:
-degree/occupancy/branching factor
-root
-internal node - separator key
-leaf node
 
 operations
 - insert
@@ -57,5 +64,9 @@ internal operations:
 - splits on insertion 
 - merges on deletion
 
+not covered:
 
-final - implementation is on chapter four, we shall revisit again!
+- how do we actually get to disk?
+- encoding, concurrency etc
+
+closing - implementation is on chapter four & six, we shall revisit again!
