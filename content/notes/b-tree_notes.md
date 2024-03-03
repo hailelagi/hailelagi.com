@@ -50,10 +50,10 @@ desired properties:
 ```go
 /*
 Simple Persistent B Plus Tree.
-Node keys are assumed to be signed integers and values a
-slice of bytes.Persistence is achieved using a naive bufio.Writer 
-interface for simplicity.Concurrency control is achieved using a
-simple blocking RWMutex lock.
+Node keys are assumed to be signed integers and values in a
+slice of bytes. Persistence is achieved using a naive bufio.Writer 
+interface pointer for simplicity.Concurrency control is achieved 
+using a simple globally blocking RWMutex lock.
 
 B-Tree implementations have many implementation specific details 
 and optimisations before they're 'production' ready, notably they 
@@ -70,16 +70,25 @@ sophisticated concurrency control.
 
 Definition:
 
+A B plus tree with an arbitrary degree, degree is the number of pointers/children each node can point to/hold
+
 ```go
 type BPlusTree struct {
-	key   int
-	value []byte
-
-	root  *BPlusTree
-	left  *BPlusTree
-	right *BPlusTree
-
+	root   *node
+	degree int
 	sync.RWMutex
+}
+```
+
+The internal node:
+
+```go
+type node struct {
+	keys     []int
+	data     *bufio.ReadWriter
+	children []*node
+	isLeaf   bool
+	next     *node
 }
 ```
 
@@ -87,6 +96,10 @@ type BPlusTree struct {
 - insertion
 - access
 - deletions
+
+**Insertion**
+
+**Split/Merge/Rebalancing**
 
 ## Tools of the Trade
 Base your judgement on empirical fact:
@@ -96,8 +109,6 @@ Base your judgement on empirical fact:
 - benchmarking
 - tests - unit, integration, fuzzing, proptests, simulations etc
 
-
-**Split/Merge/Rebalancing**
 
 Performance comes from thinking wholistically about hardware and software together.
 Optimizations bear the fruits of pretty benchmarks and complexity.
