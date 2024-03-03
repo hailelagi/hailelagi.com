@@ -9,7 +9,7 @@ generated with: https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html, p
 # A simple 2-way B+ tree
 
 assumptions:
-- *non-increasing order* and *max degree* of 3
+- *non-decreasing order* and *max degree* of 3
 - elements(N) are 1, 2, 3, 4, 5
 - **sibling pointers (B-link borrowed)
 
