@@ -53,4 +53,5 @@ Let's remove 4.
 First we find 4 using binary search, then re-arrange our pointers and rebalance:
 ![delete](/delete.png)
 
-Rebalancing involves restoring our ordered structure and keeping pointers valid.
+Rebalancing involves restoring our ordered structure and keeping pointers valid and 
+performing a merge.
