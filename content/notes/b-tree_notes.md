@@ -4,26 +4,26 @@ date: 2024-02-27T12:44:49+01:00
 draft: false
 ---
 
-⚠️⚠️ WIP: Early Draft ⚠️⚠️
+What is a Datastructure's memory representation? Everything is either a contigous block or pointer based.
+Relevant search techniques: recursion, binary search - Olog(N) is powerful.
 
-What is a Datastructure: everything is either a contigous block or pointer based.
-search techniques: binary search - Olog(N) is powerful.
+Why is it called a B-Tree? According to one of the co-inventor's [Edward M. McCreight it's short for "balance"](https://vimeo.com/73357851) -- but could mean anything :)
 
-why is it called a B-Tree? According to one of the co-inventor's [Edward M. McCreight it's short for "balance"](https://vimeo.com/73357851).
+B Tree vs B+ Tree.
 
-## Things to *NOT* think about - (yet)
+## Things to NOT think about - (yet)
+```
 - Memory allocation: garbage collection and language choice
 - The pitfalls of memory: fragmentation & corruption
 - pre-mature optimisation (serialisation, network calls etc)
 - scope creep (adding fancy concurrency mechanisms - MVCC)
 - pre-mature horizontal distribution (sharding, replication, unreliable network and the headaches of distributed systems etc)
-- 2-3-Tree, LSM Trees, variants etc.
-
-Onto the How?
+- 2-3-Tree, Red black trees, LSM Trees, variants etc.
+```
 
 ## Implementation high level ideas
 
-B-Trees are:
+B-Trees are useful for:
 1. In-memory indexes (also used here!)
 2. persisted on disk storage organisation. <-- we're here.
 
@@ -35,10 +35,58 @@ Considerations:
 performance big ideas overview:
 - why do we want search trees? balancing and order
 - going beyond Big-O
-- immutability vs immutability
+- mutability vs immutability
 - concurrency
 - locality of reference (keep stuff close togther)
 
+## B Trees
+visualisation: 
+https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html
+
+desired properties:
+- high fanout (dense trees)
+- short height
+
+```go
+/*
+Simple Persistent B Plus Tree.
+Node keys are assumed to be signed integers and values a
+slice of bytes.Persistence is achieved using a naive bufio.Writer 
+interface for simplicity.Concurrency control is achieved using a
+simple blocking RWMutex lock.
+
+B-Tree implementations have many implementation specific details 
+and optimisations before they're 'production' ready, notably they 
+may use a free-list to hold cells in the node and employ 
+sophisticated concurrency control.
+// see also: CoW semantics
+
+// learn more:
+// etcd: https://pkg.go.dev/github.com/google/btree
+// sqlite: https://sqlite.org/src/file/src/btree.c
+// wiki: https://en.wikipedia.org/wiki/B%2B_tree
+*/
+```
+
+Definition:
+
+```go
+type BPlusTree struct {
+	key   int
+	value []byte
+
+	root  *BPlusTree
+	left  *BPlusTree
+	right *BPlusTree
+
+	sync.RWMutex
+}
+```
+
+**Operations Overview**:
+- insertion
+- access
+- deletions
 
 ## Tools of the Trade
 Base your judgement on empirical fact:
@@ -48,15 +96,6 @@ Base your judgement on empirical fact:
 - benchmarking
 - tests - unit, integration, fuzzing, proptests, simulations etc
 
-## B Trees
-desired properties:
-- high fanout (dense trees)
-- short height
-
-**Operations Overview**:
-- insertion
-- access
-- deletions
 
 **Split/Merge/Rebalancing**
 
