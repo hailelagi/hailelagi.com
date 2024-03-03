@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="A repository for my thoughts"><link rel="shortcut icon" href=https://www.hailelagi.com/favicon.ico><link rel=stylesheet href=/css/style.min.css><title>Database Internals: B Tree Basics - TalkPoints</title></head><body><header id=banner><h2><a href=https://www.hailelagi.com/>Haile (ሐይሌ)</a></h2><nav><ul><li><a href=/bookshelf title=bookshelf>bookshelf</a></li><li><a href=https://www.github.com/hailelagi title=github>github</a></li><li><a href=/notes title=notes>notes</a></li></ul></nav></header><main id=content><article><header id=post-header><h1>Database Internals: B Tree Basics - TalkPoints</h1><time>February 29, 2024</time></header><p>Simple walkthrough/guide</p><p>Recap storage engines at the heart B-Tree.
+Data structures contiguous vs pointer based.</p><ul><li>Honorable mention hashmap
+Binary Search Trees - Dictionary Data type/Map
+balancing</li></ul><p>disk considerations
+data set cannot fit in memory, we must cache and page in and out of memory.</p><blockquote><p>“we have to perform balancing, relocate nodes, and update pointers rather frequently. Increased maintenance costs make BSTs impractical as on-disk data structuree”</p></blockquote><p>HDDs vs SSDs
+how they work
+important - block device abstraction
+locality of reference</p><p>goals:</p><ul><li>minimize expensive disk seeks</li><li>min random IO, max sequential IO</li><li>minimize pointer management</li></ul><p>B Trees:
+we actually mean Bplus Tree.
+sorted data structure, pointer based = binary search.</p><p>B-Trees are useful for:</p><ol><li>In-memory indexes (also used here!)</li><li>persisted on disk storage organisation. &lt;&ndash; we&rsquo;re here.</li></ol><p>“Since B-Trees are a page organization technique (i.e., they are used to organize and navigate fixed-size pages), we often use terms node and page interchangeably.”</p><p>desired properties:</p><ul><li>high fanout</li><li>low height</li></ul><p>terms:
+degree/occupancy/branching factor
+root
+internal node - separator key
+leaf node</p><p>operations</p><ul><li>insert</li><li>search (point and range) + block transfers</li><li>deletion</li></ul><p>internal operations:</p><ul><li>splits on insertion</li><li>merges on deletion</li></ul><p>final - implementation is on chapter four, we shall revisit again!</p></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>source</a>
+Copyright © 2024 Haile Lagi<div id=sign-key><span>GPG key ID: 0298F4203ADC85E8</span></div></footer></body></html>
