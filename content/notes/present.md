@@ -6,15 +6,16 @@ draft: false
 
 generated with: https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html, please feel free to explore!
 
+# A simple 2-way B+ tree
+
 assumptions:
 - *non-decreasing order* and *max degree* of 3
 - elements(N) are 1, 2, 3, 4, 5
+- **sibling pointers (B-link borrowed)
 
 ## Insertion
 Inserting, find target leaf and insert the keys `1` and `2` target == root.
 
-green box is our internal node & root node.
-the "contents" are the leaf node.
 ![init](/init.png)
 
 

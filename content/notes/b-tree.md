@@ -1,7 +1,7 @@
 ---
 title: "Database Internals: B Tree Basics - TalkPoints"
 date: 2024-02-29T12:49:19+01:00
-draft: true
+draft: false
 ---
 
 Simple walkthrough/guide
@@ -23,6 +23,7 @@ locality of reference
 
 goals:
 - minimize expensive disk seeks
+- min random IO, max sequential IO
 - minimize pointer management
 
 B Trees:
@@ -56,3 +57,5 @@ internal operations:
 - splits on insertion 
 - merges on deletion
 
+
+final - implementation is on chapter four, we shall revisit again!
