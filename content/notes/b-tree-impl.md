@@ -1,6 +1,7 @@
 ---
-title: "Database Internals: Chapter 4. Implementing B-Trees"
+title: "Implementing B-Trees"
 date: 2024-03-12T12:01:20+01:00
+tags: database internals, bookclub
 draft: true
 ---
 

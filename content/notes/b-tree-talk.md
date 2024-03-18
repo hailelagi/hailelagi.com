@@ -1,6 +1,7 @@
 ---
-title: "Database Internals: B Tree Basics - TalkPoints"
+title: "B Tree Basics - TalkPoints"
 date: 2024-02-29T12:49:19+01:00
+tags: database internals, bookclub
 draft: false
 ---
 

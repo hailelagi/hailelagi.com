@@ -1,7 +1,8 @@
 ---
-title: "Database Internals: B Tree Basics - Meta"
+title: "B Tree Basics - Meta"
 date: 2024-02-27T12:44:49+01:00
 draft: false
+tags: database internals, bookclub
 ---
 
 What is a Datastructure's memory representation? Everything is either a contigous block or pointer based.

@@ -2,17 +2,19 @@
 {{ range where (where .Site.Pages "Section" "hacks" ) ".IsPage" "==" true }}
 <ul id="posts">
     <li>
+        <div id="magic-box-i-am-bad-at-css">
         <a href="{{ .Permalink }}">
             {{ .Title }}
             {{ if .Params.publicDraft }}
             <span id="wip">🚧</span>
             {{- end }}
             {{ if .Params.publicArchive }}
-            <span id="wip"> 📂</span>
+            <span id="wip"> 📂 </span>
             {{- end }}
         </a>
-        <span id="badge"> {{ .Params.tags }} </span>
         <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
+            <span id="badge"> {{ .Params.tags }} </span>
+        </div>
     </li>
     {{- end }}
 </ul>

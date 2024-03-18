@@ -1,6 +1,7 @@
 ---
-title: "Database Internals: B Tree Basics - Slides"
+title: "B Tree Basics - Slides"
 date: 2024-03-03T10:52:36+01:00
+tags: database internals, bookclub
 draft: false
 ---
 

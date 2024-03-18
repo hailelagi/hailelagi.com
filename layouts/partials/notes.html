@@ -7,15 +7,17 @@
 <ul id="posts">
     {{ if in .Params.tags "archive"}}
     {{ else }}
-    <li>
-        <a href="{{ .Permalink }}">
-            {{ .Title }}
-            {{ if .Params.recommend }}
-            <span id="recommend">⭐</span>
-            {{- end }}
-            <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
-        </a>
-    </li>
+        <li>
+            <a href="{{ .Permalink }}">
+                {{ .Title }}
+                <div id="magic-box-i-am-bad-at-css">
+                    <small>
+                        <time>{{ .Date.Format "Jan 2, 2006" }}</time>
+                    </small>
+                    <span id="badge"> {{ .Params.tags }} </span>
+                </div>
+            </a>
+       </li>
     {{- end }}
     {{- end }}
 </ul>
