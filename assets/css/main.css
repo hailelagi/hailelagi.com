@@ -9,6 +9,7 @@ html {
 body {
     font-size: 1.6rem;
     font-family: 'Helvetica Neue', 'Arial', sans-serif;
+    background-color:  #fcfce8;
     color: #313a3d;
     width: 100%;
     margin: 0 auto;
@@ -320,7 +321,7 @@ footer#footer #sign-key {
 
 #badge {
     margin-left: 5px;
-    background-color: #f2eeeb;
+    background-color: #ffffe3;
     border-radius: 8px;
     color: #e77c1e;
     font-size: 80%;
