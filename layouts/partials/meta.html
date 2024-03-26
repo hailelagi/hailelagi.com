@@ -1,0 +1,10 @@
+<meta name="title" property=”og:title”
+    content="{{ .Title }}{{ if ne .Title .Site.Title }} | {{ .Site.Title }}{{ end }}" />
+<meta name="twitter:title" content="{{ .Title }}{{ if ne .Title .Site.Title }} | {{ .Site.Title }}{{ end }}" />
+
+<meta name="description"
+    content="{{ .Description }}{{ if not .Description }}{{ .Site.Params.meta.Description  }}{{ end }}" />
+<meta property="og:description"
+    content="{{ .Description }}{{ if not .Description }}{{ .Site.Params.meta.Description  }}{{ end }}" />
+<meta name="twitter:description"
+    content="{{ .Description }}{{ if not .Description }}{{ .Site.Params.meta.Description  }}{{ end }}" />
