@@ -26,7 +26,7 @@ Question one boils down to two things.
 
 1. Are you increasingly applying/adapting more effectively?
 
-Maybe. I guess? There's only so many ways to word things that happened in the past and that are no longer in your immediate control, there's no way to upsell my years of experience unless I want to blatantly lie which is boring. There's always a way to sell yourself better but I'm especially unmotivated by writing/fine-tuning resumes/cover letters. Idk. It _also_ doesn't help that half my applications are to roles I'm interested in -- but not necessarly extensively "experienced in", maybe there's two lessons here:
+Maybe. I guess? There's only so many ways to word things that happened in the past and that are no longer in your immediate control, there's no way to upsell my years of experience unless I want to blatantly lie which is boring. There's always a way to sell yourself better but I'm especially unmotivated by writing/fine-tuning resumes/cover letters. Idk. It _also_ doesn't help that half my applications are to roles I'm interested in -- but not necessarily extensively "experienced in", maybe there's two lessons here:
 - I'm not applying enough.
 - I need to lower my ambitions, dramatically.
 
@@ -34,10 +34,10 @@ Maybe. I guess? There's only so many ways to word things that happened in the pa
 
 This feels better to focus on, the answer is no -- [but, progress](https://github.com/hailelagi?tab=overview&from=2024-03-01&to=2024-03-31). It seems like there's something to be done about that problem -- maybe too much. Unlike what most people assume there's an abundant amount of work (_see: opportunity_) that needs to get done and _almost universally_ not enough competent people to work on it, our AI overlords aren't quite helping yet.
 
-Gaining technical experience is simple, just go work on whatever direction your're interested in. Odds are what you produce is totally crap, but you can iterate and in iterating quickly and there's a suprising large number of people who will magically appear to aid your quest. There's an abundance of knowledge to be digested about writing software it will take you ten years to get some footing and then -- there's more to know/do. It will never be enough. Which leads to only natural conclusion, produce enough good work, create/solve interesting problems **that people care about** and somehow you'll get the chance to create shareholder value :) for the "economy".
+Gaining technical experience is simple, just go work on whatever direction you're interested in. Odds are what you produce is totally crap, but you can iterate and in iterating quickly, there's a suprising pool of of people who will magically appear to aid your quest. There's an abundance of knowledge to be digested about writing software it will take you ten years to get some footing and then -- there's more to know/do. It will never be enough. Which leads to only natural conclusion, produce enough good work, create/solve interesting problems **that people care about** and somehow you'll get the chance to create shareholder value :) for the "economy".
 
 ## The plan™️ (wtf am I even doing?)
 
 Keep doing what I'm doing for six months(3/6 spent)? make more progress, until I'm just about to run out of money... then.. idk. Go back home and cry to my parents?
 
-![winnie the pooh around a table with friends](/fresh.jpeg)
+![sponge bob standing infront of a banner about a job](/fresh.jpeg)
