@@ -21,7 +21,7 @@ But before that context, here's Joe Armstrong explaining why writing correct, fa
 
 This covers some wide ranging and complex important topics, let's take a peek under the covers of what we say "yes" to when we want _shared
 memory concurrency_ -- spoiler it's hard, Joe's advice is let a small group muck about with these gnarly problems and produce nice clean abstractions 
-like the [process model](https://www.erlang.org/doc/reference_manual/processes). However rust sells itself on the basis of memory and safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), is there a way to combine the two?
+like the [process model](https://www.erlang.org/doc/reference_manual/processes). However rust sells itself on the basis of memory safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), is there a way to combine the two?
 
 ![Danger](/crit.png)
 
@@ -146,7 +146,7 @@ Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.
 
 These days are you a serious software craftsman [if you're not at web scale?](https://www.youtube.com/watch?v=b2F-DItXtZs).
 
-In our undying, unending pursuit to scale systems further and further we spin webs of complexity. [Why? who knows, it's provocative.](https://www.youtube.com/watch?v=RlwlV4hcBac)
+In our undying, unending pursuit to scale systems further and further we spin webs of complexity. [Why? No one knows what it means but it's provocative.](https://www.youtube.com/watch?v=RlwlV4hcBac)
 
 Let's put on our scaling cap. Previously we mentioned fine-grained locking as a technique that could lead to better write performance but at the cost of complexity and read performance -- a related application of this technique is called "sharding".
 
