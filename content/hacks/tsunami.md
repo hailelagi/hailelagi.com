@@ -7,39 +7,28 @@ publicDraft: true
 recommend: true
 ---
 
-⚠️⚠️⚠️⚠️
-This a WIP draft
-⚠️⚠️⚠️⚠️
-
-How to build a [runtime-embedded](https://en.wikipedia.org/wiki/Embedded_database) in-memory [key value store](https://en.wikipedia.org/wiki/In-memory_database):
-
-1. [The storage engine](./)
-2. ~~[The query engine/parser](https://github.com/hailelagi/hailelagi.com/issues/1)~~
-
-# Part One - The storage engine
+Building a [runtime-embedded](https://en.wikipedia.org/wiki/Embedded_database) in-memory [key value store.](https://en.wikipedia.org/wiki/In-memory_database)
 
 ## Introduction
 
-This was one of the first really hard ambitious things I tried to build, but sadly because of
-either a lack time, grit or knowledge/skill I just couldn't make meaningful progress.
+Tsunami intends to be a performant and ergonomic _alternative_ key/value store with an intuitive dataframe api capable of querying larger than memory datasets. It is embeddable with any BEAM compatible language erlang, elixir, gleam etc and offers a backwards-compatible but different take on the default erlang term storage (`:ets`), if familiar with the elixir ecosystem, it sits somewhere in the middle of explorer and ets itself.
 
-To be fair - at first it _seemed_ like a simple "good first issue" kind of thing I had no idea what I was opting into, so here's a disclaimer!
-We're going to build a type of database! Specifically an in-memory key-value data store -- like Redis! kinda... sorta.
+<!-- INSERT GIF DEMO HERE -->
 
-But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent & parallel(distributed) programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** that's **multi-core by default** and scales IO bound soft-realtime applications incredibly well with a simple model of concurrency and primitives that encourage thinking about fault tolerance -- did I mention functional programming?
+But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent/ parallel and distributed programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** that's **multi-core by default** which scales IO bound soft realtime applications incredibly well with a simple model of concurrency and primitives that encourage thinking about fault tolerance -- did I mention functional programming?
 
 {{< youtube bo5WL5IQAd0 >}}
 
 This covers some wide ranging and complex important topics let's take a peek under the covers of what we say "yes" to when we want shared
-memory concurrency -- spoiler it's hard, but alas we're rebels and rust has _fearless concurrency_ right?:
+memory concurrency -- spoiler it's hard, but alas we're rebels and rust is all about [_fearless concurrency_](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html) right?
 
 ![Danger](/crit.png)
 
-## Shaping performance constraints
+## Shaping constraints
 
-It's a worrying premise to write programs in an environment that doesn't have any kind of shared state. In a database for example, you can't just go around copying everything[†2]. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia all built aware of the language runtime.
+It's a worrying premise to write programs in an environment that doesn't have any kind of shared state: it seems wasteful and slow to just go around copying all your data structures †[^1]. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia all built aware of the language runtime.
 
->It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [1]
+>It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [^2]
 
 Before we get into the bells and whistles of it all, what is it at its core? Conceputally a key-value store seems simple.
 What you want to model is an abstract interface that can store _schemaless_ data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
@@ -61,7 +50,7 @@ If familiar with `table relations` in relational databases, think of the key-val
 3. one to many(1:N) = `bag`
 4. many to many(N:N) `duplicate_bag`
 
-These in theory allow us to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables but we'll get to that _later_. For now, you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [4] [5] [6] and contain excellent properties especially when the data set fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
+These in theory allow us to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables but we'll get to that _later_. For now, you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain excellent properties especially when the data set fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
 
 In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
 
@@ -83,7 +72,7 @@ To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`.
 but we can do better! We're trying to build a _general purpose_ data store for
 key-value data. Global Mutexes are a good solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize access when the underlying memory region's slots are partioned perhaps due to hashing across independent memory regions.
 
-One clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions[1]:
+One clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions[^3]:
 
 ```go
 type Map[K string, V any] struct {
@@ -130,7 +119,7 @@ Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, 
 In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory or random access? sorting files in a directory is a common example of this problem. What kind of concurrent patterns are enabled? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design.
 
-What exists in the current erlang runtime system? The data structure chosen previously of which we'll be benchmarking against is something called a [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) [2]. Briefly what's interesting about CA Tree is it dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
+What exists in the current erlang runtime system? The data structure chosen previously of which we'll be benchmarking against is something called a [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) [^3]. Briefly what's interesting about CA Tree is it dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
 
 ## Concurrency, Correctness & Going web scale
 
@@ -155,7 +144,7 @@ At the level of hardware what is atomicity? It's a special instruction set.
 An example of an interface to this is go's [sync/atomic](https://pkg.go.dev/sync/atomic).
 This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_. You bake a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
 
-Now here's where we have to be careful. ETS operations are **atomic in a single operation per object/table**[9].
+Now here's where we have to be careful. ETS operations are **atomic in a single operation per object/table**[^9].
 
 Every operation such as a read, write or multi_insert on a table are atomic as long as it's within a single function call/table access but _not across multiple_. In optimistic concurrency control a typical mechanism exposed by
 row oriented OLTP databases like postgres, you have `BEGIN`, `COMMIT` & `ROLLBACK` semantics where you can **group multiple write operations** and pretend they're a single atomic operation. Mnesia builds upon
@@ -169,7 +158,7 @@ Isolation is really about how we define the _logical concurrent access rules_ of
 - protected: all process may read but one exclusive writer.
 - private: single reader and writer.
 
-Why does this matter? Before it was hinted at why the MVCC paradigm [8] exists -- naive locking hurts all query performance, yet locks are desirable
+Why does this matter? Before it was hinted at why the MVCC paradigm [^8] exists -- naive locking hurts all query performance, yet locks are desirable
 because they ensure correct logical ordering -- serializable/linearizability.
 
 It's worth pausing to consider this for a moment.
@@ -203,7 +192,7 @@ So far we've explored reading and writing data to the `Table` and `OrderedTable`
 
 Deleting data can be thought about as _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually a well understood [let the compiler handle it problem](https://en.wikipedia.org/wiki/Stack-based_memory_allocation). Interfacing with a kernel or raw memory is complex and if a group of smart people can spend alot of time to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection. What happens when this model breaks down?
 
-A brief mention of rust mentioned using atomic reference counts an implementation of [reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in go this operation is seemingly automatic and opaque. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go snippets and explore the problems of lifetimes, alignment & fragementation in rust.
+A brief mention of rust mentioned using atomic reference counts an implementation of [automatic reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in go this operation is seemingly automatic and opaque. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go snippets and explore the problems of lifetimes, alignment & fragementation in rust.
 
 ⚠️⚠️ trigger warning `unsafe` rust ahead! ⚠️⚠️
 
@@ -236,7 +225,7 @@ The current ETS exists tightly coupled to the internals of the erlang runtime sy
 
 #### Making a bad contrived allocator
 
-Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant[10] than relying on an automatic garbage collector and in _hard real-time systems_ this is a
+Other than supporting a target like webassembly, specifying a case-by-case allocation strategy per domain problem can in theory be always more performant[^10] than relying on an automatic garbage collector and in _hard real-time systems_ this is a
 table stakes requirement. In rust there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait.
 
 Here we have well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
@@ -284,7 +273,7 @@ impl FreeList {
 
 Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this rather than allocating and dellocating everytime we can amortize memory per value stored.
 
-We must now consider the `types` of the key and value. In erlang every value is a `Term`[11] and serializing and deserializing to a specific Term's size and type will also be the responsibility of our Allocator, here we need to be careful as we traverse the cache line that we aren't unnecessarily thrashing the CPU and minimizing context switches -- more on that later.
+We must now consider the `types` of the key and value. In erlang every value is a `Term`[^11] and serializing and deserializing to a specific Term's size and type will also be the responsibility of our Allocator, here we need to be careful as we traverse the cache line that we aren't unnecessarily thrashing the CPU and minimizing context switches -- more on that later.
 
 # Gotta Go Fast
 
@@ -294,8 +283,8 @@ It might not seem like it,  but we've covered a lot of ground, our key value sto
 
 There are two optimisation architectures we haven't discussed yet:
 
-- no shared state, message passing and thread per core pinning[12]
-- lock free/wait free techniques[3]
+- no shared state, message passing and thread per core pinning[^12]
+- lock free/wait free techniques[^13]
 
 Hold on?! Message passing concurrency? Isn't this what elixir/erlang has native support for?
 
@@ -331,31 +320,20 @@ of course ets has one called a `match_spec` -- I may or may not write a followup
 
 methodology, coverage, tools, loom, address sanitizer etc insert graphs of benchmark results
 
-## References
 
-- [1] [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
-- [2] [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
-- [3] [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
-- [4] [Hash Indexes in postgres](https://www.postgresql.org/docs/16/hash-intro.html)
-- [5] [Adaptive Hash Index in mysql](https://dev.mysql.com/doc/refman/8.3/en/innodb-adaptive-hash.html)
-- [6] [Hstore - key/value datatype in postgres](https://www.postgresql.org/docs/current/hstore.html)
-- [7] [Index Locking in postgres](https://www.postgresql.org/docs/current/index-locking.html)
-- [8] [MVCC introduction](https://www.postgresql.org/docs/current/mvcc.html)
-- [9] [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
-- [10] [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
-- [11] [Erlang data types](https://www.erlang.org/doc/reference_manual/data_types)
-- [12] [Glommio - thread per core](https://github.com/DataDog/glommio)
+## Notes & References
 
-## Notes
+[^1]: [†1] Immutability is not necessarily a performance bottleneck. This is a common misconception about functional languages/semantics and more broadly a misunderstanding of the nuances of immutability and its advantages especially with respect to cache coherency and concurrency. Flavors of LSM-Tree based persistent key-value stores or append-only Log-Structured Hash Tables can and have been modelled in erlang. It just so happens _this_ key value store's properties are hard to model entirely with functional semantics.
 
-[†1] In a reader-writer lock, a read acquisition has to be visible to
-writers, so they can wait for the reads to finish before succeeding to take a write lock. One way to implement this is to have
-a shared counter that is incremented and decremented atomically
-when reading threads are entering and exiting their critical section.
-
-[†2] Immutability is not necessarily a performance bottleneck in a database -- or any application for that matter. This is a common misconception about functional languages/semantics. Flavors of LSM-Tree based persistent key-value stores or append-only Log-Structured Hash Tables can and have been modelled in erlang. It just so happens _this_ key value store's properties are hard to model with functional semantics.
-
-## Further Resources
-
-- Book: <https://cs-people.bu.edu/mathan/publications/fnt23-athanassoulis.pdf>
-- Video/Course: <https://www.youtube.com/watch?v=a70jRWLjQFk&list=PLSE8ODhjZXjasmrEd2_Yi1deeE360zv5O&index=2>
+[^2]: [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
+[^3]: [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
+[^4]: [Hash Indexes in postgres](https://www.postgresql.org/docs/16/hash-intro.html)
+[^5]: [Adaptive Hash Index in mysql](https://dev.mysql.com/doc/refman/8.3/en/innodb-adaptive-hash.html)
+[^6]: [Hstore - key/value datatype in postgres](https://www.postgresql.org/docs/current/hstore.html)
+[^7]: [Index Locking in postgres](https://www.postgresql.org/docs/current/index-locking.html)
+[^8]: [MVCC introduction](https://www.postgresql.org/docs/current/mvcc.html)
+[^9]: [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
+[^10]: [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
+[^11]: [Erlang data types](https://www.erlang.org/doc/reference_manual/data_types)
+[^12]: [Glommio - thread per core](https://github.com/DataDog/glommio)
+[^13]: [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
