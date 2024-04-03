@@ -19,14 +19,13 @@ understanding runtime execution with the introduction of concurrency and paralle
 Compile time occurs when program text is being "parsed and transformed" into many forms all the way to bits and runtime
 is when the program is actually executing ie "running", in this paradigm of viewing programs as textual input to other programs and to the program itself while running, is known as metaprogramming.
 
-```
- This distinction between what is "compile" and "runtime" is
+<!-- TODO: impl a callout partial dammn it -->
+This distinction between what is "compile" and "runtime" is
  a useful mental model illustrated here for simplicity, odds
  are what's happening in your favorite language is probably 
- more interesting![11]
-```
+ more interesting! [^1]
 
-Before we begin, a caveat. Although this technique applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[[1]](#references), Ruby MRI[[2]](#references) and some javascript [[3]](#references) but not typescript[[4]](#references)
+Before we begin, a caveat. Although this technique applies broadly to most modern languages -- implementations vary in feature parity, I'll try to primarily include alternate examples with go's [reflection](https://go.dev/blog/laws-of-reflection) and rust's [macro system](https://doc.rust-lang.org/book/ch19-06-macros.html) while providing nods to Cpython[^2], Ruby MRI [^3] and some javascript [^4] but not typescript [^5]
 
 ### Computation is data
 
@@ -105,14 +104,14 @@ Here we see a pattern match `( $( $x:expr ),* )` like our humble `eval('2 + 2')`
 where we can assert at compile time, if some code looks like what we think it looks like, replace it with what's in the match arm,
 a process known as `macro expansion`.
 
-In elixir, we can write something similar, the pattern match is a three-element style tuple[[5]](#references):
+In elixir, we can write something similar, the pattern match is a three-element style tuple[^7]:
 
 `{node, execution_context or meta_data, arguments}`
 
-Go and ruby share some superficial similarities as their metaprogramming api doesn't give you direct access to the AST. In ruby libraries like `RSpec`,`rails` router and `erb` html templates often use metaprogramming techniques via "monkey patching" -- modifying at _runtime_ various
-properties of an object[[6]](#references) and since in ruby's _extremely dynamically typed_[[7]](#references) interpreted world there is no notion of "compile time expansion" instead you have powerful introspection and malleability at runtime giving rise to patterns like `hooks`[[8]](#references) to alter nearly almost anything about the language via object properties, syntax or not.
+Go and ruby share some superficial similarities as their metaprogramming api doesn't give you direct access to the AST [^6]. In ruby libraries like `RSpec`,`rails` router and `erb` html templates often use metaprogramming techniques via "monkey patching" -- modifying at _runtime_ various
+properties of an object[^8] and since in ruby's _extremely dynamically typed_[^9] interpreted world there is no notion of "compile time expansion" instead you have powerful introspection and malleability at runtime giving rise to patterns like `hooks`[^10] to alter nearly almost anything about the language via object properties, syntax or not.
 
-Take this small excerpt[[9]](#references) from [rspec-core](https://github.com/rspec/rspec-core) of the `describe` public api:
+Take this small excerpt[^10] from [rspec-core](https://github.com/rspec/rspec-core) of the `describe` public api:
 
 ```ruby
 # @private
@@ -131,9 +130,9 @@ def self.expose_example_group_alias(name)
 end
 ```
 
-There's alot happening but the important thing to note is `RSpec::Core::ExampleGroup` is an object that is being modified at the test-runner's runtime which specifies the linguistic structure of the _domain's specific language_ of what `describe` means.
+There's alot happening but the important thing to note is `RSpec::Core::ExampleGroup` is an object that is being modified at the test-runner's runtime which specifies the linguistic structure of the _domain's specific language_[^11] of what `describe` means.
 
-In go like ruby we have `reflection` that allows runtime introspection, unlike ruby it is statically typed and compiled. Reflection gives a temporary "escape hatch" out of the rigid type system and allows modification based on dynamic `interfaces` the most idiomatic example of this I can find are the printing family[[10]](#references) functions like `fmt.Sprintf`.
+In go like ruby we have `reflection` that allows runtime introspection [^6], unlike ruby it is statically typed and compiled. Reflection gives a temporary "escape hatch" out of the rigid type system and allows modification based on dynamic `interfaces` the most idiomatic example of this I can find are the printing family[^12] functions like `fmt.Sprintf`.
 
 ```go
 func (p *pp) doPrint(a []any) {
@@ -249,26 +248,26 @@ Therefore a serious limitation of this toy example is it only works for `i32` in
 
 ## References
 
-[1] Python3's excellent `ast` library: <https://docs.python.org/3/library/ast.html>
+[^1]: [Just in Time compilation](https://en.wikipedia.org/wiki/Just-in-time_compilation)
 
-[2] RubyVM::AST : <https://ruby-doc.org/core-trunk/RubyVM/AST.html>
+[^2]: [Python3's `ast` library](https://docs.python.org/3/library/ast.html)
 
-[3] Javascript(since ECMAScript6): <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect>
+[^3]: [RubyVM::AST module](https://ruby-doc.org/core-trunk/RubyVM/AST.html)
 
-[4] Typescript: <https://basarat.gitbook.io/typescript/overview>
+[^4]: [Reflection Javascript(since ECMAScript6)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect)
 
-[4] Go's AST : <https://pkg.go.dev/go/ast>
+[^5]: [Basarat's Typescript AST Guide](https://basarat.gitbook.io/typescript/overview)
 
-[5] Elixir's AST: <https://github.com/elixir-lang/elixir/blob/d8f1a5d6b653c14ae44c6eacdbc8e9df7006d284/lib/elixir/pages/syntax-reference.md#the-elixir-ast>
+[^6]: [Go's AST package](https://pkg.go.dev/go/ast)
 
-[6] The one true (_useful_) object to rule them all: <https://ruby-doc.org/3.2.1/Object.html>
+[^7]: [Elixir's AST doc](https://github.com/elixir-lang/elixir/blob/d8f1a5d6b653c14ae44c6eacdbc8e9df7006d284/lib/elixir/pages/syntax-reference.md#the-elixir-ast)
 
-[7] Ruby Extensions: <https://docs.ruby-lang.org/en/master/extension_rdoc.html#label-Basic+Knowledge>
+[^8]: [The one true (_useful_) object to rule them all](https://ruby-doc.org/3.2.1/Object.html)
 
-[8] Awesome example of the `hook pattern` into ruby's object lifecyle: <https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/hooks.rb>
+[^9]: [Ruby Extensions](https://docs.ruby-lang.org/en/master/extension_rdoc.html#label-Basic+Knowledge)
 
-[9] RSpec public DSL module: <https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/dsl.rb>
+[^10]: [Awesome example of the `hook pattern` into ruby's object lifecyle](https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/hooks.rb)
 
-[10] doPrint: <https://cs.opensource.google/go/go/+/refs/tags/go1.20:src/fmt/print.go;drc=261fe25c83a94fc3defe064baed3944cd3d16959;l=1204>
+[^11]: [RSpec public DSL module](https://github.com/rspec/rspec-core/blob/main/lib/rspec/core/dsl.rb)
 
-[11] Just in Time compilation: <https://en.wikipedia.org/wiki/Just-in-time_compilation>
+[^12]: [doPrint source](https://cs.opensource.google/go/go/+/refs/tags/go1.20:src/fmt/print.go;drc=261fe25c83a94fc3defe064baed3944cd3d16959;l=1204)
