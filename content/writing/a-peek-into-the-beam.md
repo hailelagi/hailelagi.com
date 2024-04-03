@@ -24,19 +24,20 @@ than their sequential alternative, however we are most interested in a cursory g
 hardware of a computer allowing a layer of execution on top of it. A common example being the Java Virtual Machine (JVM).
 The elixir/erlang source code is parsed and transformed into a set of intermediary files prefixed with `.beam` that the
 virtual machine can understand known as bytecode, via the `C` programming language. From here it is translated into
-assembly/machine instruction bits [[1]](#references).
+assembly/machine instruction bits. [^1]
 
 **source code**  --->  **c interface** --->  **bytecode**
 
 Most of the interesting [concurrency primitives](https://en.wikipedia.org/wiki/Actor_model) that erlang/elixir provide
 are built on top of the [guarantees](https://ferd.ca/it-s-about-the-guarantees.html) this virtual machine provides such
-as immutable state. The single basic unit being a process [[2]](#references) [[3]](#references) -
+as immutable state. The single basic unit being a process [^2] [^3]  -
 an isolated sequential unit of computation which is managed by a scheduler an important construct.
-```
-Note: you may think of a process as a kind of "green thread",
+
+<!--TODO: if I ever get around to making a callout/warning partial-->
+NOTE: you may think of a process [^5] as a kind of "green thread",
 if familiar with the concept. Otherwise thinking of them
 as an abstract unit of sequential computation is fine.
-```
+
 
 ## Erlang’s scheduler
 
@@ -67,7 +68,7 @@ iex(1)> :observer.start()
 
 ![Observer showing scheduling](/observer.png)
 
-You can see the schedulers at work by spinning up a few short-lived processes which begin their lifetime[[4]](#references)
+You can see the schedulers at work by spinning up a few short-lived processes which begin their lifetime[^4]
 with about [326 words of memory](https://en.wikipedia.org/wiki/Word_(computer_architecture)) (approximately 0.65 kilobytes)
 which can [grow](https://www.erlang.org/doc/man/erts_alloc.html) on a stack or heap.
 
@@ -84,7 +85,7 @@ iex(2)> child = spawn(fn ->
 end)
 ```
 
-We can then leverage the high level `Process` library for convenience, to create more processes, thousands or even millions
+We can then leverage the high level `Process` library for convenience, to create more processes, thousands or even millions[^7]
 if need be:
 
 ```elixir
@@ -100,7 +101,7 @@ looks a little like this:
 # {#PID<0.93.0>, #Reference<0.18808174.1939079169.202418>}
 ```
 ```
- Note: The actual pid and reference will be different on your machine).
+ NOTE: The actual pid and reference will be different on your machine).
 ```
 
 When the scheduler(on one core) sees these concurrent tasks, it allocates some time and memory at runtime to `child`
@@ -152,19 +153,18 @@ is plenty fascinating and deserving of its own article.
 
 The primitives given are fairly similar - ruby gives you a [Thread class](https://ruby-doc.org/core-3.0.0/Thread.html)
 and [Fibre](https://ruby-doc.org/core-3.0.0/Fiber.html) to create worker threads, node gives you access to the main
-libuv[[11]](#references) managed [Process](https://nodejs.org/api/process.html#process) and one for when you're
+libuv[^11] managed [Process](https://nodejs.org/api/process.html#process) and one for when you're
 creating [worker threads](https://nodejs.org/api/worker_threads.html).
 
 To utilise any form of thread parallel execution python provides a [library interface](https://docs.python.org/3/library/multiprocessing.html),
 ruby core has been experimenting with and recently released an actor model inspired mechanism called [Ractor](https://docs.ruby-lang.org/en/3.0/Ractor.html).
 
-In practice, when creating say a web server with these languages an `Event Loop`[[9]](#references)[[10]](#references)
-[[11]](#references)[[12]](#references) handles the heavy lifting within the main thread, resources are simply not shared
+In practice, when creating say a web server with these languages an `Event Loop`[^9] [^10] [^11] [^12] handles the heavy lifting within the main thread, resources are simply not shared
 and asynchronous failures caught with lots and lots of defensive programming.
 
 ### Actor Model vs Communicating sequential processes (goroutines)
 In some ways erlang and go share some features of their concurrent model - both leveraging the symmetric multiprocessing
-[[8]](#references) architecture with the key difference eloquently expressed by a deceptively simple philosophy:
+[^8] architecture with the key difference eloquently expressed by a deceptively simple philosophy:
 ```
 Do not communicate by sharing memory; 
 instead, share memory by communicating
@@ -182,7 +182,7 @@ as values passed between goroutines. If panicked routines crash they inform the 
 along swimmingly.
 
 Reasoning about concurrency systems is somewhat trickier here but allows for performance fine-tuning if you can enforce mutual
-exclusion between goroutines. This freedom does come seemingly at a cost[[6]](#references) which it seems all
+exclusion between goroutines. This freedom does come seemingly at a cost[^6] which it seems all
 languages that do not enforce immutable data structures and performance fine-tuning an exception rather than the norm,
 but of course it all depends on context and use case.
 
@@ -190,26 +190,26 @@ _Thanks to [Ayomide](https://github.com/ponty96) and [Daniel](https://github.com
 
 ## References
 
-[1] fxn(medium): https://medium.com/@fxn/how-does-elixir-compile-execute-code-c1b36c9ec8cf
+[^1]: fxn(medium): https://medium.com/@fxn/how-does-elixir-compile-execute-code-c1b36c9ec8cf
 
-[2] green threads(wikipedia): https://en.wikipedia.org/wiki/Green_threads
+[^2]: green threads(wikipedia): https://en.wikipedia.org/wiki/Green_threads
 
-[3] Joe Armstrong(twitter): https://twitter.com/joeerl/status/1010485913393254401
+[^3]: Joe Armstrong(twitter): https://twitter.com/joeerl/status/1010485913393254401
 
-[4] Erlang documentation: https://www.erlang.org/doc/reference_manual/processes.html
+[^4]: Erlang documentation: https://www.erlang.org/doc/reference_manual/processes.html
 
-[5] Erlang documentation: https://www.erlang.org/doc/efficiency_guide/processes.html
+[^5]: Erlang documentation: https://www.erlang.org/doc/efficiency_guide/processes.html
 
-[6] go reference: https://go.dev/ref/mem
+[^6]: go reference: https://go.dev/ref/mem
 
-[7] stackoverflow: https://stackoverflow.com/questions/2708033/technically-why-are-processes-in-erlang-more-efficient-than-os-threads
+[^7]: stackoverflow: https://stackoverflow.com/questions/2708033/technically-why-are-processes-in-erlang-more-efficient-than-os-threads
 
-[8] symmetric multiprocessing: https://en.wikipedia.org/wiki/Symmetric_multiprocessing
+[^8]: symmetric multiprocessing: https://en.wikipedia.org/wiki/Symmetric_multiprocessing
 
-[9] node event loop: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
+[^9]: node event loop: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
 
-[10] asyncio: https://docs.python.org/3/library/asyncio.html
+[^10]: asyncio: https://docs.python.org/3/library/asyncio.html
 
-[11] node io: https://github.com/libuv/libuv
+[^11]: node io: https://github.com/libuv/libuv
 
-[12] RoR documentation: https://guides.rubyonrails.org/threading_and_code_execution.html
+[^12]: RoR documentation: https://guides.rubyonrails.org/threading_and_code_execution.html
