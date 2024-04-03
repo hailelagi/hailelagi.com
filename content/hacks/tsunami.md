@@ -1,7 +1,7 @@
 ---
 title: "Making a Tsunami"
 date: 2023-12-23T00:19:58+01:00
-draft: true
+draft: false
 tags: rust, storage engine
 publicDraft: true
 recommend: true
@@ -11,7 +11,7 @@ Building a [runtime-embedded](https://en.wikipedia.org/wiki/Embedded_database) i
 
 ## Introduction
 
-Tsunami intends to be a performant and ergonomic _alternative_ key/value store with an intuitive dataframe api capable of querying larger than memory datasets. It is embeddable with any BEAM compatible language erlang, elixir, gleam etc and offers a backwards-compatible but different take on the default erlang term storage (`:ets`), if familiar with the elixir ecosystem, it sits somewhere in the middle of explorer and ets itself.
+Tsunami intends to be a performant and ergonomic _alternative_ key/value store with an intuitive dataframe api capable of querying larger than memory datasets. It can be embeddable with any BEAM compatible language: erlang, elixir, gleam etc and offers a backwards-compatible but different take on the default erlang term storage (`:ets`), if familiar with the elixir ecosystem, it sits somewhere in the middle of explorer and ets itself.
 
 <!-- INSERT GIF DEMO HERE -->
 
@@ -19,47 +19,45 @@ But before that context, here's Joe Armstrong explaining why writing correct, fa
 
 {{< youtube bo5WL5IQAd0 >}}
 
-This covers some wide ranging and complex important topics let's take a peek under the covers of what we say "yes" to when we want shared
-memory concurrency -- spoiler it's hard, but alas we're rebels and rust is all about [_fearless concurrency_](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html) right?
+This covers some wide ranging and complex important topics, let's take a peek under the covers of what we say "yes" to when we want _shared
+memory concurrency_ -- spoiler it's hard, Joe's advice is let a small group muck about with these gnarly problems and produce nice clean abstractions 
+like the [process model](https://www.erlang.org/doc/reference_manual/processes). However rust sells itself on the basis of memory and safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), is there a way to combine the two?
 
 ![Danger](/crit.png)
 
 ## Shaping constraints
 
-It's a worrying premise to write programs in an environment that doesn't have any kind of shared state: it seems wasteful and slow to just go around copying all your data structures †[^1]. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage(ets), and it's a key component of the distributed persistent database mnesia all built aware of the language runtime.
+It's a worrying premise to write programs in an environment that doesn't have any kind of shared state: it seems wasteful and slow to just go around copying all your data structures †[^1]. In the erlang/elixir ecosystem this is solved by leveraging erlang term storage and it's a key component of the distributed persistent database mnesia all built aware of the language runtime(BEAM).
 
 >It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [^2]
 
-Before we get into the bells and whistles of it all, what is it at its core? Conceputally a key-value store seems simple.
-What you want to model is an abstract interface that can store _schemaless_ data and retrieve it fast, essentially a map/dictionary/associative array abstract data type:
+Before we get into the bells and whistles of it all, what is `ets` at its core? Conceputally a key-value store seems simple.
+What you want to model is an abstract interface that can store _schemaless_ data(strings, integers, arrays -- anything) and retrieve it fast, essentially a map/dictionary/associative array abstract data type. Let's see an interface example `Table` in go:
 
 ```go
 type Table[Key comparable, Value any] interface {
-  Read(Key) (Value, error)
-  Write(Key, Value)
-  Delete(Key)
+  Get(Key) (Value, error)
+  Put(Key, Value) error
+  Delete(Key) error
   In(Key) bool
 }
 ```
 
-In terms of an api for this `Table`, we're looking to define the instance options `bag`, `duplicate_bag`, `set` and `ordered_set`.
-If familiar with `table relations` in relational databases, think of the key-value mapping like so:
+We also want flexible **data modelling** options to pass for this `Table`, we're looking to define the instance options `bag`, `duplicate_bag`, `set` and `ordered_set`. If familiar with `table relations` aka relational algebra, think of the key-value mapping if you must as:
 
-1. one to one(1:1) = `set`
-2. one to one(but with order) = `ordered_set`
-3. one to many(1:N) = `bag`
-4. many to many(N:N) `duplicate_bag`
+1. one to one(1-1): is an unordered `set` of elements.
+2. one to one(but with order) = is an `ordered_set` of unique elements.
+3. one to many(1-N) = is a `bag` of elements of unique keys to many values.
+4. many to many(N-N) = is a `duplicate_bag` of elements with keys and values that multi-map between them.
 
-These in theory allow us to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables but we'll get to that _later_. For now, you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain excellent properties especially when the data set fits in working memory, however most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data.
+These give use the raw materials(set theory) to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables or even express _true relational algebra_ by implementing a _join_ but we'll get to those gnarly problems _later_. For now, you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties: among them O(1) access, this is great, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data. In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
 
-In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
-
-1. an atomic reference count `Arc<T>`
-2. a mutex or some other sync mechanism because the type does not impl `Send` & `Sync`
+1. the atomic reference count smart pointer `Arc<T>`
+2. a mutex or some other synchronization mechanism on the critical section because the type does not impl `Send` & `Sync`
 
 If your program and data only has to exist within a single thread of execution that's great, but _web servers_ tend to need to handle _concurrent_ data access. Practical examples of this are caches, rate limiting middleware, session storage, distributed config, simple message queues etc
 
-Let's wrap it in a mutex from go's std lib's `sync` package:
+Let's do the simple thing first, let's guard/wrap our shiny key/value store in a mutex from go's std lib's `sync` package:
 
 ```go
 type Map[K string, V any] struct {
@@ -70,9 +68,9 @@ type Map[K string, V any] struct {
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global Mutexes are a good solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize access when the underlying memory region's slots are partioned perhaps due to hashing across independent memory regions.
+key-value data. Global Mutexes are a good solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize computation when the memory region's slots are partioned due to hashing across independent memory regions and threads.
 
-One clever way of getting around this is by using an advanced concurrency technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions[^3]:
+The "clever" way of getting around this is by using more concurrency. A technique called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific partitions or multiple levels, the idea being we want to seperate read access from write access[^3]:
 
 ```go
 type Map[K string, V any] struct {
@@ -82,24 +80,24 @@ type Map[K string, V any] struct {
 }
 ```
 
-This is much more complex but can be more write performant but suffer slightly slower reads. This bottleneck of locks and linearization is the reason databases like postgres and mysql have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels. We'll come back to exploring these fun problems and the tradeoffs and ask the question are locks truely necessary?
+This adds some complexity but can be more write performant but suffer slightly slower reads - perhaps a Read-Writer Lock can save us? This bottleneck of locks and linearization is the reason databases have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels. We'll come back to exploring these fun problems and the tradeoffs and ask the question are locks truely necessary?
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `Table` operations for our `ordered_set`. We must define a new interface:
 
 ```go
 type OrderedTable[Key cmp.Ordered, Value any] interface {
-  Read(Key) (Value, error)
-  Write(Key, Value)
-  Delete(Key)
+  Get(Key) (Value, error)
+  Put(Key, Value) error
+  Delete(Key) error
   In(Key) bool
-  Range(Key, Key) []Value
+  Range(Key, Key) ([]Value, error)
 }
 ```
 
-For a concrete implementation, let's start with the conceptually simplest/fastest* the Binary Search Tree and a global `RWMutex`:
+For the data structure, let's start with the conceptually simplest/fastest* the Binary Search Tree and a global `RWMutex`:
 
 ```go
-type BST[Key cmp.Ordered, Value any] struct {
+type BSTNode[Key cmp.Ordered, Value any] struct {
  key   Key
  value any
 
@@ -117,9 +115,32 @@ with the data - searches can devolve into searching a linked-list. That wouldn't
 Fan favorites include the classics; an AVL Tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
 
 In practice we are concerned about much more than order of magnitude choices, we are also interested in how these structures
-interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory or random access? sorting files in a directory is a common example of this problem. What kind of concurrent patterns are enabled? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design.
+interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) fetched from disk? or random access? sorting files in a directory is a simple excercise that illustrates this problem. What kind of concurrent patterns are enabled? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design and optimisations.
 
 What exists in the current erlang runtime system? The data structure chosen previously of which we'll be benchmarking against is something called a [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) [^3]. Briefly what's interesting about CA Tree is it dynamically at runtime changes the behaviour and number of locks it holds across the tables it protects depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
+
+First an experiment with an AVL with weakened properties:
+```rust
+pub struct WAVLTree<K, V> {
+    root: Option<Box<Node<K, V>>>,
+}
+
+struct Node<K, V>
+where
+    K: Send + Sync + cmp::Ord,
+    V: Send + Sync,
+{
+    key: K,
+    value: V,
+    height: i32,
+    left: Option<Box<Node<K, V>>>,
+    right: Option<Box<Node<K, V>>>,
+}
+```
+
+Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/). That's orthangonal to the goal though, what interesting properties have we gained and lost?
+
+<!-- TODO: Important. --->
 
 ## Concurrency, Correctness & Going web scale
 
