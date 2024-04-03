@@ -141,6 +141,7 @@ where
 Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/). That's orthangonal to the goal though, what interesting properties have we gained and lost?
 
 <!-- TODO: Important. --->
+<!-- TODO: Bench read/write, CATree, WAVL Tree, AVL Tree, BST Tree, etc --->
 
 ## Concurrency, Correctness & Going web scale
 
@@ -190,7 +191,7 @@ their execution's progress and reassemble them as A, B then C -- sequential, nic
 There's a hint of that infamous word here -- a tradeoff, in a concurrent universe performance or correctness pick one? Sadly reality is more complex
 and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is in the details](https://en.wikipedia.org/wiki/Consistency_model). You can tune consistency and change what isolation means -- but that's yet further ahead, this problem is further compounded when you introduce a network call across tables but let's not try that optimisation tempting as it is.
 
-What to do? Inline with the _more is better_ philosophy of scaling are (read/write) locking groups, have you tried adding more _specialised_ locks? We can seperate our read access from our writes and scale those patterns somewhat independently -- this is the working principle of _snapshot insolation_ the [cannonical isolation level](https://en.wikipedia.org/wiki/Snapshot_isolation). The concurrency control works by keeping multiple versions on each write and matches read transactions to specific version of the database at a checkpoint matching both with a logical but not actual order. In a database like postgres you might be familiar with  row or table level locks such as `FOR UPDATE` or `ACCESS EXCLUSIVE`, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
+What to do? Inline with the _more is better_ philosophy of scaling an infamous default weakened guarantee of isolation is _snapshot insolation_, the [cannonical isolation level](https://en.wikipedia.org/wiki/Snapshot_isolation). The concurrency control works by keeping multiple versions on each write and matches read transactions to specific version of the database at a checkpoint matching both with a logical but not actual order. In a database like postgres you might be familiar with  row or table level locks such as `FOR UPDATE` or `ACCESS EXCLUSIVE` which give stronger guarantees, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
 
 What does this mean for ets? unlike Mnesia in :ets has no need for optimistic concurrency control mechanisms such as MVCC because it does not model the idea of a "transaction", nor does it have [quorum](https://www.erlang.org/doc/man/mnesia_registry) problems in a distributed/replicated setting which mask failures in a net-split mutiplying the difficulty and these are out of scope and are the key features mnesia provides.
 
@@ -229,20 +230,21 @@ Let's recap:
 - You need to keep _track of this memory_ -- it's _lifetime_
 - You need to give it back
 
-As it turns out, the hard part is in the middle, keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph and packaging it into nice APIs so nice, it's essentially automatic! Algorithms such as the tracing algorithm // mark and sweep serve this function and much more sophisticated systems exist in real languages, otherwise:
+As it turns out, the hard part is in the middle, keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph _especially in a concurrent setting_ and packaging it into a nice abstraction -- so nice, it's essentially automatic! Algorithms such as the tracing algorithm // mark and sweep serve this function and much more sophisticated systems exist in real languages like [go's awesome GC](https://tip.golang.org/doc/gc-guide), otherwise:
 
-1. In C everytime we always malloc//free or similar e.g [Jemalloc](https://github.com/jemalloc/jemalloc)
-2. reference counting
+1. In C everytime we malloc//free **on demand**. or [Jemalloc.](https://github.com/jemalloc/jemalloc)
+2. RAII + reference counting + malloc/jemalloc
 3. [DIY](https://zig.guide/standard-library/allocators/) <-- (we're here, oh no!)
 
 Although it's _possible_ to do this in rust, it's [atypical and has all sorts of nuances](https://matklad.github.io/2022/10/06/hard-mode-rust.html). Why are we resorting to such a low, possibly error prone approach?
+
+#### Being a good neighbour
+The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble C's malloc/free albeit with caveats -- we need to play nice and share with our host runtime, this data-structure is a guest afterall and [must be submissive and yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the all powerful [scheduler](../../writing/a-peek-into-the-beam) as we don't have [BIF](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html) [status](https://www.erlang.org/doc/man/erlang#description).
 
 #### A detour for just enough web assembly
 
 [Webassembly](https://webassembly.org/) is a pretty cool project. The web has four official langauges: html, css, javascript and webassembly. It'd be nice
 if you could write rust for your browser no? perhaps you'd like to ship a runnable binary? Games, figma and containers -- without docker. If this key-value store is going to exists agnostic of wheter it happens to run inside webassembly or `x86-64 linux` wouldn't it be nice to virtualize all the things?
-
-The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right on the BEAM virtual machine's heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments and for the most part resemble C's malloc/free albeit with caveats.
 
 #### Making a bad contrived allocator
 
@@ -321,17 +323,22 @@ There are roughly three odd roads/paths on a single node db:
 - you write to virtual memory and negotiate magic with the kernel.
 - you ACTUALLY write directly to memory.
 
-Why does the Kernel/OS want you to buffer or write to "fake" memory in the first place? -- it's half performance and half complexity concerns.
+Why does the Kernel/OS want you to buffer or write to "fake" memory in the first place? -- it's half performance and half security concerns.
 
  > disks have relatively long seek times, reflecting how long it takes the desired part of the disk to rotate under the read/write head. Once the head is in the right place, the data moves relatively quickly, and it costs about the same to read a large data block as it does to read a single byte
 
-There's some nuance wheter this is an SSD or HDD, but the gist is it's an optimisation. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wondeful complexity an OS hides -- [syscalls are an abstraction remember?](https://pages.cs.wisc.edu/~remzi/OSFEP/intro-syscall.pdf) Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), so perhaps you definitely want to directly write to memory. It's obviously the "right" choice no? -- but now you start talking about pages, caches, pools, dirty things? and all [sorts of hidden fun goodies](https://15445.courses.cs.cmu.edu/fall2020/notes/05-bufferpool.pdf) that shave off years from your limited life -- [WAL me daddy](https://www.postgresql.org/docs/current/wal-reliability.html). No wonder [getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors) and [riddled with ugly bugs](https://danluu.com/fsyncgate/). However there's [renewed hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in a [shiny new api](https://github.com/axboe/liburing) that's perhaps the future once the [bugs gets ironed out](https://lwn.net/Articles/902466/).
+There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick on a pig. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wonderful complexity an OS hides -- [syscalls are an abstraction remember?](https://pages.cs.wisc.edu/~remzi/OSFEP/intro-syscall.pdf) Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), so perhaps you definitely want to directly write to memory. It's obviously the "right" choice no? -- but now you start talking about pages, caches, pools, dirty things? and all [sorts of hidden fun goodies](https://15445.courses.cs.cmu.edu/fall2020/notes/05-bufferpool.pdf) that shave off years from your limited life -- [WAL me daddy](https://www.postgresql.org/docs/current/wal-reliability.html). No wonder [getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors) and [riddled with ugly bugs](https://danluu.com/fsyncgate/). However there's [renewed hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in a [shiny new api](https://github.com/axboe/liburing) that's perhaps the future once the [bugs gets ironed out](https://lwn.net/Articles/902466/).
 
+Instead we can ensure that our limited focus is on queries to disk/ram are READ ONLY - so we can freely do mmap magic. Produce nice `Future` streaming access methods with the query engine -- more on that later and _purposefully discourage_ use of the write api to disk: durable, correct, blocking and slow if you try to -- PRs welcome :)
 
 ## Querying
 
-Every good database needs good ergonimics for querying! SQL is popular but is a complex and large standard to implement, it's tightly coupled to transactional semantics and makes assumptions about the properties and shape of data -- it's relational and the underlying structure of data being that its structured as rows and columns. Theres lots of syntax for querying key-value stores, redis has one, mongodb has one and even postgres patched in one! There are probably thousands of these kinds of languages -- and 
-of course ets has one called a `match_spec` -- I may or may not write a followup about this! It's old and somewhat niche. However if you'd like to see this [leave a thumbs up!](https://github.com/hailelagi/hailelagi.com/issues/1)
+Every good database needs good ergonomics for querying! SQL is popular but is a complex and large standard to implement. Luckily -- [_I don't really have to_](https://arrow.apache.org/datafusion/). Theres lots of syntax for querying key-value stores, redis has one, mongodb has one and even postgres patched in one! There are probably thousands of these kinds of languages -- and 
+of course ets has one called a `match_spec` -- If you'd like to see this [ask!](https://github.com/hailelagi/tsunami/issues/4) and if you want to learn about the match spec [leave a thumbs up!](https://github.com/hailelagi/hailelagi.com/issues/1) this version **does not** ship with the match_spec api.
+
+Here's a thought - what if you could query runtime data transaparently across all your erlang nodes :) wouldn't that be something?
+
+This doesn't work -- but it _could_.
 
 ## Testing Methodology
 
