@@ -1,11 +1,16 @@
 ---
 title: "Making a Tsunami"
-date: 2023-12-23T00:19:58+01:00
-draft: true
+date: 2024-04-04T00:17:18+01:00
+draft: false
 tags: rust, storage engine
 publicDraft: true
 recommend: true
 ---
+
+⚠️⚠️⚠️⚠️
+This a WIP draft
+⚠️⚠️⚠️⚠️
+
 
 Building a [runtime-embedded](https://en.wikipedia.org/wiki/Embedded_database) in-memory [key value store.](https://en.wikipedia.org/wiki/In-memory_database)
 
@@ -142,6 +147,8 @@ Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.
 
 <!-- TODO: Important. --->
 <!-- TODO: Bench read/write, CATree, WAVL Tree, AVL Tree, BST Tree, etc --->
+
+TODO(WIP) here: https://github.com/hailelagi/lettuce
 
 ## Concurrency, Correctness & Going web scale
 
