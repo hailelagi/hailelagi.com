@@ -5,17 +5,20 @@
         {{- if isset .Params "date" -}}
             <time>{{ .Date.Format "January 2, 2006" }}</time>
         {{- end -}}
-
-
+        
+        <meta name="twitter:card" content="summary">
+        
         {{ if .Params.images }}
         {{ range first 1 .Params.images }}
         {{ $src := .src | absURL }}
+        <meta property="og:url" content="{{ .Site.BaseURL }}" />
         <meta property="og:image" content="{{ $src }}" />
         <meta itemprop="image" content="{{ $src }}" />
         <meta name="twitter:image" content="{{ $src }}" />
         <meta name="twitter:image:src" content="{{ $src }}" />
         {{ end }}
         {{ else }}
+        <meta property="og:url" content="{{ .Site.BaseURL }}" />
         <meta property="og:image" content="/favicon-32x32.png" />
         <meta itemprop="image" content="/favicon-32x32.png" />
         <meta name="twitter:image" content="/favicon-32x32.png" />
