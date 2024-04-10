@@ -1,24 +1,17 @@
 <!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="A repository for my thoughts"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=icon type=image/x-icon href=/favicon.ico><link rel=stylesheet href=/css/style.min.css><meta name=title property=”og:title” content="DIY an on-disk B+ Tree | Haile (ሐይሌ)"><meta name=twitter:card content="summary"><meta name=twitter:title content="DIY an on-disk B+ Tree | Haile (ሐይሌ)"><meta name=description content><meta property="og:description" content><meta name=twitter:description content><meta name=twitter:creator content="@hailelagi"><title>DIY an on-disk B+ Tree</title></head><body><header id=banner><h2><a href=https://www.hailelagi.com/>Haile (ሐይሌ)</a></h2><nav><ul><li><a href=/bookshelf title=bookshelf>bookshelf</a></li><li><a href=https://www.github.com/hailelagi title=github>github</a></li><li><a href=/notes title=notes>notes</a></li></ul></nav></header><main id=content><article><header id=post-header><h1>DIY an on-disk B+ Tree</h1><time>April 10, 2024</time><meta name=twitter:card content="summary">
 <meta property="og:url" content="https://www.hailelagi.com/"><meta property="og:image" content="/favicon-32x32.png"><meta itemprop=image content="/favicon-32x32.png"><meta name=twitter:image content="/favicon-32x32.png"><meta name=twitter:image:src content="/favicon-32x32.png"></header><p>What is a Datastructure&rsquo;s memory representation? Everything is either a contigous block or pointer based.
-Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful.</p><p>Why is it called a B-Tree? According to one of the co-inventor&rsquo;s <a href=https://vimeo.com/73357851>Edward M. McCreight it&rsquo;s short for &ldquo;balance&rdquo;</a> &ndash; but could mean anything :)</p><h2 id=future-considerations>Future considerations</h2><pre tabindex=0><code>- The pitfalls of memory: allocation, fragmentation &amp; corruption
-- concurrency mechanisms - MVCC
-- lazy traversal: Cursor/Iter
-- variants: B-link, CoW B-Trees, FD-Trees etc
-- generic byte interfaces, se(de)serialisation to disk repr
-- robust testing and correctness guarantees
-</code></pre><h2 id=implementation-high-level-ideas>Implementation high level ideas</h2><p>B-Trees are useful for:</p><ol><li>In-memory indexes (also used here!)</li><li>persisted on disk storage organisation. &lt;&ndash; we&rsquo;re here.</li></ol><p>Considerations:</p><ul><li>Performance (Access Patterns - everything is about access patterns)</li><li>Correctness & Testing</li><li>Durability (what&rsquo;s a block?, brief overview: buffered IO, mmap, directIO.)</li></ul><p>performance big ideas overview:</p><ul><li>why do we want search trees? balancing and order</li><li>going beyond Big-O - logarithmic acess.</li><li>mutability vs immutability</li><li>concurrency</li><li>locality of reference(time/space) (keep stuff close togther)</li></ul><h2 id=b-trees-in-memory>B Trees (In-Memory)</h2><p>A simple and useful way of thinking of access and logarithmic bisection is a Tree of a 2-D array:</p><p><code>[[1,2,3], [4,6], [9,11,12]]</code></p><p>visualisation:
-<a href=https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html>https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html</a></p><p>desired properties:</p><ul><li>high fanout (dense trees)</li><li>short height</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=cm>/*
+Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful.</p><p>Why is it called a B-Tree? According to one of the co-inventor&rsquo;s <a href=https://vimeo.com/73357851>Edward M. McCreight it&rsquo;s short for &ldquo;balance&rdquo;</a> &ndash; but could mean anything :)</p><h2 id=implementation-high-level-ideas>Implementation high level ideas</h2><p>B-Trees are useful for:</p><ol><li>In-memory indexes (also used here!)</li><li>persisted on disk storage organisation. &lt;&ndash; we&rsquo;re here.</li></ol><p>Considerations:</p><ul><li>Performance (Access Patterns - everything is about access patterns)</li><li>Correctness & Testing</li><li>Durability (what&rsquo;s a block?, brief overview: buffered IO, mmap, directIO.)</li></ul><p>performance big ideas overview:</p><ul><li>why do we want search trees? balancing and order</li><li>going beyond Big-O - logarithmic acess.</li><li>mutability vs immutability</li><li>concurrency</li><li>locality of reference(time/space) (keep stuff close togther)</li></ul><h2 id=b-trees-in-memory>B Trees (In-Memory)</h2><p>A simple and useful way of thinking of access and logarithmic bisection is a Tree of a 2-D array:</p><p><code>[[1,2,3], [4,6], [9,11,12]]</code></p><p>visualisation:
+<a href=https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html>https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html</a></p><p><img src=/btree.png alt="a simple btree example"></p><p>desired properties:</p><ul><li>high fanout (dense trees)</li><li>short height</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=cm>/*
 </span></span></span><span class=line><span class=cl><span class=cm>Simple Persistent B Plus Tree.
-</span></span></span><span class=line><span class=cl><span class=cm>Node keys are assumed to be signed integers and values in a
-</span></span></span><span class=line><span class=cl><span class=cm>slice of bytes. Persistence is achieved using a naive bufio.Writer 
-</span></span></span><span class=line><span class=cl><span class=cm>interface pointer for simplicity.Concurrency control is achieved 
-</span></span></span><span class=line><span class=cl><span class=cm>using a simple globally blocking RWMutex lock.
+</span></span></span><span class=line><span class=cl><span class=cm>Node keys are assumed to be signed integers and values also.
+</span></span></span><span class=line><span class=cl><span class=cm>Persistence is achieved using a naive bufio.Writer + flush.
+</span></span></span><span class=line><span class=cl><span class=cm>Concurrency control using a simple globally blocking RWMutex lock.
 </span></span></span><span class=line><span class=cl><span class=cm>
 </span></span></span><span class=line><span class=cl><span class=cm>B-Tree implementations have many implementation specific details 
 </span></span></span><span class=line><span class=cl><span class=cm>and optimisations before they&#39;re &#39;production&#39; ready, notably they 
-</span></span></span><span class=line><span class=cl><span class=cm>may use a free-list to hold cells in the node and employ 
-</span></span></span><span class=line><span class=cl><span class=cm>sophisticated concurrency control.
-</span></span></span><span class=line><span class=cl><span class=cm>// see also: CoW semantics
+</span></span></span><span class=line><span class=cl><span class=cm>may use a free-list to hold cells in the leaf nodes and employ 
+</span></span></span><span class=line><span class=cl><span class=cm>sophisticated concurrency control. 
+</span></span></span><span class=line><span class=cl><span class=cm>see also: CoW semantics, buffering, garbage collection etc
 </span></span></span><span class=line><span class=cl><span class=cm>
 </span></span></span><span class=line><span class=cl><span class=cm>// learn more:
 </span></span></span><span class=line><span class=cl><span class=cm>// etcd: https://pkg.go.dev/github.com/google/btree
@@ -51,40 +44,7 @@ Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>next</span>     <span class=o>*</span><span class=nx>Node</span>
 </span></span><span class=line><span class=cl>	<span class=nx>previous</span> <span class=o>*</span><span class=nx>Node</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><p><strong>Operations Overview</strong>:</p><ul><li>insertion/split algorithm</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>node</span><span class=p>)</span> <span class=nf>split</span><span class=p>(</span><span class=nx>midIdx</span> <span class=kt>int</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl><span class=c1>// every node except the root node must respect the inquality:
-</span></span></span><span class=line><span class=cl><span class=c1>// branching factor - 1 &lt;= num keys &lt; (2 * branching factor) - 1
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=c1>// if this doesn&#39;t make sense ignore it. The take away:
-</span></span></span><span class=line><span class=cl><span class=c1>// every node except root has a minimum no. of keys or it&#39;s invalid.
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=c1>// edge case, how to handle the root node?
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=c1>// step two: it&#39;s promotion time, split keys into two halves
-</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>splitPoint</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>keys</span><span class=p>[</span><span class=nx>midIdx</span><span class=p>]</span>
-</span></span><span class=line><span class=cl>	<span class=nx>leftKeys</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>keys</span><span class=p>[:</span><span class=nx>midIdx</span><span class=p>]</span>
-</span></span><span class=line><span class=cl>	<span class=nx>rightKeys</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>keys</span><span class=p>[</span><span class=nx>midIdx</span><span class=p>:]</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>	<span class=nx>n</span><span class=p>.</span><span class=nx>keys</span> <span class=p>=</span> <span class=p>[]</span><span class=kt>int</span><span class=p>{</span><span class=nx>splitPoint</span><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>	<span class=nx>leftNode</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>node</span><span class=p>{</span><span class=nx>kind</span><span class=p>:</span> <span class=nx>LEAF_NODE</span><span class=p>,</span> <span class=nx>keys</span><span class=p>:</span> <span class=nx>leftKeys</span><span class=p>}</span>
-</span></span><span class=line><span class=cl>	<span class=nx>rightNode</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>node</span><span class=p>{</span><span class=nx>kind</span><span class=p>:</span> <span class=nx>LEAF_NODE</span><span class=p>,</span> <span class=nx>keys</span><span class=p>:</span> <span class=nx>rightKeys</span><span class=p>}</span>
-</span></span><span class=line><span class=cl>	<span class=nx>n</span><span class=p>.</span><span class=nx>children</span> <span class=p>=</span> <span class=p>[]</span><span class=o>*</span><span class=nx>node</span><span class=p>{</span><span class=nx>leftNode</span><span class=p>,</span> <span class=nx>rightNode</span><span class=p>}</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// -- LEAF
-</span></span></span><span class=line><span class=cl><span class=c1>//  (internal node)  (internal or nil)
-</span></span></span><span class=line><span class=cl><span class=c1>//   \               /
-</span></span></span><span class=line><span class=cl><span class=c1>//   (root)
-</span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl><span class=c1>// step three, check all children:
-</span></span></span><span class=line><span class=cl><span class=c1>// recurse UP from root to new internal node(s),
-</span></span></span><span class=line><span class=cl><span class=c1>// check that we&#39;re not full if full, we split 
-</span></span></span><span class=line><span class=cl><span class=c1>// again on internal node, allocate a new node(s)
-</span></span></span><span class=line><span class=cl><span class=c1>// --snipped for clarity
-</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=k>return</span> <span class=kc>nil</span>
-</span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><ul><li>access</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>Node</span><span class=p>)</span> <span class=nf>basicSearch</span><span class=p>(</span><span class=nx>key</span> <span class=kt>int</span><span class=p>)</span> <span class=o>*</span><span class=nx>Node</span> <span class=p>{</span>
+</span></span></code></pre></div><p><strong>Operations Overview</strong>:</p><ul><li>access</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>Node</span><span class=p>)</span> <span class=nf>basicSearch</span><span class=p>(</span><span class=nx>key</span> <span class=kt>int</span><span class=p>)</span> <span class=o>*</span><span class=nx>Node</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>children</span><span class=p>)</span> <span class=o>==</span> <span class=mi>0</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl><span class=c1>// you are at a leaf Node and can now access stuff
 </span></span></span><span class=line><span class=cl><span class=c1>// or this is the leaf node that should contain stuff
@@ -104,6 +64,40 @@ Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful
 </span></span><span class=line><span class=cl>	<span class=p>}</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>n</span><span class=p>.</span><span class=nx>children</span><span class=p>[</span><span class=nx>low</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><ul><li>insertion/split algorithm</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>node</span><span class=p>)</span> <span class=nf>split</span><span class=p>(</span><span class=nx>midIdx</span> <span class=kt>int</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl><span class=c1>// first find a leaf node.
+</span></span></span><span class=line><span class=cl><span class=c1>// every node except the root node must respect the inquality:
+</span></span></span><span class=line><span class=cl><span class=c1>// branching factor - 1 &lt;= num keys &lt; (2 * branching factor) - 1
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// if this doesn&#39;t make sense ignore it. The take away:
+</span></span></span><span class=line><span class=cl><span class=c1>// every node except root has a min/max num keys or it&#39;s invalid.
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// edge case, how to handle the root node?
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>// node is full: promotion time, split keys into two halves
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>splitPoint</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>keys</span><span class=p>[</span><span class=nx>midIdx</span><span class=p>]</span>
+</span></span><span class=line><span class=cl>	<span class=nx>leftKeys</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>keys</span><span class=p>[:</span><span class=nx>midIdx</span><span class=p>]</span>
+</span></span><span class=line><span class=cl>	<span class=nx>rightKeys</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>keys</span><span class=p>[</span><span class=nx>midIdx</span><span class=p>:]</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>n</span><span class=p>.</span><span class=nx>keys</span> <span class=p>=</span> <span class=p>[]</span><span class=kt>int</span><span class=p>{</span><span class=nx>splitPoint</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>leftNode</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>node</span><span class=p>{</span><span class=nx>kind</span><span class=p>:</span> <span class=nx>LEAF_NODE</span><span class=p>,</span> <span class=nx>keys</span><span class=p>:</span> <span class=nx>leftKeys</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>rightNode</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>node</span><span class=p>{</span><span class=nx>kind</span><span class=p>:</span> <span class=nx>LEAF_NODE</span><span class=p>,</span> <span class=nx>keys</span><span class=p>:</span> <span class=nx>rightKeys</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>n</span><span class=p>.</span><span class=nx>children</span> <span class=p>=</span> <span class=p>[]</span><span class=o>*</span><span class=nx>node</span><span class=p>{</span><span class=nx>leftNode</span><span class=p>,</span> <span class=nx>rightNode</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// -- LEAF
+</span></span></span><span class=line><span class=cl><span class=c1>//  (internal node(left))  (internal node(right))
+</span></span></span><span class=line><span class=cl><span class=c1>//   \               /
+</span></span></span><span class=line><span class=cl><span class=c1>//   (current leaf node)
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// recurse UP from curr to node which may overflow,
+</span></span></span><span class=line><span class=cl><span class=c1>// check that we&#39;re not full if full, we split
+</span></span></span><span class=line><span class=cl><span class=c1>// again allocate a new node(s)
+</span></span></span><span class=line><span class=cl><span class=c1>// --snipped for clarity
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=k>return</span> <span class=kc>nil</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
 </span></span></code></pre></div><ul><li>deletion</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// TODO: 
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>Node</span><span class=p>)</span> <span class=nf>mergeSibling</span><span class=p>(</span><span class=nx>sibling</span> <span class=o>*</span><span class=nx>Node</span><span class=p>,</span> <span class=nx>key</span> <span class=kt>int</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
@@ -152,7 +146,13 @@ Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=kc>nil</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><h2 id=b-trees-going-to-disk>B Trees (Going to Disk)</h2><h1 id=tbd>TBD</h1><h2 id=tools-of-the-trade>Tools of the Trade</h2><p>Base your judgement on empirical fact:</p><ul><li>a good debugger or not (dbg etc)</li><li><a href=https://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html>flamegraphs</a></li><li>benchmarking</li><li>tests - unit, integration, fuzzing, proptests, simulations etc</li></ul><p>Performance comes from thinking wholistically about hardware and software together.
+</span></span></code></pre></div><h2 id=b-trees-going-to-disk>B Trees (Going to Disk)</h2><h1 id=tbd>TBD</h1><h2 id=future-considerations>Future considerations</h2><pre tabindex=0><code>- The pitfalls of memory: allocation, fragmentation &amp; corruption
+- concurrency mechanisms - MVCC
+- lazy traversal: Cursor/Iter
+- variants: B-link, CoW B-Trees, FD-Trees etc
+- generic byte interfaces, se(de)serialisation to disk repr
+- robust testing and correctness guarantees
+</code></pre><h2 id=tools-of-the-trade>Tools of the Trade</h2><p>Base your judgement on empirical fact:</p><ul><li>a good debugger or not (dbg etc)</li><li><a href=https://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html>flamegraphs</a></li><li>benchmarking</li><li>tests - unit, integration, fuzzing, proptests, simulations etc</li></ul><p>Performance comes from thinking wholistically about hardware and software together.
 Optimizations bear the fruits of pretty benchmarks and complexity.
 The first big piece is concurrency and parallelism.</p><p>tldr; the hard part about building storage engines is debugging and testing them, old databases are good because time spent in production uncovering (or not uncovering bugs).</p><p>In the real world stuff goes wrong(the operating system hides hardware and software faults, but you have to care), data loss is bad and is a big no-no.</p><h3 id=running-in-production-correctness-testing--safety>Running in production: Correctness, Testing & Safety</h3><p>Complexity is <strong>evil</strong> but unavoidable, non-determinism makes you helpless.</p><p>testing methodology, loom - concurrency is hard etc:</p><ul><li>How SQLlite is tested: <a href=https://www.sqlite.org/testing.html>https://www.sqlite.org/testing.html</a></li><li>Valgrind, Address and Memory Sanitizer</li><li><a href=https://www.cs.utexas.edu/~bornholt/papers/shardstore-sosp21.pdf>https://www.cs.utexas.edu/~bornholt/papers/shardstore-sosp21.pdf</a></li><li><a href=https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/DESIGN.md#safety>https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/DESIGN.md#safety</a></li><li><a href=https://apple.github.io/foundationdb/testing.html>https://apple.github.io/foundationdb/testing.html</a></li><li>many more&mldr;</li></ul><h2 id=further-reading-storage-engine-architecture>Further reading: storage engine architecture</h2><p>Move towards modularization of database components, decoupled query & execution engine(velox, datafusion etc), storage engine see: <a href=https://apple.github.io/foundationdb/layer-concept.html>foundationDB</a>.</p><p>What the heck is going on in your favorite database? <em>select/biased</em> popular deep dives into
 popular storage engines for: postgres/postgres, kubernetes/etcd, mysql/InnoDB, mongodb(WiredTiger):</p><p>postgres:
