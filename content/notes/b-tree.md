@@ -10,15 +10,6 @@ Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful
 
 Why is it called a B-Tree? According to one of the co-inventor's [Edward M. McCreight it's short for "balance"](https://vimeo.com/73357851) -- but could mean anything :)
 
-## Future considerations
-```
-- The pitfalls of memory: allocation, fragmentation & corruption
-- concurrency mechanisms - MVCC
-- lazy traversal: Cursor/Iter
-- variants: B-link, CoW B-Trees, FD-Trees etc
-- generic byte interfaces, se(de)serialisation to disk repr
-- robust testing and correctness guarantees
-```
 
 ## Implementation high level ideas
 
@@ -46,6 +37,8 @@ A simple and useful way of thinking of access and logarithmic bisection is a Tre
 visualisation: 
 https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html
 
+![a simple btree example](/btree.png)
+
 desired properties:
 - high fanout (dense trees)
 - short height
@@ -53,16 +46,15 @@ desired properties:
 ```go
 /*
 Simple Persistent B Plus Tree.
-Node keys are assumed to be signed integers and values in a
-slice of bytes. Persistence is achieved using a naive bufio.Writer 
-interface pointer for simplicity.Concurrency control is achieved 
-using a simple globally blocking RWMutex lock.
+Node keys are assumed to be signed integers and values also.
+Persistence is achieved using a naive bufio.Writer + flush.
+Concurrency control using a simple globally blocking RWMutex lock.
 
 B-Tree implementations have many implementation specific details 
 and optimisations before they're 'production' ready, notably they 
-may use a free-list to hold cells in the node and employ 
-sophisticated concurrency control.
-// see also: CoW semantics
+may use a free-list to hold cells in the leaf nodes and employ 
+sophisticated concurrency control. 
+see also: CoW semantics, buffering, garbage collection etc
 
 // learn more:
 // etcd: https://pkg.go.dev/github.com/google/btree
@@ -111,42 +103,6 @@ type Node struct {
 ```
 
 **Operations Overview**:
-- insertion/split algorithm
-```go
-func (n *node) split(midIdx int) error {
-// every node except the root node must respect the inquality:
-// branching factor - 1 <= num keys < (2 * branching factor) - 1
-
-// if this doesn't make sense ignore it. The take away:
-// every node except root has a minimum no. of keys or it's invalid.
-
-// edge case, how to handle the root node?
-
-// step two: it's promotion time, split keys into two halves
-	splitPoint := n.keys[midIdx]
-	leftKeys := n.keys[:midIdx]
-	rightKeys := n.keys[midIdx:]
-
-	n.keys = []int{splitPoint}
-
-	leftNode := &node{kind: LEAF_NODE, keys: leftKeys}
-	rightNode := &node{kind: LEAF_NODE, keys: rightKeys}
-	n.children = []*node{leftNode, rightNode}
-
-
-// -- LEAF
-//  (internal node)  (internal or nil)
-//   \               /
-//   (root)
-
-// step three, check all children:
-// recurse UP from root to new internal node(s),
-// check that we're not full if full, we split 
-// again on internal node, allocate a new node(s)
-// --snipped for clarity
-	return nil
-}
-```
 - access
 
 ```go
@@ -172,6 +128,45 @@ func (n *Node) basicSearch(key int) *Node {
 	return n.children[low]
 }
 ```
+
+- insertion/split algorithm
+```go
+func (n *node) split(midIdx int) error {
+// first find a leaf node.
+// every node except the root node must respect the inquality:
+// branching factor - 1 <= num keys < (2 * branching factor) - 1
+
+// if this doesn't make sense ignore it. The take away:
+// every node except root has a min/max num keys or it's invalid.
+
+// edge case, how to handle the root node?
+
+// node is full: promotion time, split keys into two halves
+	splitPoint := n.keys[midIdx]
+	leftKeys := n.keys[:midIdx]
+	rightKeys := n.keys[midIdx:]
+
+	n.keys = []int{splitPoint}
+
+	leftNode := &node{kind: LEAF_NODE, keys: leftKeys}
+	rightNode := &node{kind: LEAF_NODE, keys: rightKeys}
+	n.children = []*node{leftNode, rightNode}
+
+
+// -- LEAF
+//  (internal node(left))  (internal node(right))
+//   \               /
+//   (current leaf node)
+
+
+// recurse UP from curr to node which may overflow,
+// check that we're not full if full, we split
+// again allocate a new node(s)
+// --snipped for clarity
+	return nil
+}
+```
+
 - deletion
 ```go
 // TODO: 
@@ -226,6 +221,16 @@ func (n *Node) mergeSibling(sibling *Node, key int) error {
 
 ## B Trees (Going to Disk)
 # TBD
+
+## Future considerations
+```
+- The pitfalls of memory: allocation, fragmentation & corruption
+- concurrency mechanisms - MVCC
+- lazy traversal: Cursor/Iter
+- variants: B-link, CoW B-Trees, FD-Trees etc
+- generic byte interfaces, se(de)serialisation to disk repr
+- robust testing and correctness guarantees
+```
 
 ## Tools of the Trade
 Base your judgement on empirical fact:
