@@ -1,25 +1,23 @@
 ---
-title: "B Tree Basics - Meta"
-date: 2024-02-27T12:44:49+01:00
+title: "DIY an on-disk B+ Tree"
+date: 2024-04-10T15:07:35+01:00
 draft: false
 tags: database internals, bookclub
 ---
 
 What is a Datastructure's memory representation? Everything is either a contigous block or pointer based.
-Relevant search techniques: recursion, binary search - Olog(N) is powerful.
+Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful.
 
 Why is it called a B-Tree? According to one of the co-inventor's [Edward M. McCreight it's short for "balance"](https://vimeo.com/73357851) -- but could mean anything :)
 
-B Tree vs B+ Tree.
-
-## Things to NOT think about - (yet)
+## Future considerations
 ```
-- Memory allocation: garbage collection and language choice
-- The pitfalls of memory: fragmentation & corruption
-- pre-mature optimisation (serialisation, network calls etc)
-- scope creep (adding fancy concurrency mechanisms - MVCC)
-- pre-mature horizontal distribution (sharding, replication, unreliable network and the headaches of distributed systems etc)
-- 2-3-Tree, Red black trees, LSM Trees, variants etc.
+- The pitfalls of memory: allocation, fragmentation & corruption
+- concurrency mechanisms - MVCC
+- lazy traversal: Cursor/Iter
+- variants: B-link, CoW B-Trees, FD-Trees etc
+- generic byte interfaces, se(de)serialisation to disk repr
+- robust testing and correctness guarantees
 ```
 
 ## Implementation high level ideas
@@ -35,12 +33,16 @@ Considerations:
 
 performance big ideas overview:
 - why do we want search trees? balancing and order
-- going beyond Big-O
+- going beyond Big-O - logarithmic acess.
 - mutability vs immutability
 - concurrency
-- locality of reference (keep stuff close togther)
+- locality of reference(time/space) (keep stuff close togther)
 
-## B Trees
+## B Trees (In-Memory)
+A simple and useful way of thinking of access and logarithmic bisection is a Tree of a 2-D array:
+
+`[[1,2,3], [4,6], [9,11,12]]`
+
 visualisation: 
 https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html
 
@@ -71,36 +73,159 @@ sophisticated concurrency control.
 
 Definition:
 
-A B plus tree with an arbitrary degree, degree is the number of pointers/children each node can point to/hold
+A B plus tree with an arbitrary max degree 3, degree is the number of pointers/children each node can point to/hold:
 
 ```go
-type BPlusTree struct {
-	root   *node
-	degree int
-	sync.RWMutex
+const (
+	MAX_DEGREE = 3
+)
+
+const (
+	ROOT_NODE NodeType = iota + 1
+	INTERNAL_NODE
+	LEAF_NODE
+)
+
+type BTree struct {
+	root *Node
 }
 ```
 
-The internal node:
+A node:
 
 ```go
-type node struct {
+type Node struct {
+	kind     NodeType
+	// maintaining a parent pointer is expensive
+	// in internal nodes especially
+	parent   *Node
 	keys     []int
-	data     *bufio.ReadWriter
-	children []*node
-	isLeaf   bool
-	next     *node
+	children []*Node
+	data     []int
+
+	// sibling pointers these help with deletions + range queries
+	next     *Node
+	previous *Node
 }
+
 ```
 
 **Operations Overview**:
-- insertion
+- insertion/split algorithm
+```go
+func (n *node) split(midIdx int) error {
+// every node except the root node must respect the inquality:
+// branching factor - 1 <= num keys < (2 * branching factor) - 1
+
+// if this doesn't make sense ignore it. The take away:
+// every node except root has a minimum no. of keys or it's invalid.
+
+// edge case, how to handle the root node?
+
+// step two: it's promotion time, split keys into two halves
+	splitPoint := n.keys[midIdx]
+	leftKeys := n.keys[:midIdx]
+	rightKeys := n.keys[midIdx:]
+
+	n.keys = []int{splitPoint}
+
+	leftNode := &node{kind: LEAF_NODE, keys: leftKeys}
+	rightNode := &node{kind: LEAF_NODE, keys: rightKeys}
+	n.children = []*node{leftNode, rightNode}
+
+
+// -- LEAF
+//  (internal node)  (internal or nil)
+//   \               /
+//   (root)
+
+// step three, check all children:
+// recurse UP from root to new internal node(s),
+// check that we're not full if full, we split 
+// again on internal node, allocate a new node(s)
+// --snipped for clarity
+	return nil
+}
+```
 - access
-- deletions
 
-**Insertion**
+```go
+func (n *Node) basicSearch(key int) *Node {
+	if len(n.children) == 0 {
+// you are at a leaf Node and can now access stuff
+// or this is the leaf node that should contain stuff
+		return n
+	}
 
-**Split/Merge/Rebalancing**
+	low, high := 0, len(n.keys)-1
+	for low <= high {
+		mid := low + (high-low)/2
+		if n.keys[mid] == key {
+			return n
+		} else if n.keys[mid] < key {
+			low = mid + 1
+		} else {
+			high = mid - 1
+		}
+	}
+
+	return n.children[low]
+}
+```
+- deletion
+```go
+// TODO: 
+func (n *Node) mergeSibling(sibling *Node, key int) error {
+	if n.parent != sibling.parent {
+		panic("sibling invariant not satisfied")
+	}
+
+	switch n.kind {
+	case LEAF_NODE:
+		sibling.keys = append(sibling.keys, n.keys...)
+
+		for i, node := range sibling.parent.children {
+			if node == n {
+				n.parent.children = append(n.parent.children[:i], n.parent.children[i+1:]...)
+			}
+		}
+
+		for i, k := range n.parent.keys {
+			if k == key {
+				n.parent.keys = cut(i, n.parent.keys)
+				newSplit := len(n.data) / 2
+
+				if len(n.data) != 0 {
+					n.parent.keys = append(n.parent.keys, n.data[newSplit])
+				}
+
+				if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
+					if sibling, err := n.parent.preMerge(); err == nil {
+						return n.parent.mergeSibling(sibling, key)
+					} else {
+						return errors.New("see rebalancing.go")
+					}
+				}
+			}
+		}
+
+	case INTERNAL_NODE:
+		if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
+			if sibling, err := n.parent.preMerge(); err == nil {
+				return n.parent.mergeSibling(sibling, key)
+			} else {
+				return errors.New("see rebalancing.go")
+			}
+		}
+	}
+
+	return nil
+}
+
+```
+
+## B Trees (Going to Disk)
+# TBD
 
 ## Tools of the Trade
 Base your judgement on empirical fact:
