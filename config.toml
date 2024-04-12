@@ -72,9 +72,9 @@ pygmentsCodeFences = true
     weight = 25
 
   [[menu.main]]
-    identifier = "notes"
-    name = "notes"
-    title = "notes"
+    identifier = "writing"
+    name = "writing"
+    title = "writing"
     url = "/notes"
     weight = 25
 

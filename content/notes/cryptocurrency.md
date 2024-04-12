@@ -1,7 +1,7 @@
 ---
 title: "On Cryptocurrency"
 date: 2024-04-08T19:07:10+01:00
-draft: false
+draft: true
 ---
 
 Cryptocurrency is a controversial topic that people have lots of thoughts/feelings about.
