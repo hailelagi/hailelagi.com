@@ -220,7 +220,31 @@ func (n *Node) mergeSibling(sibling *Node, key int) error {
 ```
 
 ## B Trees (Going to Disk)
-# TBD
+Cannot reference memory using pointers. Can no longer allocate/deallallocate freely.
+We `read/write/seek` to the operating system, in fixed size blocks, commonly 4KiB - 16KiB.
+
+Classic B+Tree paper uses a triplet -`{pointer, key, value}`, limited by fixed size storage.
+
+Slotted Pages are common in most database row/tuple oriented implementations such as SQLite and Postgres. Slotted pages are used to solve the problems space reclaimation and variable size data. In columnar format encoding such as [parquet](https://parquet.apache.org/docs/file-format/data-pages/encodings/) a [modern variable length encoding](https://en.wikipedia.org/wiki/LEB128) is used and a dictionary index maintained instead.
+
+The datafile:
+```
+[header (fixed size)] [page(s) 4KiB | ...] [trailer(fixed size)]
+```
+
+```go
+// Page is (de)serialised disk block similar to: https://doxygen.postgresql.org/bufpage_8h_source.html
+// It is a contigous 4kiB chunk of memory, both a logical and physical representation of data.
+type Page struct {
+	header header
+	cells  []cell
+	// the physical offset mapping to the begining
+	// and end of an allocated virtual memory segment block on the datafile "db"
+	pLower int32
+	pHigh  int32
+}
+
+```
 
 ## Future considerations
 ```
