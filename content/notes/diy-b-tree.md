@@ -5,17 +5,21 @@ draft: false
 tags: database internals, bookclub
 ---
 
+**assumptions/pre-requisites**:
+This article is a _speed run/crash course/concise note/summary_ and assumes the reader has read or is somewhat familiar with concepts explained in part I of database internals. Notably chapter 1 - 4, and parts of chapter 5 where Buffer Management is explained. If not, here's a 
+visual crash course on the operations of a [b-tree](../b-tree-present) and [generally on-disk considerations.](../b-tree-talk) or a much better [walkthrough with sqlite](https://fly.io/blog/sqlite-internals-btree/)
+
 What is a Datastructure's memory representation? Everything is either a contigous block or pointer based.
-Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful.
+_Relevant programming techniques_: pointers, recursion and binary search - Olog(N) is powerful, syscalls and binary formats.
+
+B-Trees are useful for:
+1. In-memory indexes/'index b-trees' (also used here!)
+2. persisted on disk storage organisation/'table b-trees'. <-- we're here.
 
 Why is it called a B-Tree? According to one of the co-inventor's [Edward M. McCreight it's short for "balance"](https://vimeo.com/73357851) -- but could mean anything :)
 
 
 ## Implementation high level ideas
-
-B-Trees are useful for:
-1. In-memory indexes/'index b-trees' (also used here!)
-2. persisted on disk storage organisation/'table b-trees'. <-- we're here.
 
 Considerations:
 - Performance (Access Patterns - everything is about access patterns)
@@ -52,7 +56,7 @@ Concurrency control using a simple globally blocking RWMutex lock.
 
 B-Tree implementations have many implementation specific details 
 and optimisations before they're 'production' ready, notably they 
-may use a free-list to hold cells in the leaf nodes and employ 
+may use a free-list to hold 'free' pages and employ 
 sophisticated concurrency control. 
 see also: CoW semantics, buffering, garbage collection etc
 
