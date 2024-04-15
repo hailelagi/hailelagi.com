@@ -14,8 +14,8 @@ Why is it called a B-Tree? According to one of the co-inventor's [Edward M. McCr
 ## Implementation high level ideas
 
 B-Trees are useful for:
-1. In-memory indexes (also used here!)
-2. persisted on disk storage organisation. <-- we're here.
+1. In-memory indexes/'index b-trees' (also used here!)
+2. persisted on disk storage organisation/'table b-trees'. <-- we're here.
 
 Considerations:
 - Performance (Access Patterns - everything is about access patterns)
@@ -246,14 +246,18 @@ type Page struct {
 
 ```
 
-## Future considerations
+## Future, Maybe Never :)
 ```
 - The pitfalls of memory: allocation, fragmentation & corruption
-- concurrency mechanisms - MVCC
+- concurrency mechanisms - snapshots, OCC/MVCC
 - lazy traversal: Cursor/Iter
-- variants: B-link, CoW B-Trees, FD-Trees etc
-- generic byte interfaces, se(de)serialisation to disk repr
+- more optimisations/variants: B-link, CoW B-Trees, FD-Trees etc
 - robust testing and correctness guarantees
+- se(de)serialisation to network (replication)
+- DIY a freelist!
+- IO_URING/async direct/IO
+- durability! DIY a WAL or smaller "rollback journal"
+- good benchmarking & profiling etc see tools of the trade
 ```
 
 ## Tools of the Trade
