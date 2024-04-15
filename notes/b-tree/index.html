@@ -146,7 +146,19 @@ Relevant techniques: pointers, recursion and binary search - Olog(N) is powerful
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=kc>nil</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><h2 id=b-trees-going-to-disk>B Trees (Going to Disk)</h2><h1 id=tbd>TBD</h1><h2 id=future-considerations>Future considerations</h2><pre tabindex=0><code>- The pitfalls of memory: allocation, fragmentation &amp; corruption
+</span></span></code></pre></div><h2 id=b-trees-going-to-disk>B Trees (Going to Disk)</h2><p>Cannot reference memory using pointers. Can no longer allocate/deallallocate freely.
+We <code>read/write/seek</code> to the operating system, in fixed size blocks, commonly 4KiB - 16KiB.</p><p>Classic B+Tree paper uses a triplet -<code>{pointer, key, value}</code>, limited by fixed size storage.</p><p>Slotted Pages are common in most database row/tuple oriented implementations such as SQLite and Postgres. Slotted pages are used to solve the problems space reclaimation and variable size data. In columnar format encoding such as <a href=https://parquet.apache.org/docs/file-format/data-pages/encodings/>parquet</a> a <a href=https://en.wikipedia.org/wiki/LEB128>modern variable length encoding</a> is used and a dictionary index maintained instead.</p><p>The datafile:</p><pre tabindex=0><code>[header (fixed size)] [page(s) 4KiB | ...] [trailer(fixed size)]
+</code></pre><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// Page is (de)serialised disk block similar to: https://doxygen.postgresql.org/bufpage_8h_source.html
+</span></span></span><span class=line><span class=cl><span class=c1>// It is a contigous 4kiB chunk of memory, both a logical and physical representation of data.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>type</span> <span class=nx>Page</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>header</span> <span class=nx>header</span>
+</span></span><span class=line><span class=cl>	<span class=nx>cells</span>  <span class=p>[]</span><span class=nx>cell</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// the physical offset mapping to the begining
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=c1>// and end of an allocated virtual memory segment block on the datafile &#34;db&#34;
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>pLower</span> <span class=kt>int32</span>
+</span></span><span class=line><span class=cl>	<span class=nx>pHigh</span>  <span class=kt>int32</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h2 id=future-considerations>Future considerations</h2><pre tabindex=0><code>- The pitfalls of memory: allocation, fragmentation &amp; corruption
 - concurrency mechanisms - MVCC
 - lazy traversal: Cursor/Iter
 - variants: B-link, CoW B-Trees, FD-Trees etc
