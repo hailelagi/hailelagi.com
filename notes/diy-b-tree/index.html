@@ -133,9 +133,9 @@ Two operations, steal/redistribution/rebalancing and merging:</li></ul><div clas
 </span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=kc>nil</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
 </span></span></code></pre></div><h2 id=b-trees-going-to-disk>B Trees (Going to Disk)</h2><p>Cannot reference memory using pointers. Can no longer allocate/deallallocate freely.
-We <code>read/write/seek</code> to the operating system, in fixed size blocks, commonly 4KiB - 16KiB.</p><p>Classic B+Tree paper uses a triplet -<code>{pointer/offset to child, key, value}</code>, limited by fixed size storage (fragmentation is difficult).</p><p>the &ldquo;classic&rdquo; datafile layout:</p><pre tabindex=0><code>+++++++++++++++++++++++++++++++++++
-header | {p1, key1, value1}, {p2, key2, value3}  .. +
-+++++++++++++++++++++++++++++++++++
+We <code>read/write/seek</code> to the operating system, in fixed size blocks, commonly 4KiB - 16KiB.</p><p>Classic B+Tree paper uses a triplet -<code>{pointer/offset to child, key, value}</code>, limited by fixed size storage (fragmentation is difficult).</p><p>the &ldquo;classic&rdquo; datafile layout:</p><pre tabindex=0><code>+++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ header | {p1, key1, value1}, {p2, key2, value3}  .. +
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 </code></pre><p>Slotted Pages are common in most database row/tuple oriented implementations such as SQLite and Postgres. Slotted pages are used to solve the problems space reclaimation and variable size data records. In columnar format encoding such as <a href=https://parquet.apache.org/docs/file-format/data-pages/encodings/>parquet</a> a <a href=https://en.wikipedia.org/wiki/LEB128>modern variable length encoding</a> is used and a <a href=https://en.wikipedia.org/wiki/Dictionary_coder>dictionary maintained</a> of data pages that is compressed and tightly packed.</p><p>For e.g <a href=https://www.postgresql.org/docs/current/storage-page-layout.html>the page layout in postgres</a>:
 <img src=https://www.postgresql.org/docs/current/pagelayout.svg alt="postgres page layout"></p><p>The logical view of the datafile:</p><pre tabindex=0><code>[header (fixed size)] [page(s) 4KiB | ...] [trailer(fixed size)]
 </code></pre><p>show me the code - the high level &ldquo;page&rdquo;:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// Page is (de)serialised disk block similar to: https://doxygen.postgresql.org/bufpage_8h_source.html
@@ -146,11 +146,12 @@ header | {p1, key1, value1}, {p2, key2, value3}  .. +
 </span></span><span class=line><span class=cl>	<span class=nx>cellPointers</span> <span class=p>[]</span><span class=kt>int16</span>
 </span></span><span class=line><span class=cl>	<span class=nx>cells</span>        <span class=p>[]</span><span class=nx>cell</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><p>its fixed size 16 byte page header:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>type</span> <span class=nx>pageHeader</span> <span class=kd>struct</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>	<span class=nx>PageID</span>    <span class=kt>uint32</span> <span class=c1>// 4 bytes
+</span></span></code></pre></div><p>its fixed size byte page header:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>type</span> <span class=nx>pageHeader</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// Represents a marker value to indicate that a file is a Bolt DB.
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>magic</span>     <span class=kt>uint32</span> <span class=c1>// 4 bytes
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>PageID</span>    <span class=kt>uint32</span> <span class=c1>// 4 bytes
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Reserve</span>   <span class=kt>uint32</span> <span class=c1>// 4 bytes
 </span></span></span><span class=line><span class=cl><span class=c1></span>
-</span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>	<span class=nx>FreeSlots</span> <span class=kt>uint16</span> <span class=c1>// 2 bytes
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=c1>// the physical offset mapping to the begining
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=c1>// and end of an allocated block on the datafile for this page
@@ -197,8 +198,11 @@ header | {p1, key1, value1}, {p2, key2, value3}  .. +
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>page</span><span class=p>,</span> <span class=kc>nil</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><p>There&rsquo;s some cool optimisations we can do!</p><h2 id=optimisations>Optimisations</h2><p>TBD</p><h2 id=future-maybe-never->Future, Maybe Never :)</h2><pre tabindex=0><code>- The pitfalls of memory: allocation, fragmentation &amp; corruption
+</span></span></code></pre></div><p>There&rsquo;s some cool optimisations we can do!</p><h2 id=miscellaneous>Miscellaneous</h2><ul><li>magic numbers: For e.g boltdb&rsquo;s magic number - tldr; random number to uniquely discern bin data reads.</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>const</span> <span class=nx>magic</span> <span class=kt>uint32</span> <span class=p>=</span> <span class=mh>0xED0CDAED</span>
+</span></span></code></pre></div><ul><li><p><a href=https://github.com/oyekanmiayo/b-plus-tree/blob/main/v3/format/bin_search_indirect_pointers.go>binary search of cells</a></p></li><li><p><a href=https://www.sqlite.org/fileformat2.html#ovflpgs>overflow pages</a> + <a href=https://github.com/oyekanmiayo/b-plus-tree/blob/main/v3/vacuum.go>vaccum</a></p></li></ul><h2 id=future-maybe-never->Future, Maybe Never :)</h2><pre tabindex=0><code>- The pitfalls of memory: allocation, fragmentation &amp; corruption
 - concurrency mechanisms - snapshots, OCC/MVCC
+- async split/merge/delete
+- BTStack/Breadcrumbs
 - lazy traversal: Cursor/Iter
 - more optimisations/variants: B-link, CoW B-Trees, FD-Trees etc
 - robust testing and correctness guarantees
