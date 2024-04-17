@@ -172,66 +172,51 @@ func (n *node) split(midIdx int) error {
 ```
 
 - deletion
+Two operations, steal/redistribution/rebalancing and merging:
+
 ```go
-// TODO: 
-func (n *Node) mergeSibling(sibling *Node, key int) error {
-	if n.parent != sibling.parent {
-		panic("sibling invariant not satisfied")
+func (n *Node) merge(sibling *Node, key int) error {
+	// delete data from leaf node
+	// steal sibiling fist, if underfull --snipped
+	// do stuff to prepare for merging, assume we _can_ merge
+
+	// deallocate/collapse underflow node
+	sibling.data = append(sibling.data, n.data...)
+
+	for i, node := range sibling.parent.children {
+		if node == n {
+			n.parent.children = append(n.parent.children[:i], n.parent.children[i+1:]...)
+		}
 	}
 
-	switch n.kind {
-	case LEAF_NODE:
-		sibling.keys = append(sibling.keys, n.keys...)
+	// recurse UPWARD and check for underflow
+	for i, k := range sibling.parent.keys {
+		if k == key {
+			sibling.parent.keys = cut(i, sibling.parent.keys)
 
-		for i, node := range sibling.parent.children {
-			if node == n {
-				n.parent.children = append(n.parent.children[:i], n.parent.children[i+1:]...)
-			}
-		}
-
-		for i, k := range n.parent.keys {
-			if k == key {
-				n.parent.keys = cut(i, n.parent.keys)
-				newSplit := len(n.data) / 2
-
-				if len(n.data) != 0 {
-					n.parent.keys = append(n.parent.keys, n.data[newSplit])
+			if len(n.parent.keys) < int(math.Ceil(float64(MAX_DEGREE)/2)) {
+					f sibling, _, err := sibling.parent.preMerge(); err == nil {
+					return n.parent.mergeSibling(t, sibling, key)
 				}
-
-				if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
-					if sibling, err := n.parent.preMerge(); err == nil {
-						return n.parent.mergeSibling(sibling, key)
-					} else {
-						return errors.New("see rebalancing.go")
-					}
-				}
-			}
-		}
-
-	case INTERNAL_NODE:
-		if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
-			if sibling, err := n.parent.preMerge(); err == nil {
-				return n.parent.mergeSibling(sibling, key)
 			} else {
-				return errors.New("see rebalancing.go")
+				return nil
 			}
 		}
-	}
 
 	return nil
 }
-
 ```
 
 ## B Trees (Going to Disk)
 Cannot reference memory using pointers. Can no longer allocate/deallallocate freely.
 We `read/write/seek` to the operating system, in fixed size blocks, commonly 4KiB - 16KiB.
 
-Classic B+Tree paper uses a triplet -`{pointer, key, value}`, limited by fixed size storage (fragmentation is difficult).
+Classic B+Tree paper uses a triplet -`{pointer/offset to child, key, value}`, limited by fixed size storage (fragmentation is difficult).
 
+the "classic" datafile layout:
 ````
 +++++++++++++++++++++++++++++++++++
-header | {pointer, key, value} .. +
+header | {p1, key1, value1}, {p2, key2, value3}  .. +
 +++++++++++++++++++++++++++++++++++
 ````
 
@@ -264,8 +249,9 @@ its fixed size 16 byte page header:
 type pageHeader struct {
 	PageID    uint32 // 4 bytes
 	Reserve   uint32 // 4 bytes
-	FreeSlots uint16 // 2 bytes
 
+
+	FreeSlots uint16 // 2 bytes
 	// the physical offset mapping to the begining
 	// and end of an allocated block on the datafile for this page
 	PLower    uint16 // 2 bytes
@@ -274,6 +260,7 @@ type pageHeader struct {
 
 	// all cells are of type CellLayout ie is key/pointer or key/value cell?
 	CellLayout byte // 1 byte (uint8)
+	pageType   byte
 
 }
 ```
