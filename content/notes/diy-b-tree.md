@@ -1,6 +1,6 @@
 ---
 title: "DIY an on-disk B+ Tree"
-date: 2024-04-10T15:07:35+01:00
+date: 2024-04-17T13:48:23+01:00
 draft: false
 tags: go, database internals, bookclub
 ---
@@ -215,9 +215,9 @@ Classic B+Tree paper uses a triplet -`{pointer/offset to child, key, value}`, li
 
 the "classic" datafile layout:
 ````
-+++++++++++++++++++++++++++++++++++
-header | {p1, key1, value1}, {p2, key2, value3}  .. +
-+++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ header | {p1, key1, value1}, {p2, key2, value3}  .. +
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ````
 
 Slotted Pages are common in most database row/tuple oriented implementations such as SQLite and Postgres. Slotted pages are used to solve the problems space reclaimation and variable size data records. In columnar format encoding such as [parquet](https://parquet.apache.org/docs/file-format/data-pages/encodings/) a [modern variable length encoding](https://en.wikipedia.org/wiki/LEB128) is used and a [dictionary maintained](https://en.wikipedia.org/wiki/Dictionary_coder) of data pages that is compressed and tightly packed.
@@ -244,12 +244,14 @@ type Page struct {
 }
 ```
 
-its fixed size 16 byte page header:
+its fixed size byte page header:
 ```go
 type pageHeader struct {
+	// Represents a marker value to indicate that a file is a Bolt DB.
+	// copy/pasta as a magic number is 'magic' and kind of madeup.
+	magic     uint32 // 4 bytes
 	PageID    uint32 // 4 bytes
 	Reserve   uint32 // 4 bytes
-
 
 	FreeSlots uint16 // 2 bytes
 	// the physical offset mapping to the begining
@@ -315,13 +317,26 @@ func Fetch(pageId int, datafile *os.File) (Page, error) {
 
 There's some cool optimisations we can do!
 
-## Optimisations
-TBD
+## Miscellaneous
+
+- magic numbers: For e.g boltdb's magic number - tldr; random number to uniquely discern bin data reads.
+```go
+const magic uint32 = 0xED0CDAED
+```
+
+- [binary search of cells](https://github.com/oyekanmiayo/b-plus-tree/blob/main/v3/format/bin_search_indirect_pointers.go)
+
+- [overflow pages](https://www.sqlite.org/fileformat2.html#ovflpgs) + [vaccum](https://github.com/oyekanmiayo/b-plus-tree/blob/main/v3/vacuum.go)
+
+See the [demo repository for more examples!](https://github.com/oyekanmiayo/b-plus-tree)
+
 
 ## Future, Maybe Never :)
 ```
 - The pitfalls of memory: allocation, fragmentation & corruption
 - concurrency mechanisms - snapshots, OCC/MVCC
+- async split/merge/delete
+- BTStack/Breadcrumbs
 - lazy traversal: Cursor/Iter
 - more optimisations/variants: B-link, CoW B-Trees, FD-Trees etc
 - robust testing and correctness guarantees
