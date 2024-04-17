@@ -2,7 +2,7 @@
 title: "DIY an on-disk B+ Tree"
 date: 2024-04-10T15:07:35+01:00
 draft: false
-tags: database internals, bookclub
+tags: go, database internals, bookclub
 ---
 
 **assumptions/pre-requisites**:
@@ -227,28 +227,109 @@ func (n *Node) mergeSibling(sibling *Node, key int) error {
 Cannot reference memory using pointers. Can no longer allocate/deallallocate freely.
 We `read/write/seek` to the operating system, in fixed size blocks, commonly 4KiB - 16KiB.
 
-Classic B+Tree paper uses a triplet -`{pointer, key, value}`, limited by fixed size storage.
+Classic B+Tree paper uses a triplet -`{pointer, key, value}`, limited by fixed size storage (fragmentation is difficult).
 
-Slotted Pages are common in most database row/tuple oriented implementations such as SQLite and Postgres. Slotted pages are used to solve the problems space reclaimation and variable size data. In columnar format encoding such as [parquet](https://parquet.apache.org/docs/file-format/data-pages/encodings/) a [modern variable length encoding](https://en.wikipedia.org/wiki/LEB128) is used and a dictionary index maintained instead.
+````
++++++++++++++++++++++++++++++++++++
+header | {pointer, key, value} .. +
++++++++++++++++++++++++++++++++++++
+````
 
-The datafile:
+Slotted Pages are common in most database row/tuple oriented implementations such as SQLite and Postgres. Slotted pages are used to solve the problems space reclaimation and variable size data records. In columnar format encoding such as [parquet](https://parquet.apache.org/docs/file-format/data-pages/encodings/) a [modern variable length encoding](https://en.wikipedia.org/wiki/LEB128) is used and a [dictionary maintained](https://en.wikipedia.org/wiki/Dictionary_coder) of data pages that is compressed and tightly packed.
+
+For e.g [the page layout in postgres](https://www.postgresql.org/docs/current/storage-page-layout.html):
+![postgres page layout](https://www.postgresql.org/docs/current/pagelayout.svg)
+
+
+The logical view of the datafile:
 ```
 [header (fixed size)] [page(s) 4KiB | ...] [trailer(fixed size)]
 ```
+
+show me the code - the high level "page":
 
 ```go
 // Page is (de)serialised disk block similar to: https://doxygen.postgresql.org/bufpage_8h_source.html
 // It is a contigous 4kiB chunk of memory, both a logical and physical representation of data.
 type Page struct {
 	header header
-	cells  []cell
-	// the physical offset mapping to the begining
-	// and end of an allocated virtual memory segment block on the datafile "db"
-	pLower int32
-	pHigh  int32
-}
 
+	cellPointers []int16
+	cells        []cell
+}
 ```
+
+its fixed size 16 byte page header:
+```go
+type pageHeader struct {
+	PageID    uint32 // 4 bytes
+	Reserve   uint32 // 4 bytes
+	FreeSlots uint16 // 2 bytes
+
+	// the physical offset mapping to the begining
+	// and end of an allocated block on the datafile for this page
+	PLower    uint16 // 2 bytes
+	PHigh     uint16 // 2 bytes
+	NumSlots  byte   // 1 byte (uint8)
+
+	// all cells are of type CellLayout ie is key/pointer or key/value cell?
+	CellLayout byte // 1 byte (uint8)
+
+}
+```
+
+and finally the cell:
+
+```go
+type cell struct {
+	cellId    int16
+	keySize   uint64
+	valueSize uint64
+	keys      []byte
+	data      []byte
+}
+```
+
+
+naively flushing a page + `fsync`:
+```go
+func (p *Page) Flush(datafile *os.File) error {
+	buf := new(bytes.Buffer)
+
+	_, _ := datafile.Seek(int64(p.PLower), io.SeekStart)
+
+	binary.Write(buf, binary.LittleEndian, &p.pageHeader)
+	binary.Write(buf, binary.LittleEndian, &p.cellPointers)
+	binary.Write(buf, binary.LittleEndian, &p.cells)
+
+	buf.WriteTo(datafile)
+	datafile.Sync()
+
+	log.Printf("written %v bytes to disk at pageID %v", n, p.PageID)
+	return nil
+}
+```
+
+and fetching it back:
+```go
+const pageDictionary map[int]int 
+// --snipped, tldr; hashmap conceptually
+// maps the page ID to an actual offset
+
+func Fetch(pageId int, datafile *os.File) (Page, error) {
+	var page Page
+
+	datafile.Seek(pageDictionary[pageID], io.SeekStart)
+	err := binary.Read(datafile, binary.LittleEndian, &page.pageHeader)
+
+	return page, nil
+}
+```
+
+There's some cool optimisations we can do!
+
+## Optimisations
+TBD
 
 ## Future, Maybe Never :)
 ```
