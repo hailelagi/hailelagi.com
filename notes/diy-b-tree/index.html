@@ -148,6 +148,7 @@ We <code>read/write/seek</code> to the operating system, in fixed size blocks, c
 </span></span><span class=line><span class=cl><span class=p>}</span>
 </span></span></code></pre></div><p>its fixed size byte page header:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kd>type</span> <span class=nx>pageHeader</span> <span class=kd>struct</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>	<span class=c1>// Represents a marker value to indicate that a file is a Bolt DB.
+</span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=c1>// copy/pasta as a magic number is &#39;magic&#39; and kind of madeup.
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>magic</span>     <span class=kt>uint32</span> <span class=c1>// 4 bytes
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>PageID</span>    <span class=kt>uint32</span> <span class=c1>// 4 bytes
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>Reserve</span>   <span class=kt>uint32</span> <span class=c1>// 4 bytes
