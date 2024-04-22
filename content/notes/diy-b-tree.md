@@ -350,7 +350,7 @@ See the [demo repository for more examples!](https://github.com/oyekanmiayo/b-pl
 ## Tools of the Trade
 Base your judgement on empirical fact:
 
-- a good debugger or not (dbg etc)
+- a good debugger or not ([gdb](https://www.cs.cmu.edu/~gilpin/tutorial/) etc)
 - [flamegraphs](https://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html)
 - benchmarking
 - tests - unit, integration, fuzzing, proptests, simulations etc
