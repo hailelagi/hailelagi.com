@@ -20,7 +20,7 @@ Tsunami intends to be a performant and ergonomic _alternative_ key/value store w
 
 <!-- INSERT GIF DEMO HERE -->
 
-But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent/ parallel and distributed programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** that's **multi-core by default** which scales IO bound soft realtime applications incredibly well with a simple model of concurrency and primitives that encourage thinking about fault tolerance -- did I mention functional programming?
+But before that context, here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent/ parallel and distributed programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** runtime that's **multi-core by default**, scales I/O bound soft realtime applications incredibly well with a simple model of concurrency that **eliminates data races** and primitives that encourage thinking about fault tolerance -- did I mention functional programming?
 
 {{< youtube bo5WL5IQAd0 >}}
 
@@ -99,18 +99,20 @@ type OrderedTable[Key cmp.Ordered, Value any] interface {
 }
 ```
 
-For the data structure, let's start with the conceptually simplest/fastest* the Binary Search Tree and a global `RWMutex`:
+For the data structure, let's start with the conceptually simplest/fastest* [a Binary Search Tree](https://github.com/hailelagi/porcupine/blob/main/porcupine/bst.go) protected by a global `RWMutex`:
 
 ```go
-type BSTNode[Key cmp.Ordered, Value any] struct {
- key   Key
- value any
+type BST[Key constraints.Ordered, Value any] struct {
+	root *BSTNode[Key, Value]
+	sync.RWMutex
+}
 
- parent *BST[Key, Value]
- left   *BST[Key, Value]
- right  *BST[Key, Value]
+type BSTNode[Key constraints.Ordered, Value any] struct {
+	key   Key
+	value Value
 
- global sync.RWMutex
+	left  *BSTNode[Key, Value]
+	right *BSTNode[Key, Value]
 }
 ```
 
