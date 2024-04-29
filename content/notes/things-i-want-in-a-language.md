@@ -18,6 +18,9 @@ Rust does not ship a garbage collector. This isn't a criticism, it's a design ch
 
 I should be able to do something like rust's `unsafe` block and get the magical properties of manual memory management for sections/sub-sections of code and automatic GC for everything else and it should play nice and make sense.
 
+Afaik only roc has something similar-ish: https://www.roc-lang.org/platforms, ocaml's gc: https://ocaml.org/docs/garbage-collector also does kinda interesting things 
+like [custom heap blocks](https://dev.realworldocaml.org/runtime-memory-layout.html#memory-representation-of-values) but it's not exactly the same thing:
+
 ### Sum Types - Result, Option
 
 Just something, even imaginary one's like  `{:ok, err}` anything but hail marry where is that nil check?
