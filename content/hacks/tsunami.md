@@ -12,7 +12,9 @@ This a WIP draft
 ⚠️⚠️⚠️⚠️
 
 
-Building a [runtime-embedded](https://en.wikipedia.org/wiki/Embedded_database) in-memory [key value store.](https://en.wikipedia.org/wiki/In-memory_database)
+Building a  [runtime-embeddable](https://en.wikipedia.org/wiki/Embedded_database), in-memory, [key value store](https://en.wikipedia.org/wiki/In-memory_database) for messaging, streaming queries and soft-realtime applications. Main memory databases form 
+the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps. Popular examples are Redis, Memcached and BerkeleyDB.
+
 
 ## Introduction
 
@@ -303,9 +305,10 @@ impl FreeList {
 }
 ```
 
-Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html), but we don't want to simply throw away the global allocator, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this rather than allocating and dellocating everytime we can amortize memory per value stored.
+Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html) in rust which make syscalls like `mmap`, `sbrk` and `brk` and but we don't want to simply throw away the global allocator and talk to the operating system ourselves -- oh goodness no, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this rather than pairing allocations and deallocations everytime we can amortize memory per value stored and simplify some lifetimes. When this is not possible we default to reference counting over a pre-allocated smaller region like `Box`.
 
-We must now consider the `types` of the key and value. In erlang every value is a `Term`[^11] and serializing and deserializing to a specific Term's size and type will also be the responsibility of our Allocator, here we need to be careful as we traverse the cache line that we aren't unnecessarily thrashing the CPU and minimizing context switches -- more on that later.
+We must now consider the `types` of the key and value. In erlang every value is a `Term`[^11] and serializing and deserializing to a specific Term's size and type will also be the responsibility of our Allocator, here we need to be careful as we traverse the cache line that we aren't unnecessarily thrashing the CPU and minimizing context switches and leveraging if any vectorized instruction sets. Luckily there's an awesome 
+in-memory format lots of smart folks spent time working on and open sourced called [Arrow](https://arrow.apache.org/) which does just that!
 
 # Gotta Go Fast
 
