@@ -1,7 +1,7 @@
 ---
 title: "Making a Tsunami"
 date: 2024-04-04T00:17:18+01:00
-draft: true
+draft: false
 tags: rust, storage engine
 publicDraft: true
 recommend: true
@@ -348,9 +348,11 @@ Instead we can ensure that our limited focus is on queries to disk/ram are READ 
 Every good database needs good ergonomics for querying! SQL is popular but is a complex and large standard to implement. Luckily -- [_I don't really have to_](https://arrow.apache.org/datafusion/). Theres lots of syntax for querying key-value stores, redis has one, mongodb has one and even postgres patched in one! There are probably thousands of these kinds of languages -- and 
 of course ets has one called a `match_spec` -- If you'd like to see this [ask!](https://github.com/hailelagi/tsunami/issues/4) and if you want to learn about the match spec [leave a thumbs up!](https://github.com/hailelagi/hailelagi.com/issues/1) this version **does not** ship with the match_spec api.
 
-Here's a thought - what if you could query runtime data transaparently across all your erlang nodes :) wouldn't that be something?
+## Future, Maybe Never.
 
-This doesn't work -- but it _could_.
+Here's a thought - what if you could query runtime data transaparently across all your erlang nodes? :) 
+Wouldn't that be something? Mnesia's asynchronous replication model is leaderless and uses a quorum of writers in a cluster, this has interesting tradeoffs and if it doesn't 
+quite fit your problem domain it can be tricky.
 
 ## Testing Methodology
 

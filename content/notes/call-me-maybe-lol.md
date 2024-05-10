@@ -4,7 +4,7 @@ date: 2024-04-20T09:38:39+01:00
 draft: true
 ---
 
-Documenting solving the fly.io distributed systems challenges. The title of this post is inspired by [kyle kingsbury's post title](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul). I thought it'd also be funny to play it on repeat while solving/writing this :)
+Documenting solving the fly.io distributed systems challenges. The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq). I thought it'd also be funny to play it on repeat while solving/writing this :)
 
 {{< spotify type="track" id="20I6sIOMTCkB6w7ryavxtO" >}}
 
@@ -75,8 +75,58 @@ func genNaive(nodeID string) int64 {
 Our first "official" distributed algorithm! a way to gossip information to nodes. Incrementally we scaffold basic messaging,
 sending data efficiently, simulating network partitions, variable latencies and interesting node topologies!
 
+We keep all data we've seen in-memory in a simple "store":
+```go
+type Store struct {
+	index map[float64]bool
+	log   []float64
+	sync.RWMutex
+}
+
+// a session is an instance of a node
+// that can read/write from a single-store
+// and `handle` messages
+type Session struct {
+	node  *maelstrom.Node
+	store *Store
+}
+```
+
+reading, we simply take a `read` lock, respond with what's in our `log` so far.
+
+If we get a `broadcast` message we concurrently attempt to send it to all our neighbours,  excluding ourself, store it in `log` and `index` so we can test if we've seen this message before and handle duplicate broadcasts:
+```go
+for _, dest := range n.NodeIDs() {
+	wg.Add(1)
+
+	deadline := time.Now().Add(400*time.Millisecond)
+	bgd := context.Background()
+	ctx, cancel := context.WithDeadline(bgd, deadline)
+	defer cancel()
+
+	go func(dest string) {
+		defer wg.Done()
+		_, err := n.SyncRPC(ctx, dest, body)
+
+		if err == nil {
+			return
+		} else {
+			// failure detection up next!
+		}
+	}(dest)
+}
+```
+
+Our failure detection algorithm, so we can handle network partitions and variable latency!:
+
 ```go
 ```
+
+and finally our shiny new custom topology to minimise all those wasted sent messages:
+
+```go
+```
+
 
 ## 4. Grow-Only Counter
 
