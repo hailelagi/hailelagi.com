@@ -1,7 +1,7 @@
 ---
 title: "Oops - Call Me Maybe?"
 date: 2024-04-20T09:38:39+01:00
-draft: true
+draft: false
 ---
 
 Documenting solving the fly.io distributed systems challenges. The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq). I thought it'd also be funny to play it on repeat while solving/writing this :)
@@ -115,14 +115,47 @@ for _, dest := range n.NodeIDs() {
 		}
 	}(dest)
 }
+
+wg.Wait()
 ```
 
-Our failure detection algorithm, so we can handle network partitions and variable latency!:
+Our failure detection algorithm is a FIFO queue using go's channels, so we can handle network partitions and variable latency! 
+We send messages into a buffered channel, in our else block:
+```
+s.retries <- Retry{body: body, dest: dest, attempt: 40, exec: n.Send, err: err}
+```
+
+What suprised me is the configuration of this queue. Too small and messages will be dropped, too big and the failureDetector 
+will never catch up.
 
 ```go
+func failureDetector(n *maelstrom.Node, retries chan Retry) {
+  for retry := range retries {
+    go func(retry Retry) {
+		deadline := time.Now().Add(400*time.Millisecond)
+		bgd := context.Background()
+		ctx, cancel := context.WithDeadline(bgd, deadline)
+		defer cancel()
+
+		  etry.attempt--
+
+		if retry.attempt >= 0 {
+			_, err := n.SyncRPC(ctx, retry.dest, retry.body)
+
+			if err != nil {
+				jitter := time.Duration(rand.Intn(500) + 100)
+				time.Sleep(jitter * time.Millisecond)
+				retries <- retry
+			}
+		} else {
+			  log.Fatalf("silent message loss from queue %v", retry)
+		}
+	}(retry)
+  }
+}
 ```
 
-and finally our shiny new custom topology to minimise all those wasted sent messages:
+and finally our topology to minimise all those wasted sent messages:
 
 ```go
 ```
