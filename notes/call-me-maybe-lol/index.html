@@ -72,6 +72,8 @@ sending data efficiently, simulating network partitions, variable latencies and 
 </span></span></span><span class=line><span class=cl><span class=c1></span>		<span class=p>}</span>
 </span></span><span class=line><span class=cl>	<span class=p>}(</span><span class=nx>dest</span><span class=p>)</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nx>wg</span><span class=p>.</span><span class=nf>Wait</span><span class=p>()</span>
 </span></span></code></pre></div><p>Our failure detection algorithm is a LIFO queue using go&rsquo;s channels, so we can handle network partitions and variable latency!
 We send messages into a buffered channel, in our else block:</p><pre tabindex=0><code>s.retries &lt;- Retry{body: body, dest: dest, attempt: 40, exec: n.Send, err: err}
 </code></pre><p>What suprised me is the configuration of this queue. Too small and messages will be dropped, too big and the failureDetector
@@ -80,7 +82,7 @@ will never catch up.</p><div class=highlight><pre tabindex=0 class=chroma><code 
 </span></span><span class=line><span class=cl>    <span class=k>go</span> <span class=kd>func</span><span class=p>(</span><span class=nx>retry</span> <span class=nx>Retry</span><span class=p>)</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>		<span class=nx>deadline</span> <span class=o>:=</span> <span class=nx>time</span><span class=p>.</span><span class=nf>Now</span><span class=p>().</span><span class=nf>Add</span><span class=p>(</span><span class=mi>400</span><span class=o>*</span><span class=nx>time</span><span class=p>.</span><span class=nx>Millisecond</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>		<span class=nx>bgd</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>()</span>
-</span></span><span class=line><span class=cl>		<span class=nx>ctx</span><span class=p>,</span> <span class=nx>cancel</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>WithDeadline</span><span class=p>(,</span> <span class=nx>deadline</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>		<span class=nx>ctx</span><span class=p>,</span> <span class=nx>cancel</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nf>WithDeadline</span><span class=p>(</span><span class=nx>bgd</span><span class=p>,</span> <span class=nx>deadline</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>		<span class=k>defer</span> <span class=nf>cancel</span><span class=p>()</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>		  <span class=nx>etry</span><span class=p>.</span><span class=nx>attempt</span><span class=o>--</span>
