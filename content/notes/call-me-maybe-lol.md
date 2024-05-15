@@ -1,7 +1,7 @@
 ---
 title: "Oops - Call Me Maybe?"
 date: 2024-04-20T09:38:39+01:00
-draft: false
+draft: true
 ---
 
 Documenting solving the fly.io distributed systems challenges. The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq). I thought it'd also be funny to play it on repeat while solving/writing this :)
