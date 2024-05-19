@@ -3,5 +3,4 @@
 
 ## todo/known issues
 - integration with dynamic graphic rendering provider (tbd - miro?, draw.io etc)
-- custom warning and error level callout partials
 - dynamically add a polite please share note to each article

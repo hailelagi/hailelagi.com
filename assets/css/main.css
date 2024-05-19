@@ -327,3 +327,11 @@ footer#footer #sign-key {
     font-size: 80%;
     height: 10%;
 }
+
+.callout-warning {
+    background-color: white;
+    border: 1px solid #ffffe3;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}

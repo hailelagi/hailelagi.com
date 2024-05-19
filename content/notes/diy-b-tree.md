@@ -4,10 +4,11 @@ date: 2024-04-17T13:48:23+01:00
 draft: false
 tags: go, database internals, bookclub
 ---
+{{% callout %}}
+This article is a <i>speed run/crash course/concise note/summary</i> and assumes the reader has read or is somewhat familiar with concepts explained in part I of database internals. Notably chapter 1 - 4, and parts of chapter 5 where Buffer Management is explained.
+{{% /callout %}}
 
-**assumptions/pre-requisites**:
-This article is a _speed run/crash course/concise note/summary_ and assumes the reader has read or is somewhat familiar with concepts explained in part I of database internals. Notably chapter 1 - 4, and parts of chapter 5 where Buffer Management is explained. If not, here's a 
-visual crash course on the operations of a [b-tree](../b-tree-present) and [generally on-disk considerations.](../b-tree-talk) or a much better [walkthrough with sqlite](https://fly.io/blog/sqlite-internals-btree/)
+If not, here's a  visual crash course on the operations of a [b-tree](../b-tree-present) and [generally on-disk considerations.](../b-tree-talk) or a much better [walkthrough with sqlite](https://fly.io/blog/sqlite-internals-btree/)
 
 What is a Datastructure's memory representation? Everything is either a contigous block or pointer based.
 _Relevant programming techniques_: pointers, recursion and binary search - Olog(N) is powerful, syscalls and binary formats.

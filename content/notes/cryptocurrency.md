@@ -4,6 +4,10 @@ date: 2024-04-08T19:07:10+01:00
 draft: false
 ---
 
+{{% callout color="#ffd700" %}}
+    I used to amateur invest in 2021/22, I profited from trading tokens in ethereum, constitutionDAO and ethereum name service -- mostly got lucky. My views have since evolved. I would like to learn more about financial markets someday.
+{{% /callout %}}
+
 Cryptocurrency is a controversial topic that people have lots of thoughts/feelings about.
 I'm neither here nor there about the ethics or ideals. Whatever  "visions" of the future advocates or critics have on its effects on society, I'm not sure terribly interest me. I'm only interested in how it actually affects the world and how I interact with it.
 
