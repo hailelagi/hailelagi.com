@@ -26,6 +26,7 @@ Interesting but who knows if I'll ever get around to it:
 - [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
 - The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 - design patterns elements of reusable object-oriented software
+- Rust Atomics and Locks - Low-Level Concurrency in Practice
 
 Previously read:
 

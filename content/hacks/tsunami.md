@@ -379,3 +379,4 @@ methodology, coverage, tools, loom, address sanitizer etc insert graphs of bench
 [^11]: [Erlang data types](https://www.erlang.org/doc/reference_manual/data_types)
 [^12]: [Glommio - thread per core](https://github.com/DataDog/glommio)
 [^13]: [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
+[^14]: [Learnings from kCTF VRP's 42 Linux kernel exploits submissions](https://security.googleblog.com/2023/06/learnings-from-kctf-vrps-42-linux.html)
