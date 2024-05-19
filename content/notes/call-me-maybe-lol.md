@@ -1,10 +1,12 @@
 ---
 title: "Oops - Call Me Maybe?"
-date: 2024-04-20T09:38:39+01:00
+date: 2024-05-19T22:03:00+01:00
 draft: true
 ---
 
-I'm solving the fly.io distributed systems challenges for practice while reading part II of database internals. The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq). I thought it'd also be funny to play it on repeat while solving/writing some of this :)
+I'm solving the fly.io distributed systems challenges for practice while reading part II of database internals with the [sysdsgn bookclub](https://x.com/sysdsgn). 
+
+The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq). I thought it'd also be funny to play it on repeat while solving/writing some of this :)
 
 {{< spotify type="track" id="20I6sIOMTCkB6w7ryavxtO" >}}
 
@@ -47,7 +49,7 @@ In a single node/computer, generation of unique ids is typically achieved using 
 
 In the view of a distributed system where each node could increment this counter simultaneously and the [the system clock is unreliable](https://tigerbeetle.com/blog/three-clocks-are-better-than-one) there needs to be some way of solving this [global clock synchronisation problem](https://www.youtube.com/watch?v=mAyW-4LeXZo) of not only skewing different "times" but logical ordering of events. What to do?
 
-1. A pseudo logical event clock where we can represent casual dependencies as combinations of properties of our system for e.g the system clock + orignating node id + a random request id(tie breaker). Luckily for this challenge there aren't requirements for **space** or **ordering** or **causality**, only **global uniqueness**, which is naive but isn't too far off more sophisticated schemes [^1] [^2]
+1. A pseudo logical event clock where we can represent casual dependencies as combinations of properties of our system for e.g the system clock + orignating node id + a random request id(tie breaker). Luckily for this challenge there aren't requirements for **space** or **ordering** or **causality**, only **global uniqueness**, which is naive but isn't too far off more sophisticated schemes [^1] [^2] [^3]
 
 ```go
 func genNaive(nodeID string) int64 {
@@ -186,3 +188,4 @@ we try anyway -- gotta get those p99s up, so far these are rookie numbers!
 
 [^1]: https://datatracker.ietf.org/doc/html/rfc4122#section-4.2.1
 [^2]: https://en.wikipedia.org/wiki/Snowflake_ID
+[^3]: http://yellerapp.com/posts/2015-02-09-flake-ids.html
