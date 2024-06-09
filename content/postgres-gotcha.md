@@ -15,8 +15,9 @@ general: https://rbranson.medium.com/10-things-i-hate-about-postgresql-20dbab8c2
 - https://fly.io/phoenix-files/safe-ecto-migrations/
 -
 
-3. Replication is async and data loss is possible on fail over
+3. Replication is async and data loss is possible on fail over:
 - https://wiki.postgresql.org/wiki/Streaming_Replication
+- https://www.postgresql.org/docs/current/logical-replication-restrictions.html
 - https://www.postgresql.org/docs/16/warm-standby.html
 - https://neon.tech/docs/introduction/read-replicas
 

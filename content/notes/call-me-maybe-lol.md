@@ -189,3 +189,6 @@ we try anyway -- gotta get those p99s up, so far these are rookie numbers!
 [^1]: https://datatracker.ietf.org/doc/html/rfc4122#section-4.2.1
 [^2]: https://en.wikipedia.org/wiki/Snowflake_ID
 [^3]: http://yellerapp.com/posts/2015-02-09-flake-ids.html
+[^4]: https://highscalability.com/gossip-protocol-explained/
+[^5]: https://docs.riak.com/riak/kv/2.2.3/learn/concepts/clusters.1.html
+[^6]: https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf
