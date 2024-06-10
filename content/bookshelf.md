@@ -1,6 +1,6 @@
-I'm currently reading:
+I'm currently reading: 
 
-- [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
+nothing! just finished a pretty meaty book and I'm taking a smol break.
 
 Here's my ever growing list of stuff I'd like to learn or re-learn one day!
 
@@ -28,6 +28,7 @@ Interesting but who knows if I'll ever get around to it:
 - Rust Atomics and Locks - Low-Level Concurrency in Practice
 
 Previously read:
+- ~~[Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)~~
 - ~~[Concurrency in Go](https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/)~~
 - ~~[The Algorithm Design Manual](https://www.amazon.com/Algorithm-Design-Manual-Steven-Skiena/dp/1848000693/)~~
 - ~~[Designing Data-Intensive Applications](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)~~ [worth a re-read]
