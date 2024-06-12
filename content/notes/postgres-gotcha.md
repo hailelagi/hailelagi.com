@@ -1,7 +1,7 @@
 ---
 title: "Postgres Gotcha"
 date: 2024-05-31T19:03:24+01:00
-draft: true
+draft: false
 ---
 
 general: https://rbranson.medium.com/10-things-i-hate-about-postgresql-20dbab8c2791
