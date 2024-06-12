@@ -53,7 +53,7 @@ sending data efficiently, simulating network partitions, variable latencies and 
 </span></span><span class=line><span class=cl>	<span class=nx>store</span>   <span class=o>*</span><span class=nx>store</span>
 </span></span><span class=line><span class=cl>	<span class=nx>retries</span> <span class=kd>chan</span> <span class=nx>retry</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><p>reading, we simply take a <code>read</code> lock, respond with what&rsquo;s in our <code>log</code> so far.</p><p>If we get a <code>broadcast</code> message we concurrently attempt to send it to all our neighbours, excluding ourself, store it in <code>log</code> and <code>index</code> so we can test if we&rsquo;ve seen this message before and handle duplicate broadcasts:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// spam everyone in this network we know of, and so on...
+</span></span></code></pre></div><p>reading, we simply take a <code>read</code> lock, respond with what&rsquo;s in our <code>log</code> so far.</p><p>If we get a <code>broadcast</code> message we concurrently attempt to send it to all our neighbours, excluding ourself, store it in <code>log</code> and <code>index</code> so we can test if we&rsquo;ve seen this message before and short circuit duplicate broadcasts:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// spam everyone in this network we know of, and so on...
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>dest</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>n</span><span class=p>.</span><span class=nf>NodeIDs</span><span class=p>()</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>	<span class=nx>wg</span><span class=p>.</span><span class=nf>Add</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>
@@ -75,10 +75,19 @@ sending data efficiently, simulating network partitions, variable latencies and 
 </span></span><span class=line><span class=cl><span class=p>}</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=nx>wg</span><span class=p>.</span><span class=nf>Wait</span><span class=p>()</span>
-</span></span></code></pre></div><p>Our failure detection algorithm is a FIFO queue using go&rsquo;s channels, so we can handle network partitions and variable latency async!
+</span></span></code></pre></div><p>Our failure detection algorithm is a simple FIFO queue using go&rsquo;s channels, for the un-initiated in go-ism, it&rsquo;s conceputally an <a href="https://cs.opensource.google/go/go/+/refs/tags/go1.22.3:src/runtime/chan.go;l=33">&ldquo;atomic circular buffer&rdquo;</a>, if that doesn&rsquo;t mean much &ndash; it&rsquo;s a &lsquo;concurrent safe queue&rsquo;, so we can handle network partitions and variable latency async!
 We send messages into a buffered channel, in our else block and read it (if/when) we have to retry in a seperate goroutine(s):</p><pre tabindex=0><code>s.retries &lt;- Retry{body: body, dest: dest, attempt: 20, err: err}
-</code></pre><blockquote><p>A perfect timeout-based failure detector exists only in a synchronous crash-stop system with reliable
-links; in a partially synchronous system, a perfect failure detector does not exist</p><p>&ndash; <a href=https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-handout.pdf>https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-handout.pdf</a></p></blockquote><p>The spurious errors and on/off successes and failures making this were&mldr; interesting to debug! non-deterministic systems are&mldr; something.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// a naive failure detector :)
+</code></pre><p>we guess-timate a queue size (I&rsquo;m not 100% about this bit lmk if I&rsquo;m wrong!):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm> little&#39;s law: L (num units) = arrival rate * wait time
+</span></span></span><span class=line><span class=cl><span class=cm> rate == 100 msgs/sec assuming efficient workload,
+</span></span></span><span class=line><span class=cl><span class=cm> latency/wait mininum = 100ms, 400ms average
+</span></span></span><span class=line><span class=cl><span class=cm>
+</span></span></span><span class=line><span class=cl><span class=cm> 100 * 0.4 = 40 msgs per request * 25 - 1(self) nodes 
+</span></span></span><span class=line><span class=cl><span class=cm>
+</span></span></span><span class=line><span class=cl><span class=cm> = 960 queue size, will use ~1000
+</span></span></span><span class=line><span class=cl><span class=cm>*/</span>
+</span></span><span class=line><span class=cl><span class=kd>var</span> <span class=nx>retries</span> <span class=p>=</span> <span class=nb>make</span><span class=p>(</span><span class=kd>chan</span> <span class=nx>retry</span><span class=p>,</span> <span class=mi>1000</span><span class=p>)</span>
+</span></span></code></pre></div><p>The spurious errors and on/off successes and failures making this were&mldr; interesting to debug! non-deterministic systems are&mldr; something.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=c1>// a naive failure detector :)
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=kd>func</span> <span class=nf>failureDetector</span><span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>session</span><span class=p>)</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>r</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>s</span><span class=p>.</span><span class=nx>retries</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>		<span class=nx>r</span> <span class=o>:=</span> <span class=nx>r</span>
@@ -107,7 +116,8 @@ links; in a partially synchronous system, a perfect failure detector does not ex
 </span></span><span class=line><span class=cl>		<span class=p>}(</span><span class=nx>r</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>	<span class=p>}</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></div><p>and finally we optimise! we&rsquo;re sending far too many messages and flooding the entire network! even if it&rsquo;s impossible to be both accurate and fast,
+</span></span></code></pre></div><blockquote><p>A perfect timeout-based failure detector exists only in a synchronous crash-stop system with reliable
+links; in a partially synchronous system, a perfect failure detector does not exist</p><p>&ndash; <a href=https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-handout.pdf>https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-handout.pdf</a></p></blockquote><p>and finally we optimise! we&rsquo;re sending far too many messages and flooding the entire network! even if it&rsquo;s impossible to be both accurate and fast,
 we try anyway &ndash; gotta get those p99s up, so far these are rookie numbers! there&rsquo;s a hint about network topology so let&rsquo;s re-examine that:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=cm>/*
 </span></span></span><span class=line><span class=cl><span class=cm>The neighbors Maelstrom suggests are, by default, arranged in a two-dimensional grid.
 </span></span></span><span class=line><span class=cl><span class=cm>This means that messages are often duplicated en route to other nodes, and latencies
