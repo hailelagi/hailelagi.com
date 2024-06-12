@@ -69,7 +69,7 @@ func genNaive(nodeID string) int64 {
 
 2. hash a seed over a really large key space (2**128 - 1) - a uuid.
 
-3. The use of a central authority, such as an atomic clock + GPS and/or other clever distributed algorithms[^7] provided by a [time server(s)](https://cloud.google.com/spanner/docs/true-time-external-consistency).
+3. The use of a central authority, such as an atomic clock + GPS and/or other clever distributed algorithms[^4] provided by a [time server(s)](https://cloud.google.com/spanner/docs/true-time-external-consistency).
 
 ## 3. Broadcast
 
@@ -96,7 +96,7 @@ type session struct {
 
 reading, we simply take a `read` lock, respond with what's in our `log` so far.
 
-If we get a `broadcast` message we concurrently attempt to send it to all our neighbours,  excluding ourself, store it in `log` and `index` so we can test if we've seen this message before and handle duplicate broadcasts:
+If we get a `broadcast` message we concurrently attempt to send it to all our neighbours,  excluding ourself, store it in `log` and `index` so we can test if we've seen this message before and short circuit duplicate broadcasts:
 ```go
 // spam everyone in this network we know of, and so on...
 for _, dest := range n.NodeIDs() {
@@ -122,16 +122,26 @@ for _, dest := range n.NodeIDs() {
 wg.Wait()
 ```
 
-Our failure detection algorithm is a FIFO queue using go's channels, so we can handle network partitions and variable latency async! 
+Our failure detection algorithm is a simple FIFO queue using go's channels, for the un-initiated in go-ism, it's conceputally an ["atomic circular buffer"](https://cs.opensource.google/go/go/+/refs/tags/go1.22.3:src/runtime/chan.go;l=33), if that doesn't mean much --  it's a 'concurrent safe queue', so we can handle network partitions and variable latency async! 
 We send messages into a buffered channel, in our else block and read it (if/when) we have to retry in a seperate goroutine(s):
 ```
 s.retries <- Retry{body: body, dest: dest, attempt: 20, err: err}
 ```
 
-> A perfect timeout-based failure detector exists only in a synchronous crash-stop system with reliable
-links; in a partially synchronous system, a perfect failure detector does not exist
->
-> -- https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-handout.pdf
+we guess-timate a queue size (I'm not 100% about this bit lmk if I'm wrong!):
+```go
+/*
+ little's law: L (num units) = arrival rate * wait time
+ rate == 100 msgs/sec assuming efficient workload,
+ latency/wait mininum = 100ms, 400ms average
+
+ 100 * 0.4 = 40 msgs per request * 25 - 1(self) nodes 
+
+ = 960 queue size, will use ~1000
+*/
+var retries = make(chan retry, 1000)
+
+```
 
 The spurious errors and on/off successes and failures making this were... interesting to debug! non-deterministic systems are... something.
 
@@ -167,6 +177,12 @@ func failureDetector(s *session) {
 }
 ```
 
+> A perfect timeout-based failure detector exists only in a synchronous crash-stop system with reliable
+links; in a partially synchronous system, a perfect failure detector does not exist
+>
+> -- https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-handout.pdf
+
+
 and finally we optimise! we're sending far too many messages and flooding the entire network! even if it's impossible to be both accurate and fast, 
 we try anyway -- gotta get those p99s up, so far these are rookie numbers! there's a hint about network topology so let's re-examine that:
 
@@ -195,11 +211,15 @@ func (s *session) topologyHandler(msg maelstrom.Message) error {
 
 For this bit, I had to draw up the messsaging flow of the network topology on pen and paper. First I tried to send only to immediately connected neighbours. For example in a 5 node cluster of `a, b, c, d, e` a would neighbour  `b, c` and so on forming the 2x2 grid. This was too unreliable and lost messages.
 
- Database Internals chapter 12 was also super helpful on where to go about exploring options, network topologies are a deep topic, so we'll only review a very tiny subset we're interested in:
+[Database Internals chapter 12](https://learning.oreilly.com/library/view/database-internals/9781492040330/ch12.html) and the [maelstrom docs](https://github.com/jepsen-io/maelstrom/blob/main/doc/03-broadcast/02-performance.md) were also super helpful on where to go about exploring options, network topologies for broadcast are a deep topic, so we'll only review a very tiny subset we're interested in:
 1. a fully connected grid mesh (what we had before) [to quote wikipedia](https://en.wikipedia.org/wiki/Network_topology):
 >  Networks designed with this topology are usually very expensive to set up, but provide a high degree of reliability due to the multiple paths for data that are provided by the large number of redundant links between nodes
 
+(side note: I've worked on a distributed system which delivered rpc messages as a [full loosely connected network](https://www.erlang.org/doc/system/distributed.html#node-connections) using a [global process registry](https://www.erlang.org/doc/apps/kernel/global.html) this heavily depends on cluster size and messaging patterns, if you can get away with being fully connected - you should.)
+
 2. a tree topology - let's revisit spanning trees. We're presented with seemingly contradictory goals - fast low-latency and reliable accurate broadcast, in a large partitioned network.
+
+I briefly discovered but did not implement other interesting algorithms/protocols [^5] [^6] [^7] such as PlumTrees(the search term is "epidemic Broadcast Trees"), [SWIM](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) used by [Consul's serf](https://www.serf.io/docs/internals/gossip.html), HyParView & HashGraph, and of course [fly.io's corrosion](https://github.com/superfly/corrosion) (built specifically for service discovery) and more!
 
 ## 4. Grow-Only Counter
 
@@ -221,7 +241,7 @@ For this bit, I had to draw up the messsaging flow of the network topology on pe
 [^1]: https://datatracker.ietf.org/doc/html/rfc4122#section-4.2.1
 [^2]: https://en.wikipedia.org/wiki/Snowflake_ID
 [^3]: http://yellerapp.com/posts/2015-02-09-flake-ids.html
-[^4]: https://highscalability.com/gossip-protocol-explained/
+[^4]: https://www.cockroachlabs.com/blog/living-without-atomic-clocks/
 [^5]: https://docs.riak.com/riak/kv/2.2.3/learn/concepts/clusters.1.html
 [^6]: https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf
-[^7]: https://www.cockroachlabs.com/blog/living-without-atomic-clocks/
+[^7]: https://highscalability.com/gossip-protocol-explained/
