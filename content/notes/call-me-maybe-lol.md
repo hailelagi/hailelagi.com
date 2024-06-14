@@ -233,7 +233,8 @@ For this bit, I had to draw up the messsaging flow of the network topology on pe
 
 (side note: I've worked on a system which delivered rpc messages as a [full loosely connected network](https://www.erlang.org/doc/system/distributed.html#node-connections) using a [global process registry](https://www.erlang.org/doc/apps/kernel/global.html) this heavily depends on cluster size and messaging patterns, if you can get away with being fully connected - you probably should.)
 
-2. a tree topology - let's revisit spanning trees. We're presented with seemingly contradictory goals - fast low-latency and reliable accurate broadcast, in a large partitioned network.
+2. a tree topology - let's revisit [spanning trees](https://en.wikipedia.org/wiki/Minimum_spanning_tree). We're presented with seemingly contradictory goals - fast low-latency and reliable accurate broadcast, in a 25-node cluster with partitioned networks. What to do?
+
 
 I briefly discovered but did not implement other interesting algorithms/protocols [^5] [^6] [^7] such as PlumTrees(the search term is "epidemic Broadcast Trees"), [SWIM](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) used by [Consul's serf](https://www.serf.io/docs/internals/gossip.html), HyParView & HashGraph, and of course [fly.io's corrosion](https://github.com/superfly/corrosion) (built specifically for service discovery) and more!
 
@@ -251,6 +252,11 @@ I briefly discovered but did not implement other interesting algorithms/protocol
 
 ```go
 ```
+
+{{% callout color="#ffd700" %}}
+If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting! I'm currently looking for work :)
+You can reach me via my email or on x/twitter, details in the footer.
+{{% /callout %}}
 
 ### References
 
