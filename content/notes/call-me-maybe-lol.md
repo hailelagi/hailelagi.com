@@ -153,9 +153,12 @@ Anyway, a few `failureDetector` go routines are spawned and sleep until messages
 		go failureDetector(s)
 	}
 ```
-What suprised me was the tweaking of the `deadline`
-a longer deadline would lead to consistently more reliable delivery vs retrying in smaller intervals -- not sure why, a lot of numbers here 
-are arbitrary and stuff I figured out empirically of what worked consistently via experimentation.
+What suprised me was the tweaking of the `deadline` a longer deadline would lead to consistently more reliable delivery vs retrying in smaller intervals -- this should have been obvious, but I only understood this in hindsight.
+
+> there’s always a trade-off between wrongly suspecting alive processes as dead (producing false-positives), and delaying marking an unresponsive process as dead, giving it the benefit of doubt and expecting it to respond eventually (producing false-negatives).
+
+Which is to say a shorter deadline can make a more _efficient_ algorithm with lower latency, but it's less _accurate_ and detects down nodes less reliably leading to more retry storms and eventually possibly overwhelming the partial async timing model assumptions.
+
 ```go
 // a naive failure detector :)
 func failureDetector(s *session) {
