@@ -243,9 +243,32 @@ I briefly discovered but did not implement other interesting algorithms/protocol
 
 ## 4. Grow-Only Counter
 
-```go
+Next up is strong eventual consistency with CRDTs! Specifically this one's an operation-based Commutative Replicated Data Types (CmRDTs)[^8] also
+known as the `g-counter`. If those sound like fancy words a way to intuit is you can replicate some data **strongly** across nodes by being available and partition tolerant guaranteeing that eventually it converges to a stable state given that the "operations" are pure, lack side effects like a computation say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative! For example:
+
+```
+(node a): 1 + (node b): 2 (node C): + 3
 ```
 
+can happen as:
+
+```
+(node a): 3 + (node b) 2 (node C) + 1
+```
+
+ This builds on-top of the "reliable broadcast" link we built earlier to **increment a global counter** that's **available and partition tolerant**. 
+
+One way to implement this is the counter is a `var gCounter int64` and each increment is `atomic.AddInt64(&gCounter, delta)` and broadcasted with retries transparently using the previous algorithm, and reads served with `delta := atomic.LoadInt64(&gCounter)` and the counter values converge! ```ヽ(‘ー`)ノ ``` 
+
+OR
+
+we follow the suggestion of the challenge and use the sequentially consistent key-value store service, map each node's local counter, increment and merge! This is the **state-based design CvRDT**[^8]. The g-counter is modelled as a vector of node id => current delta and this is shared, this is reminiscent of vector clocks:
+```go
+var gCounter map[string]int
+
+```
+
+The rabbit hole goes deeper with `PN Counters` which support subtraction/decrements and the G-Set but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async process so you just build stuff, much wow!
 ## 5. Kafka-Style Log
 
 ```go
@@ -270,3 +293,5 @@ You can reach me via my email or on x/twitter, details in the footer.
 [^5]: https://docs.riak.com/riak/kv/2.2.3/learn/concepts/clusters.1.html
 [^6]: https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf
 [^7]: https://highscalability.com/gossip-protocol-explained/
+[^8]: https://www.cs.utexas.edu/~rossbach/cs380p/papers/Counters.html
+
