@@ -243,18 +243,20 @@ I briefly discovered but did not implement other interesting algorithms/protocol
 
 ## 4. Grow-Only Counter
 
-Next up is strong eventual consistency with CRDTs! Specifically this one's an operation-based Commutative Replicated Data Types (CmRDTs)[^8] also
-known as the `g-counter`. If those sound like fancy words a way to intuit is you can replicate some data **strongly** across nodes by being available and partition tolerant guaranteeing that eventually it converges to a stable state given that the "operations" are pure, lack side effects like a computation say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative! For example:
+Next up is strong eventual consistency with Conflict Free Replicated Data Types! (mouthful!) Specifically this one's an operation-based Commutative Replicated Data Types (CmRDTs)[^8] also known as the `g-counter`. If those sound like fancy words a way to intuit is you can replicate some data **strongly** across nodes by being available and partition tolerant guaranteeing that eventually it converges to a stable state given that the "operations" are pure, lack side effects like a computation say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative! For example:
 
 ```
 (node a): 1 + (node b): 2 (node C): + 3
 ```
 
-can happen as:
+can as well happen as:
 
 ```
 (node a): 3 + (node b) 2 (node C) + 1
 ```
+
+regardless of each addition operation occurs at some time `T_1`, even if another addition occurs concurrently at `T_2`,
+because it's _commutative_ , there's no contradiction that affects the final result 6, _eventually_.
 
  This builds on-top of the "reliable broadcast" link we built earlier to **increment a global counter** that's **available and partition tolerant**. 
 
@@ -268,7 +270,7 @@ var gCounter map[string]int
 
 ```
 
-The rabbit hole goes deeper with `PN Counters` which support subtraction/decrements and the G-Set but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async process so you just build stuff, much wow!
+The rabbit hole goes deeper with `PN Counters` which support subtraction/decrements and the G-Set but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow!
 ## 5. Kafka-Style Log
 
 ```go
