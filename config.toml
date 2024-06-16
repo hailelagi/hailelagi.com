@@ -1,6 +1,7 @@
 baseURL = "https://www.hailelagi.com/"
 languageCode = "en-us"
 title = "Haile (ሐይሌ)"
+ignoreErrors = ["error-remote-getjson"]
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 [params]
