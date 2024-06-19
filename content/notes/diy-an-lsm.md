@@ -5,6 +5,11 @@ draft: false
 tags: database internals, bookclub
 ---
 
+⚠️⚠️⚠️⚠️
+This a WIP draft
+⚠️⚠️⚠️⚠️
+
+
 day 1 personal notes from LSM in a week, basic components:
 
 - memtable
