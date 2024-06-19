@@ -243,7 +243,7 @@ I briefly discovered but did not implement other interesting algorithms/protocol
 
 ## 4. Grow-Only Counter
 
-Next up is strong eventual consistency with Conflict Free Replicated Data Types! (mouthful!) Specifically this one's an operation-based Commutative Replicated Data Types (CmRDTs)[^8] also known as the `g-counter`. If those sound like fancy words a way to intuit is you can replicate some data **strongly** across nodes by being available and partition tolerant guaranteeing that eventually it converges to a stable state given that the "operations" are pure, lack side effects like a computation say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative! For example:
+Next up is strong eventual consistency with Conflict Free Replicated Data Types! (mouthful!) Specifically lets try an operation-based Commutative Replicated Data Types (CmRDTs)[^8] also known as the `g-counter`. If those sound like fancy words a way to intuit is you can replicate some data **strongly** across nodes by being available and partition tolerant guaranteeing that eventually it converges to a stable state given that the "operations" are pure, lack side effects like a computation say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative! For example:
 
 ```
 (node a): 1 + (node b): 2 (node C): + 3
@@ -282,8 +282,7 @@ The rabbit hole goes deeper with `PN Counters` which support subtraction/decreme
 ```
 
 {{% callout color="#ffd700" %}}
-If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting! I'm currently looking for work :)
-You can reach me via my email or on x/twitter, details in the footer.
+If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting!
 {{% /callout %}}
 
 ### References
