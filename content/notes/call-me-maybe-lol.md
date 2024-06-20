@@ -263,17 +263,20 @@ because it's _commutative_ , there's no contradiction that affects the final res
 
  This builds on-top of the "reliable broadcast" link we built earlier to **increment a global counter** that's **available and partition tolerant**. 
 
-One way to implement this is the counter is a `var gCounter int64` and each increment is `atomic.AddInt64(&gCounter, delta)` and broadcasted with retries transparently using the previous algorithm, and reads served with `delta := atomic.LoadInt64(&gCounter)` and the counter values converge! ```ヽ(‘ー`)ノ ``` 
-
-OR
-
-we follow the suggestion of the challenge and use the sequentially consistent key-value store service, map each node's local counter, increment and merge! This is the **state-based design CvRDT**[^8]. The g-counter is modelled as a vector of node id => current delta and this is shared, this is reminiscent of vector clocks:
+One way to implement this is counter is a `var gCounter int64` and each increment is `atomic.AddInt64(&gCounter, delta)` and broadcasted with retries transparently using the previous algorithm, and reads served with `delta := atomic.LoadInt64(&gCounter)` and the counter values converge! ```ヽ(‘ー`)ノ ```  or rather than an atomic hardware instruction, we follow the suggestion of the challenge and use the sequentially consistent key-value store service and use this to keep track of the current count:
 ```go
-var gCounter map[string]int
+// addOperation
+delta := int(body["delta"].(float64))
+previous, _ := s.kv.Read(ctx, "counter")
+s.kv.CompareAndSwap(ctx, "counter", previous, result, true)
 
+// readOperation
+count, _ := s.kv.ReadInt(ctx, "counter")
 ```
 
-The rabbit hole goes deeper with `PN Counters` which support subtraction/decrements and the G-Set but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow!
+OR to share the counter state and implement a **state-based design CvRDT**[^8] I did not go down this rabbit hole, but it might be interesting, one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** while the state based representation can tolerate partitions much more gracefully.
+
+Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow!
 ## 5. Kafka-Style Log
 
 ```go
