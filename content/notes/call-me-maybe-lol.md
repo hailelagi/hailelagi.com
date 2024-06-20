@@ -9,7 +9,7 @@ This a WIP draft
 
 I'm solving the fly.io distributed systems challenges for practice while reading part II of database internals with the [sysdsgn bookclub](https://x.com/sysdsgn). 
 
-The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq). I thought it'd also be funny to play it on repeat while solving/writing some of this :)
+The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq) and of course:
 
 {{< spotify type="track" id="20I6sIOMTCkB6w7ryavxtO" >}}
 
