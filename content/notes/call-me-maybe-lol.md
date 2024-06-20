@@ -1,5 +1,5 @@
 ---
-title: "Oops - Call Me Maybe?"
+title: "Call Me Maybe?"
 date: 2024-05-19T22:03:00+01:00
 draft: false
 ---
