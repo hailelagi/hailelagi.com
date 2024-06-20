@@ -309,6 +309,9 @@ This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives
 
 We're interested in one neat thing about how it provides a _durable replicated log._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
 
+> At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
+- https://kafka.apache.org/documentation/#design_replicatedlog
+
 ```go
 ```
 
