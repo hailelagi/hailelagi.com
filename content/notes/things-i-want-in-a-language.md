@@ -4,6 +4,8 @@ date: 2024-04-08T15:53:36+01:00
 draft: false
 ---
 
+Last edit/updated: 23 Jun 2024
+
 I've never believed in the "one true" programming language. I've learned lots of different languages to questionable levels of proficiency and 
 not a single one of them has been "the one". It should be obvious that programming languages are tools and tools do different things well.
 
@@ -21,11 +23,14 @@ I should be able to do something like rust's `unsafe` block and get the magical 
 Afaik only roc has something similar-ish: https://www.roc-lang.org/platforms, ocaml's gc: https://ocaml.org/docs/garbage-collector also does kinda interesting things 
 like [custom heap blocks](https://dev.realworldocaml.org/runtime-memory-layout.html#memory-representation-of-values) but it's not exactly the same thing:
 
-### Sum Types - Result, Option
+### Errors as Values (Sum Types): Result, Option
 
-Just something, even imaginary one's like  `{:ok, err}` anything but hail marry where is that nil check?
+Just something, even imaginary one's like  `{:ok, err}` or if `err != nil` anything but hail mary where is that nil check?
+Encoding errors as values in a type system is extremely useful, I can be careless about errors, if it is possible to encode intent across boundaries and the compiler can help me validate/enumerate those errors cases that is best. Exceptions can be useful, I've gone back forth on this but ultimately in the kinds of things I've made: servers, clis, guis and "systems" components errors are rarely "exceptional" and 
+when they are a `panic` or `recover` encodes these cases well. The notable tradeoff is the poor and possible pervasive usefulness of good stack traces and error messages. Still I prefer to work around this than the alternative of "suprise" raised exceptions 6 layers of abstraction deep.
 
--- Ok Generics, if static: Doesn't have to be this super powerful turing complete system, but we can all learn from go's 180 on the topic.
+### Ok Types + Generics
+if static, doesn't have to be this super powerful turing complete system, but we can all learn from go's 180 on the topic.
 
 ### Immutability as a default
 Self-explainatory
@@ -38,7 +43,5 @@ Do you really want to implement a spinlock? or a lock-free map?
 
 ### A pluggable and or customizable runtime
 
-Yes, yes. I know. I use the word "runtime" loosely here. It's historically rare to swap out runtimes. You kind of get one with your language eco-system.
-However the design space for runtimes is just like garbage collection, you can get really good and approach an amazing default that works for most problems
-but you can always get more out of a runtime by changing the underlying assumptions. 
+Yes, yes. I know. I use the word "runtime" loosely here. It's historically rare to swap out runtimes. You kind of get one with your language eco-system. However the design space for runtimes is just like garbage collection, you can get really good and approach an amazing default that works for most problems but you can always get better maybe worse out of your computing environment by changing the underlying assumptions. 
 
