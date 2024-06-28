@@ -339,18 +339,22 @@ Other varieties exist like `PN Counters` which support subtraction/decrements, t
 
 ## 5. Kafka-Style Log
 It's a bird, it's a plane... it's tiny kafka! No, not  _[that kafka](https://en.wikipedia.org/wiki/Franz_Kafka)_.
-This one's what people use as a message bus, or broker, or messsage queue or event stream, [event sourcing](https://microservices.io/patterns/data/event-sourcing.html) etc take your pick - if you're familiar with RabbitMQ or Redpanda you get the basic gist.
+This one's what people use as a message bus, or broker, or messsage queue or event stream, [event sourcing](https://microservices.io/patterns/data/event-sourcing.html) all the words.
 
 > Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications.
 
-This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives an overview of kafka's high level operations:
+This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives an overview of kafka at a high level:
 
 ![streams and tables](https://kafka.apache.org/images/streams-and-tables-p1_p4.png)
 
 We're interested in one neat thing about how it provides a _durable replicated log._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
 
+In the publisher/subcriber model of protocols like AMQP(rabbitMQ etc), a publisher "pushes"/delivers messages to the broker (durably or transiently) and when the consumer ACKs this message it is typically destroyed/removed. However Kafka is a _log based message broker_.
+
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
+
+This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/).
 
 ```go
 ```
