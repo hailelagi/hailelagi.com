@@ -1,12 +1,10 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: false
+draft: true
 tags: go, distributed-systems
 ---
-⚠️⚠️⚠️⚠️
-This a WIP draft
-⚠️⚠️⚠️⚠️
+
 
 I ~~am solving~~ solved the fly.io distributed systems challenges for practice ~~while reading~~ during and after reading, re-reading & re-reading! part II of database internals with the [sysdsgn bookclub](https://x.com/sysdsgn). The last chapter review was great! With these practice challenges I'll be putting the book away.
 
@@ -349,7 +347,10 @@ This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives
 
 We're interested in one neat thing about how it provides a _durable replicated log._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
 
-In the publisher/subcriber model of protocols like AMQP(rabbitMQ etc), a publisher "pushes"/delivers messages to the broker (durably or transiently) and when the consumer ACKs this message it is typically destroyed/removed. However Kafka is a _log based message broker_.
+In the publisher/subcriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker (durably or transiently) and when the consumer ACKs this message it is typically destroyed/removed [^9]. 
+
+
+. However Kafka is a _log based message broker_.
 
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
@@ -382,4 +383,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^6]: https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf
 [^7]: https://highscalability.com/gossip-protocol-explained/
 [^8]: https://www.cs.utexas.edu/~rossbach/cs380p/papers/Counters.html
-
+[^9]: At least historically, rabbitMQ has streams which is basically a [replicated commit log](https://www.rabbitmq.com/docs/streams)

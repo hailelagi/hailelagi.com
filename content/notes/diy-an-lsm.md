@@ -1,7 +1,7 @@
 ---
 title: "DIY an LSM Tree"
 date: 2024-04-22T18:11:52+01:00
-draft: false
+draft: true
 tags: database internals
 ---
 
