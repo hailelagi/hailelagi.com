@@ -384,3 +384,8 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^7]: https://highscalability.com/gossip-protocol-explained/
 [^8]: https://www.cs.utexas.edu/~rossbach/cs380p/papers/Counters.html
 [^9]: At least historically, rabbitMQ has streams which is basically a [replicated commit log](https://www.rabbitmq.com/docs/streams)
+
+## maybe reference
+- https://mesos.apache.org/documentation/latest/replicated-log-internals/
+- https://en.wikipedia.org/wiki/State_machine_replication
+- https://blog.x.com/engineering/en_us/topics/infrastructure/2015/building-distributedlog-twitter-s-high-performance-replicated-log-servic
