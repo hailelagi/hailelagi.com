@@ -1,6 +1,4 @@
-I'm currently reading: 
-
-nothing! just finished a pretty meaty book and I'm taking a smol break.
+I'm currently reading: [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 
 I'm considering reading:
 
@@ -10,7 +8,6 @@ General:
 
 Technical Stuff:
 - [crafting interpreters](https://craftinginterpreters.com/)
-- [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 
 Interesting/on my radar but who knows if I'll ever get around to it:
 - [High Performance Browser Networking](https://hpbn.co/)
