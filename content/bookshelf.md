@@ -1,13 +1,5 @@
 I'm currently reading: [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
-
-I'm considering reading:
-
-General:
-- The critique of Pure Reason - Kant
-- Theory of Games and Economic Behavior - John von Neumann
-
-Technical Stuff:
-- [crafting interpreters](https://craftinginterpreters.com/)
+and Theory of Games and Economic Behavior - John von Neumann, that's it for the rest of the 2024!
 
 Interesting/on my radar but who knows if I'll ever get around to it:
 - [High Performance Browser Networking](https://hpbn.co/)
@@ -23,6 +15,8 @@ Interesting/on my radar but who knows if I'll ever get around to it:
 - The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 - design patterns elements of reusable object-oriented software
 - Rust Atomics and Locks - Low-Level Concurrency in Practice
+- The critique of Pure Reason - Kant
+- [crafting interpreters](https://craftinginterpreters.com/)
 
 Recommendations:
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
