@@ -1,6 +1,7 @@
 I'm currently reading: [Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 and Theory of Games and Economic Behavior - John von Neumann, that's it for the rest of the 2024!
 
+<!--
 Interesting/on my radar but who knows if I'll ever get around to it:
 - [High Performance Browser Networking](https://hpbn.co/)
 - [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
@@ -17,6 +18,7 @@ Interesting/on my radar but who knows if I'll ever get around to it:
 - Rust Atomics and Locks - Low-Level Concurrency in Practice
 - The critique of Pure Reason - Kant
 - [crafting interpreters](https://craftinginterpreters.com/)
+-->
 
 Recommendations:
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
