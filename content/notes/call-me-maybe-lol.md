@@ -6,7 +6,7 @@ tags: go, distributed-systems
 ---
 
 
-I ~~am solving~~ solved the fly.io distributed systems challenges for practice ~~while reading~~ during and after reading, re-reading & re-reading! part II of database internals with the [sysdsgn bookclub](https://x.com/sysdsgn). The last chapter review was great! With these practice challenges I'll be putting the book away.
+I ~~am solving~~ solved the [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
 
 The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq) and of course:
 
@@ -203,8 +203,7 @@ links; in a partially synchronous system, a perfect failure detector does not ex
 > -- https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-notes.pdf
 
 
-and finally we optimise! we're sending far too many messages and flooding the entire network! even if it's impossible to be both accurate and fast, 
-we try anyway -- gotta get those p99s up, so far these are rookie numbers! there's a hint about network topology so let's re-examine that:
+and finally we optimise! we're sending far too many messages and flooding the entire network! even if it's impossible to be both accurate and fast, we try anyway -- gotta get those p99s up! there's a hint about network topology so let's re-examine that:
 ```go
 var neighbors []any
 
@@ -224,6 +223,17 @@ func (s *session) topologyHandler(msg maelstrom.Message) error {
 ```
 
 For this bit, I had to draw up the messsaging flow of the network topology on pen and paper. First I tried to send only to immediately connected neighbours. For example in a 5 node cluster of `a, b, c, d, e` a would neighbour  `b, c` and so on forming a grid:
+
+This is `O(n) * sqrt(n)`:
+
+```
+a ++ b ++ d
++    +    +
+c ++ e  /
+```
+
+instead of `a` spamming `b`, `c`, `d` and `e` and so on which is `O(n)^2`
+
 ```diff
 -- // spam everyone in this network we know of, and so on...
 -- for _, dest := range n.NodeIDs()
@@ -231,12 +241,13 @@ For this bit, I had to draw up the messsaging flow of the network topology on pe
 ++ for _, dest := range neighbors
 ```
 
-
 [Database Internals chapter 12](https://learning.oreilly.com/library/view/database-internals/9781492040330/ch12.html) and the [maelstrom docs](https://github.com/jepsen-io/maelstrom/blob/main/doc/03-broadcast/02-performance.md) were also super helpful on where to go about exploring options, network topologies for broadcast are a deep topic, so we'll only review a very tiny subset we're interested in:
 1. a fully connected grid mesh (what we had before) [to quote wikipedia](https://en.wikipedia.org/wiki/Network_topology):
 >  Networks designed with this topology are usually very expensive to set up, but provide a high degree of reliability due to the multiple paths for data that are provided by the large number of redundant links between nodes
 
-(side note: I've worked on a system which delivered rpc messages as a [full loosely connected network](https://www.erlang.org/doc/system/distributed.html#node-connections) using a [global process registry](https://www.erlang.org/doc/apps/kernel/global.html) this heavily depends on cluster size and messaging patterns, if you can get away with being fully connected - you probably should.)
+{{% callout color="#ffd700" %}}
+distributed erlang nodes deliver rpc messages as a <a href="https://www.erlang.org/doc/system/distributed.html#node-connections">full loosely connected network</a> by default using a <a href="https://www.erlang.org/doc/apps/kernel/global.html">global process registry</a> if you're managing a small cluster redundant links are fine and welcome, if you can get away with being fully connected -- which isn't possible in a large network. <a href="https://youtu.be/c12cYAUTXXs?t=1745"> Whatsapp had a great talk on opt-ing out of this in 2014! </a>
+{{% /callout %}}
 
 2. a tree topology - let's revisit [spanning trees](https://en.wikipedia.org/wiki/Minimum_spanning_tree). We're presented with seemingly contradictory goals - fast low-latency and reliable accurate broadcast, in a 25-node cluster with partitioned networks. What to do?
 
@@ -260,34 +271,41 @@ This tree is weighted by the cost it takes to reach each neighbour and a _minimu
 
 > To keep the number of messages low, while allowing quick recovery in case of a connectivity loss, we can mix both approaches — fixed topologies and tree-based broadcast — when the system is in a stable state, and fall back to gossip for failover and system recovery
 
-I briefly discovered but did not implement other interesting hybrid algorithms/protocols [^5] [^6] [^7] such as PlumTrees(the search term is "epidemic Broadcast Trees"), [SWIM](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) used by [Consul's serf](https://www.serf.io/docs/internals/gossip.html), HyParView & HashGraph, and of course [fly.io's corrosion](https://github.com/superfly/corrosion) (built specifically for service discovery) and more!
+I briefly discovered but did not implement other interesting hybrid algorithms/protocols [^5] [^6] [^7] such as PlumTrees(the search term is "epidemic Broadcast Trees"), [SWIM](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) used by [Consul's serf](https://www.serf.io/docs/internals/gossip.html), HyParView & HashGraph, and of course [fly.io's corrosion](https://github.com/superfly/corrosion) (built specifically for service discovery) or consul's memberlist[^10] and more!
 
 NB: My [final solution](https://github.com/hailelagi/gossip-glomers/tree/main/maelstrom-broadcast) isn't as efficient as it could be:
 
-It's above the minimum target for "chattiness" ie `30` `msgs-per-op` with `--topology tree4`:
+It's above the minimum target for "chattiness" ie `30` vs `30.05824` `msgs-per-op` with `--topology tree3` which is `a - [b, c, d]`:
 ```
- :net {:all {:send-count 67072,
-             :recv-count 67072,
-             :msg-count 67072,
-             :msgs-per-op 38.680508},
-       :clients {:send-count 3568, :recv-count 3568, :msg-count 3568},
-       :servers {:send-count 63504,
-                 :recv-count 63504,
-                 :msg-count 63504,
-                 :msgs-per-op 36.622837},
- }
+ :net {:all {:send-count 55144,
+             :recv-count 55144,
+             :msg-count 55144,
+             :msgs-per-op 32.11648},
+       :clients {:send-count 3534, :recv-count 3534, :msg-count 3534},
+       :servers {:send-count 51610,
+                 :recv-count 51610,
+                 :msg-count 51610,
+                 :msgs-per-op 30.05824},
+       :valid? true},
 ```
 
 but on target for latency:
 ```
-:stable-latencies {0 0, 0.5 87, 0.95 259, 0.99 322, 1 373},
+            :stable-latencies {0 0,
+                               0.5 148,
+                               0.95 354,
+                               0.99 420,
+                               1 457},
 ```
 
-but I think it's good enough as I've intuited the trade off here. Maelstrom has a "line", "grid" and several [spanning tree topologies](https://github.com/jepsen-io/maelstrom/blob/main/doc/03-broadcast/02-performance.md#broadcast-latency) by using one kind of network for example:
+This makes sense, we could shave off even more redundant ack messages by using async `n.Send` which doesn't expect a response/ack, but it makes it more difficult to be able to have timeouts or detect failure reliably a good middle ground is some kind of periodic polling mechanism with a `time.Sleep` empirically eyeballing what might be a good fit or a more sophisticated probabilistic model like [Phi-Accural](https://doc.akka.io/docs/akka/current/typed/failure-detector.html).
+
+I think it's good enough as I've better intuited the trade off here. Maelstrom has a "line", "grid" and several [spanning tree topologies](https://github.com/jepsen-io/maelstrom/blob/main/doc/03-broadcast/02-performance.md#broadcast-latency) by using one kind of network for example across the "line":
 ```
 a ++ b ++ c ++ d ++ e ++ f
 ```
-across the "line" or "ring", if you loop back around, you can pass fewer messages/duplicates but risk greater latency.
+or "ring" like riak[^5], you loop back around and can pass even fewer messages/duplicates but risk greater latency.
+
 
 ## 4. Grow-Only Counter/G-Counter
 
@@ -384,6 +402,7 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^7]: https://highscalability.com/gossip-protocol-explained/
 [^8]: https://www.cs.utexas.edu/~rossbach/cs380p/papers/Counters.html
 [^9]: At least historically, rabbitMQ has streams which is basically a [replicated commit log](https://www.rabbitmq.com/docs/streams)
+[^10]: https://github.com/hashicorp/memberlist
 
 ## maybe reference
 - https://mesos.apache.org/documentation/latest/replicated-log-internals/
