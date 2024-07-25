@@ -5,7 +5,6 @@ draft: true
 tags: go, distributed-systems
 ---
 
-
 I ~~am solving~~ solved the [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
 
 The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq) and of course:
@@ -309,7 +308,7 @@ or "ring" like riak[^5], you loop back around and can pass even fewer messages/d
 
 ## 4. Grow-Only Counter/G-Counter
 
-Next up is strong eventual consistency with Conflict Free Replicated Data Types! If that sound like fancy words another way to put it is you can replicate some data say a `count` across nodes by being **available and partition tolerant** guaranteeing that at some unknown point in the future, it converges to the same state for every participant, given that the "operations" are pure -- lack side effects like say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative, this is an operation-based Commutative Replicated Data Types (CmRDTs)[^8] to implement one:
+Next up is strong eventual consistency with Conflict Free Replicated Data Types! [^15] These allow us to replicate some data say a `count` of an integer `i32` across nodes by being **available and partition tolerant** guaranteeing that at some unknown point in the future, it converges to the same state for every participant, given certain properties are pure, in the functional programming sense ie -- lack side effects like say "addition" of integers and the order in which this operation(s) is carried out doesn't affect the total result, also known as -- commutativity:
 
 ```
   +1
@@ -334,11 +333,12 @@ we guarantee somehow, regardless of each addition operation occurs at some time 
 because it's _commutative_ , there's no contradiction that affects the final result when the network partition eventually  heals, nor is co-ordination necessary.
 
 ```
+eventually consistent ヽ(‘ー`)ノ
   +2       +2        +2
 (node a) (node b) (node C)
 ```
 
-We're given a [sequentially consistent](https://jepsen.io/consistency/models/sequential) key-value store service and use this to keep track of the current count, each increment is called a `delta`:
+We're given a [sequentially consistent](https://jepsen.io/consistency/models/sequential) key-value store service and can use this to keep track of the current count, each increment is called a `delta`:
 
 ```go
 // addOperation
@@ -350,9 +350,14 @@ s.kv.CompareAndSwap(ctx, "counter", previous, result, true)
 count, _ := s.kv.ReadInt(ctx, "counter")
 ```
 
-OR to share the counter state and implement a **state-based design CvRDT**[^8] I did not go down this rabbit hole, but it might be interesting, one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** while the state based representation can tolerate partitions much more gracefully in the event of a network partition as long you can guarantee certain properties(associativity, commutativity, idempotence) and merge to resolve conflicts between replicas.
+There are roughly two approaches here:
+- operation transform
+- state transform
 
-Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) which include sharing json! but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow!
+Roughly, sharing only the "delta" or current update ie `add 1` to the current global count is indicative of an **operation-based design** contrasted with sharing the entire the count state a **state-based design**[^8], one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** while the state based representation can tolerate partitions much more gracefully but requires more data over the wire, either way: as long you can guarantee certain properties(associativity, commutativity, idempotence) it's possibly to resolve conflicts between replicas given certain constraints.
+
+Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) which includes sharing [JSON!](https://electric-sql.com/blog/2022/05/03/introducing-rich-crdts) but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs and [figma](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/) are: [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow! Ever wondered how discord's "online" feature works? it's CRDTs all the way down, you can [trivially experiment with implementing this in phoenix!](https://hexdocs.pm/phoenix/Phoenix.Presence.html#module-fetching-presence-information).
+
 
 ## 5. Kafka-Style Log
 It's a bird, it's a plane... it's tiny kafka! No, not  _[that kafka](https://en.wikipedia.org/wiki/Franz_Kafka)_.
@@ -411,3 +416,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^12]: https://en.wikipedia.org/wiki/State_machine_replication
 [^13]: https://blog.x.com/engineering/en_us/topics/infrastructure/2015/building-distributedlog-twitter-s-high-performance-replicated-log-servic
 [^14]: http://dist-prog-book.com/chapter/9/streaming.html
+[^15]: https://inria.hal.science/inria-00555588/document
