@@ -1,7 +1,7 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: true
+draft: false
 tags: go, distributed-systems
 ---
 
@@ -309,7 +309,7 @@ or "ring" like riak[^5], you loop back around and can pass even fewer messages/d
 
 ## 4. Grow-Only Counter/G-Counter
 
-Next up is strong eventual consistency with Conflict Free Replicated Data Types! (mouthful!) Specifically lets try an operation-based Commutative Replicated Data Types (CmRDTs)[^8] to implement one. If those sound like fancy words another way to put it is you can replicate some data say a `count` across nodes by being **available and partition tolerant** guaranteeing that eventually it converges to a stable state given that the "operations" are pure -- lack side effects like say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative:
+Next up is strong eventual consistency with Conflict Free Replicated Data Types! If that sound like fancy words another way to put it is you can replicate some data say a `count` across nodes by being **available and partition tolerant** guaranteeing that at some unknown point in the future, it converges to the same state for every participant, given that the "operations" are pure -- lack side effects like say "addition" and the order in which this operation is carried out doesn't affect the result -- commutative, this is an operation-based Commutative Replicated Data Types (CmRDTs)[^8] to implement one:
 
 ```
   +1
@@ -318,6 +318,7 @@ Next up is strong eventual consistency with Conflict Free Replicated Data Types!
 
 an increment on a is replicated to b and c _eventually_ as:
 ```
+a few moments later...
   +1        +1       +1
 (node a)  (node b) (node C)
 ```
@@ -330,14 +331,14 @@ and can as well happen as:
 ```
 
 we guarantee somehow, regardless of each addition operation occurs at some time `T_1`, even if another addition occurs concurrently at `T_2`,
-because it's _commutative_ , there's no contradiction that affects the final result when the network partition eventually  heals.
+because it's _commutative_ , there's no contradiction that affects the final result when the network partition eventually  heals, nor is co-ordination necessary.
 
 ```
   +2       +2        +2
 (node a) (node b) (node C)
 ```
 
-We're given a sequentially consistent key-value store service and use this to keep track of the current count, each increment is called a `delta`:
+We're given a [sequentially consistent](https://jepsen.io/consistency/models/sequential) key-value store service and use this to keep track of the current count, each increment is called a `delta`:
 
 ```go
 // addOperation
@@ -351,11 +352,11 @@ count, _ := s.kv.ReadInt(ctx, "counter")
 
 OR to share the counter state and implement a **state-based design CvRDT**[^8] I did not go down this rabbit hole, but it might be interesting, one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** while the state based representation can tolerate partitions much more gracefully in the event of a network partition as long you can guarantee certain properties(associativity, commutativity, idempotence) and merge to resolve conflicts between replicas.
 
-Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow!
+Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) which include sharing json! but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs on the client! see [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow!
 
 ## 5. Kafka-Style Log
 It's a bird, it's a plane... it's tiny kafka! No, not  _[that kafka](https://en.wikipedia.org/wiki/Franz_Kafka)_.
-This one's what people use as a message bus, or broker, or messsage queue or event stream, [event sourcing](https://microservices.io/patterns/data/event-sourcing.html) all the words.
+This one's what people use as a message bus, or broker, or messsage queue or event stream, [event sourcing](https://microservices.io/patterns/data/event-sourcing.html) all the words, as it turns out stream processing is a big deal and super important infra[^14]
 
 > Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications.
 
@@ -363,7 +364,7 @@ This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives
 
 ![streams and tables](https://kafka.apache.org/images/streams-and-tables-p1_p4.png)
 
-We're interested in one neat thing about how it provides a _durable replicated log._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
+We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
 
 In the publisher/subcriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker (durably or transiently) and when the consumer ACKs this message it is typically destroyed/removed [^9]. 
 
@@ -373,9 +374,13 @@ In the publisher/subcriber model of protocols like [AMQP](https://www.rabbitmq.c
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
 
-This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/).
-
+This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later, we need to handle four
+new handlers:
 ```go
+	n.Handle("send", s.sendHandler)
+	n.Handle("poll", s.pollHandler)
+	n.Handle("commit_offsets", s.commitHandler)
+	n.Handle("list_committed_offsets", s.listCommitHandler)
 ```
 
 ## 6. Totally-Available Transactions
@@ -401,10 +406,9 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^6]: https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf
 [^7]: https://highscalability.com/gossip-protocol-explained/
 [^8]: https://www.cs.utexas.edu/~rossbach/cs380p/papers/Counters.html
-[^9]: At least historically, rabbitMQ has streams which is basically a [replicated commit log](https://www.rabbitmq.com/docs/streams)
+[^9]: https://www.rabbitmq.com/docs/confirms#acknowledgement-modes
 [^10]: https://github.com/hashicorp/memberlist
-
-## maybe reference
-- https://mesos.apache.org/documentation/latest/replicated-log-internals/
-- https://en.wikipedia.org/wiki/State_machine_replication
-- https://blog.x.com/engineering/en_us/topics/infrastructure/2015/building-distributedlog-twitter-s-high-performance-replicated-log-servic
+[^11]: https://mesos.apache.org/documentation/latest/replicated-log-internals/
+[^12]: https://en.wikipedia.org/wiki/State_machine_replication
+[^13]: https://blog.x.com/engineering/en_us/topics/infrastructure/2015/building-distributedlog-twitter-s-high-performance-replicated-log-servic
+[^14]: http://dist-prog-book.com/chapter/9/streaming.html
