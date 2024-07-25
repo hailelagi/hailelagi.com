@@ -1,7 +1,7 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: false
+draft: true
 tags: go, distributed-systems
 ---
 
@@ -368,8 +368,7 @@ We're interested in one neat thing about how it provides a _durable replicated l
 
 In the publisher/subcriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker (durably or transiently) and when the consumer ACKs this message it is typically destroyed/removed [^9]. 
 
-
-. However Kafka is a _log based message broker_.
+However Kafka is a _**log based** message broker_ not a queue.
 
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
