@@ -1,11 +1,11 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: true
+draft: false
 tags: go, distributed-systems
 ---
 
-I ~~am solving~~ solved the [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
+I am solving [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
 
 The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq) and of course:
 
@@ -356,7 +356,7 @@ There are roughly two approaches here:
 
 Roughly, sharing only the "delta" or current update ie `add 1` to the current global count is indicative of an **operation-based design** contrasted with sharing the entire the count state a **state-based design**[^8], one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** while the state based representation can tolerate partitions much more gracefully but requires more data over the wire, either way: as long you can guarantee certain properties(associativity, commutativity, idempotence) it's possibly to resolve conflicts between replicas given certain constraints.
 
-Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) which includes sharing [JSON!](https://electric-sql.com/blog/2022/05/03/introducing-rich-crdts) but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs and [figma](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/) are: [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow! Ever wondered how discord's "online" feature works? it's CRDTs all the way down, you can [trivially experiment with implementing this in phoenix!](https://hexdocs.pm/phoenix/Phoenix.Presence.html#module-fetching-presence-information).
+Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) which includes [tree models that mirror the DOM](https://madebyevan.com/algos/crdt-mutable-tree-hierarchy/) and sharing [JSON!](https://electric-sql.com/blog/2022/05/03/introducing-rich-crdts) but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs and [figma](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/) are: [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow! Ever wondered how discord's "online" feature works? it's CRDTs all the way down, you can [trivially experiment with implementing this in phoenix!](https://hexdocs.pm/phoenix/Phoenix.Presence.html#module-fetching-presence-information)
 
 
 ## 5. Kafka-Style Log
@@ -391,6 +391,12 @@ new handlers:
 
 ```go
 ```
+
+## 7. [BONUS] - Raft
+
+This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setuping up all the networking stuff?
+
+raft refresher consensus deep dive etc
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
