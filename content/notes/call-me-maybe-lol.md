@@ -1,7 +1,7 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: false
+draft: true
 tags: go, distributed-systems
 ---
 
@@ -336,25 +336,57 @@ because it's _commutative_ , there's no contradiction that affects the final res
 eventually consistent ヽ(‘ー`)ノ
   +2       +2        +2
 (node a) (node b) (node C)
+Total count = 6
 ```
 
-We're given a [sequentially consistent](https://jepsen.io/consistency/models/sequential) key-value store service and can use this to keep track of the current count, each increment is called a `delta`:
+We're given a [sequentially consistent](https://jepsen.io/consistency/models/sequential) key-value store service and can use this to keep track of the current count on each node, each increment is called a `delta`, this **greatly** simplifies the problem:
 
 ```go
-// addOperation
+deadline := time.Now().Add(400*time.Millisecond)
 delta := int(body["delta"].(float64))
-previous, _ := s.kv.Read(ctx, "counter")
-s.kv.CompareAndSwap(ctx, "counter", previous, result, true)
+ctx, cancel := context.WithDeadline(context.Background(), deadline)
+defer cancel()
 
-// readOperation
-count, _ := s.kv.ReadInt(ctx, "counter")
+previous, err := s.kv.Read(ctx, fmt.Sprint("counter-", s.node.ID()))
+
+if err != nil {
+	result = delta
+} else {
+	result = previous.(int) + delta
+}
+
+err = s.kv.CompareAndSwap(ctx, fmt.Sprint("counter-", s.node.ID()), previous, result, true)
 ```
 
-There are roughly two approaches here:
+and to return the current total count:
+```go
+  for _, n := range s.node.NodeIDs() {
+	  count, _ := s.kv.ReadInt(ctx, fmt.Sprint("counter-", n))
+
+	  result = result + count
+}
+```
+
+However, say that we don't have a magical `SeqCst` store somewhere to pull out of our pocket for co-ordination of state, there are two approaches in theory:
 - operation transform
 - state transform
 
-Roughly, sharing only the "delta" or current update ie `add 1` to the current global count is indicative of an **operation-based design** contrasted with sharing the entire the count state a **state-based design**[^8], one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** while the state based representation can tolerate partitions much more gracefully but requires more data over the wire, either way: as long you can guarantee certain properties(associativity, commutativity, idempotence) it's possibly to resolve conflicts between replicas given certain constraints.
+Roughly, sharing only the "delta" or current update ie `add 1` to the current global count is indicative of an **operation-based design** contrasted with sharing the entire the count state a **state-based design**[^8], for an integer this difference might seem trivial but it has deeper implications for more complex data structures, one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** with idempotence/de-duplication, retry ordering and "reasonable" time delivery semantics, which means if you're unlucky... state could diverge permanently, while the state based representation can tolerate partitions slightly more gracefully but requires more data over the wire, which later gets "merged", either way -- as long you can guarantee certain properties(associativity, commutativity, idempotence) it's possibly to resolve conflicts between replicas given certain constraints. All we need is an extra "replicate" handler which leverages the previous broadcast from before to [propagate the delta 'operationally'](https://github.com/hailelagi/gossip-glomers/blob/main/maelstrom-g-counter/operation_crdt.go) which often converges correctly but sometimes doesn't? maybe I'm doing it wrong idk.
+
+```go
+func (s *session) replicateHandler(msg maelstrom.Message) error {
+	var body map[string]any
+	if err := json.Unmarshal(msg.Body, &body); err != nil {
+		return err
+	}
+
+	delta := int(body["delta"].(float64))
+	localCount += delta
+
+	return s.node.Reply(msg, map[string]any{"type": "replicate_ok"})
+}
+```
+
 
 Other varieties exist like `PN Counters` which support subtraction/decrements, the G-Set -- a set and [much richer primitives](https://crdt.tech/papers.html) which includes [tree models that mirror the DOM](https://madebyevan.com/algos/crdt-mutable-tree-hierarchy/) and sharing [JSON!](https://electric-sql.com/blog/2022/05/03/introducing-rich-crdts) but that's enough for now. Libraries that abstract this away and allow you build super cool collaborative multiplayer stuff like google docs and [figma](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/) are: [YJS](https://docs.yjs.dev/yjs-in-the-wild) or [automerge](https://automerge.org/) and elixir/phoenix's very own [Presence](https://hexdocs.pm/phoenix/Phoenix.Presence.html) on the server side which implements the [Phoenix.Tracker](https://hexdocs.pm/phoenix_pubsub/2.1.3/Phoenix.Tracker.html) integrated with websockets and async processes so you can just build stuff, much wow! Ever wondered how discord's "online" feature works? it's CRDTs all the way down, you can [trivially experiment with implementing this in phoenix!](https://hexdocs.pm/phoenix/Phoenix.Presence.html#module-fetching-presence-information)
 
