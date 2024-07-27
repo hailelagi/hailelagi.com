@@ -466,12 +466,84 @@ and there you have it, tiny kafka! now all anyone has to do to build on this kno
 
 ## 6. Totally-Available Transactions
 
+Apparently the last one, the big bad scary problem(for me anyway?) a distributed key-value store with transactions. 
+I promised we would revist kafka's transactions, here we are! How hard could it be? Thankfully it's nothing too crazy -- kinda.
+
+Transactions are a deep topic but first ACID, specifically the 'C' in there consistency. Before a bunch of theory what's our goal here?
+
+- weak consistency
+- total availability
+
+Hmmm... fancy distributed systems words, what could it all mean? anyway let's focus on understanding the **requirements** as we go,
+we need to define a handler that takes a single message/data structure with list of `operations` that look like:
+
+ `[["r", 1, null], ["w", 1, 6], ["w", 2, 9]]`.
+
+which means our handler needs to:
+- read from kv[1]
+- write to kv[1]=6
+- write to kv[2]=9
+
+easy peasy lemon squeezy, we can re-use the `store` from our broadcast, no need for anything fancy:
+
 ```go
+
+func (s *session) transactionHandler(msg maelstrom.Message) error {
+	var body map[string]any
+	if err := json.Unmarshal(msg.Body, &body); err != nil {
+		return err
+	}
+
+	kv := s.kv
+	kv.Lock()
+	defer kv.Unlock()
+
+	txn := body["txn"].([]any)
+	var result = make([][]any, 0)
+
+	for _, op := range txn {
+		op := op.([]any)
+
+		if op[0] == "r" {
+			index := op[1].(float64)
+
+			result = append(result, []any{"r", index, kv.log[int(index)]})
+		} else if op[0] == "w" {
+			index := op[1].(float64)
+			value := op[2].(float64)
+			kv.log[int(index)] = value
+
+			result = append(result, []any{"w", index, kv.log[int(index)]})
+		}
+	}
+
+	body["txn"] = result
+	body["type"] = "txn_ok"
+	return s.node.Reply(msg, body)
+}
 ```
+
+well, that's that, we spin up more nodes, induce network partitions and try out empirically our first consistency model `read uncommitted`:
+
+```
+Everything looks good! ヽ(‘ー`)ノ
+```
+
+huh -- that was easy? nothing changed? what's all the fuss about these SQL anomalies and stuff? dirty writes? phantom skews?
+maybe distributed storage engines/kv stores are easier than all these smart folks led on.
+
+> Read uncommitted is a consistency model which prohibits dirty writes, where two transactions modify the same object concurrently before committing. In the ANSI SQL specification, read uncommitted is presumed to be the default
+
+but of course there's no free lunch, not really.
+
+> The ANSI SQL 1999 spec places essentially no constraints on the behavior of read uncommitted. Any and all weird behavior is fair game.
+- https://jepsen.io/consistency/models/read-uncommitted
+
+There are bugs here, just depends on who's definition you like.
 
 ## 7. [BONUS] - Raft
 
-This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setuping up all the networking stuff?
+This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setting up all the networking and test stuff?
 
 raft refresher consensus deep dive etc
 
