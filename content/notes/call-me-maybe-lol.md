@@ -541,11 +541,16 @@ but of course there's no free lunch, not really.
 
 There are bugs here, just depends on who's definition you like.
 
-## 7. [BONUS] - Raft
+## 7. [BONUS ROUND] - Raft
 
-This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setting up all the networking and test stuff?
+This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setting up all the networking and test stuff? We just saw a `read-committed` distributed key value store, that's neat. 
 
-raft refresher consensus deep dive etc
+It would be best if you have seen: https://thesecretlivesofdata.com/raft/
+
+Or played with the visualisation here: https://raft.github.io/
+
+We want stronger guarantees! -- we want a distributed, linearizable key-value store using the Raft consensus algorithm. Kinda like etcd but bad :)
+
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
