@@ -1,7 +1,7 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: false
+draft: true
 tags: go, distributed-systems
 ---
 
@@ -458,6 +458,10 @@ n.Handle("commit_offsets", s.commitHandler)
 ```go
 n.Handle("list_committed_offsets", s.listCommitHandler)
 ```
+
+and there you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
+
+![unfinished horse](https://i.kym-cdn.com/entries/icons/original/000/031/680/unfinished_horse.jpg)
 
 
 ## 6. Totally-Available Transactions
