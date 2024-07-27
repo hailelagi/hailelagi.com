@@ -1,7 +1,7 @@
 ---
 title: "Call Me Maybe?"
 date: 2024-06-23T23:16:51+01:00
-draft: true
+draft: false
 tags: go, distributed-systems
 ---
 
@@ -397,27 +397,68 @@ This one's what people use as a message bus, or broker, or messsage queue or eve
 
 > Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications.
 
-This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives an overview of kafka at a high level:
+In a nutshell this is [multi-producer, multi-consumer problem](https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem), a [classic computer science/OS concurency problem](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf) aka the "bounded buffer" problem, with _a twist_.
+
+You have 'producer' or writer threads, and 'consumer' threads which process or transform the written data, how to connect the two? -- a shared buffer or 'queue' that both threads can access and synchronize r/w access to.
+
+ go's channel abstraction solves a subset of this generalised problem, yet, here as hinted we have a unique distributed systems key difference in assumptions:
+ 
+ 1. when you read from a channel, this "event" is dequeued or destroyed.
+ 2. It's **guaranteed** this destructive r/w will happen or it won't, **exactly once**.
+ 3. There's effectively a **reliable link** between the producing go routine and the consuming go routine, it's just a pointer hop away.
+
+In the publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker (durably or transiently) which in turn actively fowards the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
+
+However Kafka is a _**log based** message broker_ not a queue.
+
+What's the difference?
+
+This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives an overview at a high level:
 
 ![streams and tables](https://kafka.apache.org/images/streams-and-tables-p1_p4.png)
 
-We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
+In between producers and consumers is a broker, inside said "broker" server, we have the concept of "topics" basically a bounded buffer,
+and partitions in the image: (P1, P2, P3, P4) -- in the spirit of divide and conquer we split up the big problem into little one's, so we can process those individually.
+ 
+```
+Producer ->            |                           |  <- consumer
+Producer -> 'push'     | topics are partitioned    | 'pull' consumer(s)
+Producer -> to topic   | over buckets or segments  |  <- consumer
+```
 
-In the publisher/subcriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker (durably or transiently) and when the consumer ACKs this message it is typically destroyed/removed [^9]. 
-
-However Kafka is a _**log based** message broker_ not a queue.
+However there's a big problem -- this is a distributed system, how do these "bounded buffers" share the same view?
 
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
 
-This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later, we need to handle four
-new handlers:
+We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
+
+This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later.
+
+Hopefully that explains _why_ a replicated log, partitions need to have a consistent view, now we can dig into **what** we need to create tiny kafka:
+
+we need some new handlers to handle these semantics:
+
+- a producer can send an "event" or message 
 ```go
-	n.Handle("send", s.sendHandler)
-	n.Handle("poll", s.pollHandler)
-	n.Handle("commit_offsets", s.commitHandler)
-	n.Handle("list_committed_offsets", s.listCommitHandler)
+n.Handle("send", s.sendHandler)
 ```
+
+-  a consumer can ask or poll for new events:
+```go
+n.Handle("poll", s.pollHandler)
+```
+
+- a write of a 'view' of the log:
+```go
+n.Handle("commit_offsets", s.commitHandler)
+```
+
+- an read of a 'view' of the log:
+```go
+n.Handle("list_committed_offsets", s.listCommitHandler)
+```
+
 
 ## 6. Totally-Available Transactions
 
