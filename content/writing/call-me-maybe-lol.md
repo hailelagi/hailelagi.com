@@ -5,11 +5,16 @@ draft: true
 tags: go, distributed-systems
 ---
 
-I am solving [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
+{{% callout color="#ffd700" %}}
+  This is a very dense summary of a diverse number of topics, it walks through several distributed systems primitives from <b>first principles</b> and provides a context to mentally index references, which are the most valuable resource -- cup of coffee recommended!
+{{% /callout %}}
+
+I ~~am solving~~ [solved](https://github.com/hailelagi/gossip-glomers) the [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
 
 The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq) and of course:
 
 {{< spotify type="track" id="20I6sIOMTCkB6w7ryavxtO" >}}
+
 
 ## 1. echo
 saying hello world! but distributed systems style, it's mostly boilerplate setup, 
@@ -392,22 +397,28 @@ Other varieties exist like `PN Counters` which support subtraction/decrements, t
 
 
 ## 5. Kafka-Style Log
+> As Gregor Samsa awoke one morning from uneasy dreams he found himself transformed in his bed into a gigantic insect.
+> - Clark Kent, probably
+
 It's a bird, it's a plane... it's tiny kafka! No, not  _[that kafka](https://en.wikipedia.org/wiki/Franz_Kafka)_.
 This one's what people use as a message bus, or broker, or messsage queue or event stream, [event sourcing](https://microservices.io/patterns/data/event-sourcing.html) all the words, as it turns out stream processing is a big deal and super important infra[^14]
 
 > Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance data pipelines, streaming analytics, data integration, and mission-critical applications.
 
-In a nutshell this is [multi-producer, multi-consumer problem](https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem), a [classic computer science/OS concurency problem](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf) aka the "bounded buffer" problem, with _a twist_.
+In a nutshell this is a [multi-producer, multi-consumer problem](https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem), a [classic computer science/OS concurency problem](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf) aka the "bounded buffer" problem, with _a twist_.
 
 You have 'producer' or writer threads, and 'consumer' threads which process or transform the written data, how to connect the two? -- a shared buffer or 'queue' that both threads can access and synchronize r/w access to.
 
- go's channel abstraction solves a subset of this generalised problem, yet, here as hinted we have a unique distributed systems key difference in assumptions:
+ go's channel abstraction solves a subset of this generalised problem, yet, here as hinted we have key differences in assumptions for distributed systems:
  
  1. when you read from a channel, this "event" is dequeued or destroyed.
  2. It's **guaranteed** this destructive r/w will happen or it won't, **exactly once**.
  3. There's effectively a **reliable link** between the producing go routine and the consuming go routine, it's just a pointer hop away.
+ 4. goroutines may panic or fail and be observed to do so immediately, transparently and consistently according to the [runtime memory model](https://go.dev/ref/mem)
 
-In the publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker (durably or transiently) which in turn actively fowards the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
+In distributed systems none of this makes sense, except the first.
+
+In the classic publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker queue (durably or transiently) which in turn actively fowards the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
 
 However Kafka is a _**log based** message broker_ not a queue.
 
@@ -428,14 +439,47 @@ Producer -> to topic   | over buckets or segments  |  <- consumer
 
 However there's a big problem -- this is a distributed system, how do these "bounded buffers" share the same view?
 
+>  we need to ensure that every replica of the log **eventually** contains the
+same entries in **the same order** even when some servers **fail** [^16]
+
+We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.[^17]
+
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
 
-We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.
-
 This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later.
 
-Hopefully that explains _why_ a replicated log, partitions need to have a consistent view, now we can dig into **what** we need to create tiny kafka:
+> Kafka organizes messages as a partitioned write-ahead commit log
+on persistent storage and provides a pull-based messaging
+abstraction to allow both real-time subscribers such as online services and offline subscribers such as Hadoop and data
+warehouse to read these messages at arbitrary pace. [^16]
+
+Hopefully that explains _why_ a replicated log[^16] [^17], partitions need to have a consistent view, now we can dig into **what** we need to create tiny kafka:
+
+The paper discusses two general replication approaches:
+1. primary-backup replication 
+2. and quorum-based replication
+
+Kafka has historically shippped quorums via zookeeper's consensus layer, but has recently provided [raft as an alternative layer](https://developer.confluent.io/learn/kraft/). Note how the abstractions are layered:
+
+> We rely on the quorum-based Apache Zookeeper service for making
+consensus decisions such as leader election and storing critical partition metadata such as replica lists, while using a
+primary-backup approach for replicating logs from leader to
+followers. The log format is much simpler with such separation since it does not need to maintain any leader election
+related information, and the replication factor for the log
+is decoupled from the number of parties required for the
+quorum to proceed
+
+Which raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. Competitors like redpanda [ship raft](https://docs.redpanda.com/current/get-started/architecture/#raft-consensus-algorithm) while warpstream does interesting things with [distributed mmap](https://www.warpstream.com/blog/minimizing-s3-api-costs-with-distributed-mmap) and stateless agents, a different can of worms.
+
+The challenge is thankfully much simpler -- than having to implement distributed mmap or pulling in something like zookeeper or raft, we have yet again a magical convenient linearizable key value store, damn that's a nice primitive to have lying around.
+
+```go
+node := maelstrom.NewNode()
+kv := maelstrom.NewLinKV(node)
+```
+
+A lin-kv is really all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the conceptual problem of ordering and consistency across nodes, which [Ra](https://github.com/rabbitmq/ra) totally could do.
 
 we need some new handlers to handle these semantics:
 
@@ -459,7 +503,7 @@ n.Handle("commit_offsets", s.commitHandler)
 n.Handle("list_committed_offsets", s.listCommitHandler)
 ```
 
-and there you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
+Because this is a toy, the log grows forever, that's not okay  -- compaction is it's own can of worms. There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
 ![unfinished horse](https://i.kym-cdn.com/entries/icons/original/000/031/680/unfinished_horse.jpg)
 
@@ -577,3 +621,5 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^13]: https://blog.x.com/engineering/en_us/topics/infrastructure/2015/building-distributedlog-twitter-s-high-performance-replicated-log-servic
 [^14]: http://dist-prog-book.com/chapter/9/streaming.html
 [^15]: https://inria.hal.science/inria-00555588/document
+[^16]: https://www.vldb.org/pvldb/vol8/p1654-wang.pdf
+[^17]: https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying
