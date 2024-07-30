@@ -15,8 +15,9 @@ The title of this post is inspired by [kyle kingsbury' series of articles like t
 
 {{< spotify type="track" id="20I6sIOMTCkB6w7ryavxtO" >}}
 
+{{< toc >}}
 
-## 1. echo
+## 1. Echo
 saying hello world! but distributed systems style, it's mostly boilerplate setup, 
 reading the maelstrom docs and the go client docs, we instantiate a maelstrom node/binary, define an RPC style handler and return messages:
 
@@ -48,7 +49,7 @@ func main() {
 ```
 
 
-## 2. Unique ID Generation (What time is it?)
+## 2. Unique ID Generation
 
 In a single node/computer, generation of unique ids is typically achieved using a growing monontonic sequence such as a counter or the system clock.
 
@@ -311,7 +312,7 @@ a ++ b ++ c ++ d ++ e ++ f
 or "ring" like riak[^5], you loop back around and can pass even fewer messages/duplicates but risk greater latency.
 
 
-## 4. Grow-Only Counter/G-Counter
+## 4. Grow-Only Counter
 
 Next up is strong eventual consistency with Conflict Free Replicated Data Types! [^15] These allow us to replicate some data say a `count` of an integer `i32` across nodes by being **available and partition tolerant** guaranteeing that at some unknown point in the future, it converges to the same state for every participant, given certain properties are pure, in the functional programming sense ie -- lack side effects like say "addition" of integers and the order in which this operation(s) is carried out doesn't affect the total result, also known as -- commutativity:
 
@@ -585,7 +586,7 @@ but of course there's no free lunch, not really.
 
 There are bugs here, just depends on who's definition you like.
 
-## 7. [BONUS ROUND] - Raft
+## 7. Raft
 
 This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setting up all the networking and test stuff? We just saw a `read-committed` distributed key value store, that's neat. 
 

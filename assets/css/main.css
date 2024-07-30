@@ -175,8 +175,6 @@ main#content #recommend {
 }
 
 main#content #toc {
-    border: 1px solid #b1b1b1;
-    border-radius: 1px;
     line-height: 26px;
     margin: 16px 0;
     padding: 9px 14px;
@@ -190,7 +188,15 @@ main#content #toc h4 {
 
 main#content #toc nav#TableOfContents {
     margin-top: 4px;
+    border-radius: 5px;
+    padding: 1em;
 }
+
+main#content #toc nav#TableOfContents a {
+    color: #a89a8d;
+    text-decoration: none;
+}
+
 
 main#content #toc nav#TableOfContents > ul, main#content #toc nav#TableOfContents > ol {
     margin-left: -40px;
