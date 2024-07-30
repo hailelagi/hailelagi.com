@@ -9,7 +9,7 @@ html {
 body {
     font-size: 1.6rem;
     font-family: 'Helvetica Neue', 'Arial', sans-serif;
-    background-color:  #fcfce8;
+    background-color: #fcfce8;
     color: #313a3d;
     width: 100%;
     margin: 0 auto;
@@ -64,7 +64,7 @@ header#banner nav ul li a {
 }
 
 main#content a {
-    color: #e77c1e;
+    color: #de6a04;
     text-decoration: none;
 }
 
@@ -101,6 +101,10 @@ main#content p {
     margin: 16px 0;
 }
 
+main#content a {
+    text-decoration: underline;
+}
+
 main#content hr {
     height: 1px;
     border: 0;
@@ -118,6 +122,7 @@ main#content ul#posts {
 
 main#content ul#posts li {
     display: flex;
+    flex-flow: column;
     margin: 5px 0;
     padding: 0;
 }
@@ -143,6 +148,7 @@ main#content ul#posts li a {
 
 main#content ul#posts li a:hover {
     color: #369aff;
+    text-decoration: underline;
 }
 
 main#content ul#posts li a:hover small {
@@ -321,9 +327,9 @@ footer#footer #sign-key {
 
 #badge {
     margin-left: 5px;
-    background-color: #ffffe3;
+    background-color: #fcfce8;
     border-radius: 8px;
-    color: #e77c1e;
+    color: #a89a8d;
     font-size: 80%;
     height: 10%;
 }

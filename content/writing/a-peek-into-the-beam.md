@@ -2,7 +2,7 @@
 title: "A Peek Into the Beam"
 date: 2022-03-29T08:16:09+01:00
 draft: false
-tags: go, python, elixir, erlang, scheduler, concurrency
+tags: elixir, scheduler, concurrency
 recommend: true
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: "It's legos all the way down"
 date: 2023-02-17T04:59:26+01:00
+tags: elixir, rust, metaprogramming
 draft: false
 ---
 

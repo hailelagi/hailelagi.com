@@ -11,8 +11,11 @@
             {{ if .Params.recommend }}
                 <span id="recommend">⭐</span>
             {{- end }}
-            <div id="magic-box-i-am-bad-at-css"><small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small></div>
+            <div id="magic-box-i-am-bad-at-css">
+              <small><time>{{ .Date.Format "Jan 2, 2006" }}</time></small>
+            </div>
         </a>
+        <span id="badge"> {{ .Params.tags }} </span>
     </li>
     {{- end }}
   {{- end }}
