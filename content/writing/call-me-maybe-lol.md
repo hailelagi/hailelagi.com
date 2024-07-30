@@ -448,14 +448,20 @@ We're interested in one neat thing about how it provides a _durable replicated l
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
 
-This log is an immutable grow only log of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later.
+This log is a totally ordered, immutable grow only sequence of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later.
 
 > Kafka organizes messages as a partitioned write-ahead commit log
 on persistent storage and provides a pull-based messaging
 abstraction to allow both real-time subscribers such as online services and offline subscribers such as Hadoop and data
 warehouse to read these messages at arbitrary pace. [^16]
 
-Hopefully that explains _why_ a replicated log[^16] [^17], partitions need to have a consistent view, now we can dig into **what** we need to create tiny kafka:
+Hopefully this is explains _why_ a replicated log[^16] [^17], partitions need to have a consistently ordered view, yet how exactly does a log give us these properties? some observations:
+
+1. a position/offset is a "timestamp" independent of a system clock
+2. reading state from a position is a deterministic process
+3. order allows us to do binary search!
+
+ now we can dig into **what** we need to create tiny kafka:
 
 The paper discusses two general replication approaches:
 1. primary-backup replication 
@@ -473,14 +479,14 @@ quorum to proceed
 
 Which raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. Competitors like redpanda [ship raft](https://docs.redpanda.com/current/get-started/architecture/#raft-consensus-algorithm) while warpstream does interesting things with [distributed mmap](https://www.warpstream.com/blog/minimizing-s3-api-costs-with-distributed-mmap) and stateless agents, a different can of worms.
 
-The challenge is thankfully much simpler -- than having to implement distributed mmap or pulling in something like zookeeper or raft, we have yet again a magical convenient linearizable key value store, damn that's a nice primitive to have lying around.
+The challenge is thankfully much simpler -- than having to implement distributed mmap or pulling in something like zookeeper or raft, we have yet again a magical convenient linearizable key value store, damn that's a nice primitive to have lying around. Why?
 
 ```go
 node := maelstrom.NewNode()
 kv := maelstrom.NewLinKV(node)
 ```
 
-A lin-kv is really all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the conceptual problem of ordering and consistency across nodes, which [Ra](https://github.com/rabbitmq/ra) totally could do.
+A lin-kv is really all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the conceptually difficult distributed systems problems of **ordering** and **agreement** across nodes, which [Ra](https://github.com/rabbitmq/ra) totally could do.
 
 we need some new handlers to handle these semantics:
 

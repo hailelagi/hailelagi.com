@@ -10,7 +10,7 @@ pygmentsCodeFences = true
   name =  "Haile Lagi"
   dark = "off"
   highlight = true
-  mainSections = ['writing', 'personal', 'hacks']
+  mainSections = ['writing', 'personal']
 
 [markup]
   defaultMarkdownHandler = 'goldmark'
