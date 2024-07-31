@@ -399,7 +399,6 @@ Other varieties exist like `PN Counters` which support subtraction/decrements, t
 
 ## 5. Kafka-Style Log
 > As Gregor Samsa awoke one morning from uneasy dreams he found himself transformed in his bed into a gigantic insect.
-> - Clark Kent, probably
 
 It's a bird, it's a plane... it's tiny kafka! No, not  _[that kafka](https://en.wikipedia.org/wiki/Franz_Kafka)_.
 This one's what people use as a message bus, or broker, or messsage queue or event stream, [event sourcing](https://microservices.io/patterns/data/event-sourcing.html) all the words, as it turns out stream processing is a big deal and super important infra[^14]
@@ -408,18 +407,28 @@ This one's what people use as a message bus, or broker, or messsage queue or eve
 
 In a nutshell this is a [multi-producer, multi-consumer problem](https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem), a [classic computer science/OS concurency problem](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf) aka the "bounded buffer" problem, with _a twist_.
 
-You have 'producer' or writer threads, and 'consumer' threads which process or transform the written data, how to connect the two? -- a shared buffer or 'queue' that both threads can access and synchronize r/w access to.
+You have 'producer' or writer threads, and 'consumer' threads which process or transform the written data, how to connect the two? -- a shared buffer or 'channel' that both threads can access and synchronize r/w access to.
 
- go's channel abstraction solves a subset of this generalised problem, yet, here as hinted we have key differences in assumptions for distributed systems:
+ go's channel abstraction solves a subset of this generalised problem, yet, here as hinted we have key differences in assumptions:
  
  1. when you read from a channel, this "event" is dequeued or destroyed.
  2. It's **guaranteed** this destructive r/w will happen or it won't, **exactly once**.
  3. There's effectively a **reliable link** between the producing go routine and the consuming go routine, it's just a pointer hop away.
  4. goroutines may panic or fail and be observed to do so immediately, transparently and consistently according to the [runtime memory model](https://go.dev/ref/mem)
+ 5. Everything happens in main-memory
 
-In distributed systems none of this makes sense, except the first.
+Each of these assumptions is void, except the first.
 
-In the classic publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes"/delivers messages to the broker queue (durably or transiently) which in turn actively fowards the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
+In the [classic](https://www.rabbitmq.com/docs/classic-queues) publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes" messages [over the wire](https://www.rabbitmq.com/docs/channels#basics) via a router known as an exchange to the broker which has an [index queue](https://github.com/rabbitmq/rabbitmq-server/blob/main/deps/rabbit/src/rabbit_classic_queue_index_v2.erl) and persistent/on-disk [store queue](https://github.com/rabbitmq/rabbitmq-server/blob/main/deps/rabbit/src/rabbit_classic_queue_store_v2.erl#L10) (durably or transiently) which in turn [actively fowards](https://www.rabbitmq.com/docs/consumers#subscribing) the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
+
+> The persistent data structure used in messaging systems are often a per-consumer queue with an associated BTree or other general-purpose random access data structures to maintain metadata about messages.
+- https://kafka.apache.org/documentation/#design_constanttime
+
+```
+Producer                |                |  broker --> |  consumer
+Producer -> 'push'      | <- exchange -> |  queue  --> |  consumer
+Producer   to exchange  |                |  queue  --> |  consumer
+```
 
 However Kafka is a _**log based** message broker_ not a queue.
 
@@ -455,7 +464,7 @@ on persistent storage and provides a pull-based messaging
 abstraction to allow both real-time subscribers such as online services and offline subscribers such as Hadoop and data
 warehouse to read these messages at arbitrary pace. [^16]
 
-Hopefully this is explains _why_ a replicated log[^16] [^17], partitions need to have a consistently ordered view, yet how exactly does a log give us these properties? some observations:
+Hopefully this explains _why_ a replicated log[^16] [^17], partitions need to have a consistently ordered view, yet how exactly does a log give us these properties? some observations:
 
 1. a position/offset is a "timestamp" independent of a system clock
 2. reading state from a position is a deterministic process
@@ -467,7 +476,7 @@ The paper discusses two general replication approaches:
 1. primary-backup replication 
 2. and quorum-based replication
 
-Kafka has historically shippped quorums via zookeeper's consensus layer, but has recently provided [raft as an alternative layer](https://developer.confluent.io/learn/kraft/). Note how the abstractions are layered:
+Kafka has historically shippped quorums via a zookeeper/ZAB layer, but has recently provided [raft as an alternative](https://developer.confluent.io/learn/kraft/). Note how the abstractions are layered:
 
 > We rely on the quorum-based Apache Zookeeper service for making
 consensus decisions such as leader election and storing critical partition metadata such as replica lists, while using a
@@ -477,7 +486,11 @@ related information, and the replication factor for the log
 is decoupled from the number of parties required for the
 quorum to proceed
 
-Which raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. Competitors like redpanda [ship raft](https://docs.redpanda.com/current/get-started/architecture/#raft-consensus-algorithm) while warpstream does interesting things with [distributed mmap](https://www.warpstream.com/blog/minimizing-s3-api-costs-with-distributed-mmap) and stateless agents, a different can of worms.
+Which raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. 
+
+> All data is immediately written to a persistent log on the filesystem without necessarily flushing to disk. In effect this just means that it is transferred into the kernel's pagecache.
+
+Competitors like redpanda [ship raft](https://docs.redpanda.com/current/get-started/architecture/#raft-consensus-algorithm) while warpstream does interesting things with [distributed mmap](https://www.warpstream.com/blog/minimizing-s3-api-costs-with-distributed-mmap) and stateless agents, a different can of worms.
 
 The challenge is thankfully much simpler -- than having to implement distributed mmap or pulling in something like zookeeper or raft, we have yet again a magical convenient linearizable key value store, damn that's a nice primitive to have lying around. Why?
 
@@ -600,12 +613,12 @@ It would be best if you have seen: https://thesecretlivesofdata.com/raft/
 
 Or played with the visualisation here: https://raft.github.io/
 
-We want stronger guarantees! -- we want a distributed, linearizable key-value store using the Raft consensus algorithm. Kinda like etcd but bad :)
+We want stronger guarantees! -- we want a distributed, linearizable key-value store using the Raft consensus algorithm -- Remember our 'magical' key-value store service? what goes into building one? This is like etcd but bad :)
 
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
-and that's it! Distributed systems are hard! These concepts are supposed to be _basics_ from which we compose and build higher level abstractions like libraries, tools and applications. Scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/), do not self inflict unecessarily.
+and that's it! Distributed systems are hard! These concepts are supposed to be _basics_ from which we compose and build higher level abstractions like libraries, tools and applications. Scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/), do not self inflict unnecessarily.
  
 {{% callout color="#ffd700" %}}
 If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting!
