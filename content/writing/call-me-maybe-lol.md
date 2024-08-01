@@ -486,9 +486,10 @@ related information, and the replication factor for the log
 is decoupled from the number of parties required for the
 quorum to proceed
 
-Which raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. 
+Which apparently raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. 
 
 > All data is immediately written to a persistent log on the filesystem without necessarily flushing to disk. In effect this just means that it is transferred into the kernel's pagecache.
+- https://kafka.apache.org/documentation/#design_filesystem
 
 Competitors like redpanda [ship raft](https://docs.redpanda.com/current/get-started/architecture/#raft-consensus-algorithm) while warpstream does interesting things with [distributed mmap](https://www.warpstream.com/blog/minimizing-s3-api-costs-with-distributed-mmap) and stateless agents, a different can of worms.
 
@@ -499,7 +500,11 @@ node := maelstrom.NewNode()
 kv := maelstrom.NewLinKV(node)
 ```
 
-A lin-kv is really all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the conceptually difficult distributed systems problems of **ordering** and **agreement** across nodes, which [Ra](https://github.com/rabbitmq/ra) totally could do.
+A `lin-kv` is ideally all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the difficult distributed systems problems of **ordering** and **agreement** across replicas when the leader dies.
+
+> Kafka dynamically maintains a set of in-sync replicas (ISR) that are caught-up to the leader. Only members of this set are eligible for election as leader. A write to a Kafka partition is not considered committed until all in-sync replicas have received the write
+
+In this much more simplistic model, a commit can simply block until a broadcast is fully replicated and the kv the source of truth.
 
 we need some new handlers to handle these semantics:
 
@@ -523,7 +528,7 @@ n.Handle("commit_offsets", s.commitHandler)
 n.Handle("list_committed_offsets", s.listCommitHandler)
 ```
 
-Because this is a toy, the log grows forever, that's not okay  -- compaction is it's own can of worms. There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
+Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
 ![unfinished horse](https://i.kym-cdn.com/entries/icons/original/000/031/680/unfinished_horse.jpg)
 
@@ -604,17 +609,6 @@ but of course there's no free lunch, not really.
 - https://jepsen.io/consistency/models/read-uncommitted
 
 There are bugs here, just depends on who's definition you like.
-
-## 7. Raft
-
-This one isn't strictly part of the challenges as presented, but it exists in maelstrom, and who doesn't want to build a tiny raft without the overhead of setting up all the networking and test stuff? We just saw a `read-committed` distributed key value store, that's neat. 
-
-It would be best if you have seen: https://thesecretlivesofdata.com/raft/
-
-Or played with the visualisation here: https://raft.github.io/
-
-We want stronger guarantees! -- we want a distributed, linearizable key-value store using the Raft consensus algorithm -- Remember our 'magical' key-value store service? what goes into building one? This is like etcd but bad :)
-
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
