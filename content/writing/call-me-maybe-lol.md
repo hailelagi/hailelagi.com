@@ -637,3 +637,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^15]: https://inria.hal.science/inria-00555588/document
 [^16]: https://www.vldb.org/pvldb/vol8/p1654-wang.pdf
 [^17]: https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying
+[^18]: https://www.cs.cornell.edu/fbs/publications/ibmFault.sm.pdf
