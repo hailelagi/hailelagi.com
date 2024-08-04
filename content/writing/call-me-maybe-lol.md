@@ -5,11 +5,7 @@ draft: true
 tags: go, distributed-systems
 ---
 
-{{% callout color="#ffd700" %}}
-  This is a very dense summary of a diverse number of topics, it walks through several distributed systems primitives from <b>first principles</b> and provides a context to mentally index references, which are the most valuable resource -- cup of coffee recommended!
-{{% /callout %}}
-
-I ~~am solving~~ [solved](https://github.com/hailelagi/gossip-glomers) the [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
+What I learned [solving](https://github.com/hailelagi/gossip-glomers) the [fly.io distributed systems challenges](https://www.fly.io/dist-sys).
 
 The title of this post is inspired by [kyle kingsbury' series of articles like this one](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul) and [this one](https://aphyr.com/posts/315-call-me-maybe-rabbitmq) and of course:
 
@@ -457,7 +453,7 @@ We're interested in one neat thing about how it provides a _durable replicated l
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
 
-This log is a totally ordered, immutable grow only sequence of "events" that is truncated, sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later.
+The log is a totally ordered, immutable grow only sequence of "events" [^18], sound familiar? this suspiciously sounds like a WAL -- and infact it is! Kafka [even has transactions??!](https://www.confluent.io/blog/transactions-apache-kafka/) but more on that later.
 
 > Kafka organizes messages as a partitioned write-ahead commit log
 on persistent storage and provides a pull-based messaging
@@ -467,8 +463,8 @@ warehouse to read these messages at arbitrary pace. [^16]
 Hopefully this explains _why_ a replicated log[^16] [^17], partitions need to have a consistently ordered view, yet how exactly does a log give us these properties? some observations:
 
 1. a position/offset is a "timestamp" independent of a system clock
-2. reading state from a position is a deterministic process
-3. order allows us to do binary search!
+2. reading state from this position is a **deterministic** process
+3. an offset is **monotonically increasing** -- fun with binary search!
 
  now we can dig into **what** we need to create tiny kafka:
 
@@ -506,31 +502,100 @@ A `lin-kv` is ideally all you need, wheter it's powered by raft or the [sun god 
 
 In this much more simplistic model, a commit can simply block until a broadcast is fully replicated and the kv the source of truth.
 
-we need some new handlers to handle these semantics:
+Abstracting away the messaging boilerplate the data structure is:
 
-- a producer can send an "event" or message 
 ```go
-n.Handle("send", s.sendHandler)
+
+type replicatedLog struct {
+	version map[string][]int
+	log     []entry
+
+	// partitioning comes later!
+	// pLocks  []*sync.RWMutex
+	global  sync.RWMutex
+}
+
+type entry struct {
+	key   string
+	value float64
+	offset int
+}
+```
+
+- a producer can send an "event" or message to the "log":
+```go
+// Append a k/v entry to the log and returns the last index offset
+func (l *replicatedLog) Append(key, value any) int {
+	event := entry{key: key.(string), value: value.(float64)}
+	index := l.index[key.(string)]
+
+	l.log = append(l.log, event)
+	offset := len(l.log) - 1
+	_ = append(index, offset)
+
+	return offset
+}
 ```
 
 -  a consumer can ask or poll for new events:
 ```go
-n.Handle("poll", s.pollHandler)
+// Read messages from a set of logs starting from the given offset in each log
+func (l *replicatedLog) Read(offsets map[string]any) map[string]any {
+	var result = make(map[string]any)
+
+	for key, offset := range offsets {
+		// find the offset where the versions of this key exists
+		result[key] = l.seek(key, int(offset.(float64)))
+	}
+
+	return result
+}
 ```
 
-- a write of a 'view' of the log:
+- a client can ask if the keys it has have been written:
 ```go
-n.Handle("commit_offsets", s.commitHandler)
+// HasCommitted Checks if the client and log are in sync
+func (l *replicatedLog) HasCommitted(offsets map[string]int) bool {
+	var IsCommitted bool
+
+	for key, offset := range offsets {
+		for _, k := range l.index[key] {
+			if k == offset {
+				IsCommitted = true
+			} else {
+				break
+			}
+		}
+	}
+
+	return IsCommitted
+}
 ```
 
-- an read of a 'view' of the log:
+- an client can read from the latest committed offset:
 ```go
-n.Handle("list_committed_offsets", s.listCommitHandler)
+// ListCommitted returns the last offset for a client
+func (l *replicatedLog) ListCommitted(keys []any) map[string]any {
+	var result = make(map[string]any)
+
+	for _, key := range keys {
+		key := key.(string)
+
+		if nil == l.index[key] {
+			continue
+		}
+
+		position := len(l.index[key]) - 1
+		result[key] = l.index[key][position]
+	}
+
+	return result
+}
 ```
 
 Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
-![unfinished horse](https://i.kym-cdn.com/entries/icons/original/000/031/680/unfinished_horse.jpg)
+![unfinished horse](/unfinished_horse.png)
 
 
 ## 6. Totally-Available Transactions
@@ -612,8 +677,8 @@ There are bugs here, just depends on who's definition you like.
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
-and that's it! Distributed systems are hard! These concepts are supposed to be _basics_ from which we compose and build higher level abstractions like libraries, tools and applications. Scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/), do not self inflict unnecessarily.
- 
+and that's it! Distributed systems are hard! These concepts are supposed to be _basics_ from which are composed and higher level abstractions like libraries, tools and applications. Scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/).
+
 {{% callout color="#ffd700" %}}
 If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting!
 {{% /callout %}}
@@ -638,3 +703,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^16]: https://www.vldb.org/pvldb/vol8/p1654-wang.pdf
 [^17]: https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying
 [^18]: https://www.cs.cornell.edu/fbs/publications/ibmFault.sm.pdf
+
