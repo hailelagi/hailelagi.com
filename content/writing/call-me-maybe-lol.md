@@ -373,8 +373,10 @@ However, say that we don't have a magical `SeqCst` store somewhere to pull out o
 - operation transform
 - state transform
 
-Roughly, sharing only the "delta" or current update ie `add 1` to the current global count is indicative of an **operation-based design** contrasted with sharing the entire the count state a **state-based design**[^8], for an integer this difference might seem trivial but it has deeper implications for more complex data structures, one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** with idempotence/de-duplication, retry ordering and "reasonable" time delivery semantics, which means if you're unlucky... state could diverge permanently, while the state based representation can tolerate partitions slightly more gracefully but requires more data over the wire, which later gets "merged", either way -- as long you can guarantee certain properties(associativity, commutativity, idempotence) it's possibly to resolve conflicts between replicas given certain constraints. All we need is an extra "replicate" handler which leverages the previous broadcast from before to [propagate the delta 'operationally'](https://github.com/hailelagi/gossip-glomers/blob/main/maelstrom-g-counter/operation_crdt.go) which often converges correctly but sometimes doesn't? maybe I'm doing it wrong idk.
+Roughly, sharing only the "delta" or current update ie `add 1` to the current global count is indicative of an **operation-based design** contrasted with sharing the entire the count state a **state-based design**[^8], for an integer this difference might seem trivial but it has deeper implications for more complex data structures, one of the big seeming disadvantages of an operation based representation is it requires **a reliable broadcast** with idempotence/de-duplication, retry ordering and "reasonable" time delivery semantics, which means if you're unlucky... state could diverge permanently, while the state based representation can tolerate partitions slightly more gracefully but requires more data over the wire which **monotonically increases**, which later gets "merged" and makes deletion more complex.
 
+In summary, as long you can guarantee certain properties(associativity, commutativity, idempotence) it's possibly to resolve conflicts between replicas given certain constraints. All we need is an extra "replicate" handler which leverages the previous broadcast from before to [propagate the delta 'operationally'](https://github.com/hailelagi/gossip-glomers/blob/main/maelstrom-g-counter/operation_crdt.go) which often converges correctly but sometimes doesn't? maybe I'm doing it wrong idk.
+ 
 ```go
 func (s *session) replicateHandler(msg maelstrom.Message) error {
 	var body map[string]any
@@ -466,9 +468,15 @@ Hopefully this explains _why_ a replicated log[^16] [^17], partitions need to ha
 2. reading state from this position is a **deterministic** process
 3. an offset is **monotonically increasing** -- fun with binary search!
 
- now we can dig into **what** we need to create tiny kafka:
+```
+(so many synonmyns!)
+entry/tuple/event/message: {key, value, offset}
+[{k1, hi, 0}, {k2, hello, 1}, {k2, world, 2}, {k1, foo, 3}, {k3, baz, 4}}]
+```
 
-The paper discusses two general replication approaches:
+Notice that keys can appear more than once and the latest entry for a key is its "current" value, each offset denotes a version of this event.
+
+To replicate this log, the paper discusses two general approaches:
 1. primary-backup replication 
 2. and quorum-based replication
 
@@ -505,13 +513,10 @@ In this much more simplistic model, a commit can simply block until a broadcast 
 Abstracting away the messaging boilerplate the data structure is:
 
 ```go
-
 type replicatedLog struct {
 	version map[string][]int
 	log     []entry
-
-	// partitioning comes later!
-	// pLocks  []*sync.RWMutex
+	pLocks  []*sync.RWMutex
 	global  sync.RWMutex
 }
 
@@ -522,16 +527,15 @@ type entry struct {
 }
 ```
 
-- a producer can send an "event" or message to the "log":
+- a producer can send an "event" or message to be appended:
 ```go
 // Append a k/v entry to the log and returns the last index offset
 func (l *replicatedLog) Append(key, value any) int {
-	event := entry{key: key.(string), value: value.(float64)}
-	index := l.index[key.(string)]
+	offset := len(l.log) + 1
 
+	event := entry{key: key.(string), value: value.(float64), offset: offset}
 	l.log = append(l.log, event)
-	offset := len(l.log) - 1
-	_ = append(index, offset)
+	l.version[key.(string)] = append(l.version[key.(string)], offset)
 
 	return offset
 }
@@ -540,11 +544,10 @@ func (l *replicatedLog) Append(key, value any) int {
 -  a consumer can ask or poll for new events:
 ```go
 // Read messages from a set of logs starting from the given offset in each log
-func (l *replicatedLog) Read(offsets map[string]any) map[string]any {
-	var result = make(map[string]any)
+func (l *replicatedLog) Read(offsets map[string]any) map[string][][]float64 {
+	var result = make(map[string][][]float64)
 
 	for key, offset := range offsets {
-		// find the offset where the versions of this key exists
 		result[key] = l.seek(key, int(offset.(float64)))
 	}
 
@@ -552,17 +555,17 @@ func (l *replicatedLog) Read(offsets map[string]any) map[string]any {
 }
 ```
 
-- a client can ask if the keys it has have been written:
+- a client can ask if the keys it has seen, have been acknowledged:
 ```go
-// HasCommitted Checks if the client and log are in sync
-func (l *replicatedLog) HasCommitted(offsets map[string]int) bool {
+func (l *replicatedLog) HasCommitted(offsets map[string]any) bool {
 	var IsCommitted bool
 
 	for key, offset := range offsets {
-		for _, k := range l.index[key] {
-			if k == offset {
+		for _, k := range l.version[key] {
+			if k == int(offset.(float64)) {
 				IsCommitted = true
 			} else {
+				IsCommitted = false
 				break
 			}
 		}
@@ -572,28 +575,28 @@ func (l *replicatedLog) HasCommitted(offsets map[string]int) bool {
 }
 ```
 
-- an client can read from the latest committed offset:
+- a client can read from the latest committed offset:
 ```go
-// ListCommitted returns the last offset for a client
 func (l *replicatedLog) ListCommitted(keys []any) map[string]any {
 	var result = make(map[string]any)
 
 	for _, key := range keys {
 		key := key.(string)
+		version := l.version[key]
 
-		if nil == l.index[key] {
+		if len(version) == 0 {
 			continue
 		}
 
-		position := len(l.index[key]) - 1
-		result[key] = l.index[key][position]
+		lastPosition := len(version) - 1
+		result[key] = version[lastPosition]
 	}
 
 	return result
 }
 ```
 
-Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
+Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation. There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
 ![unfinished horse](/unfinished_horse.png)
 
@@ -663,8 +666,7 @@ well, that's that, we spin up more nodes, induce network partitions and try out 
 Everything looks good! ヽ(‘ー`)ノ
 ```
 
-huh -- that was easy? nothing changed? what's all the fuss about these SQL anomalies and stuff? dirty writes? phantom skews?
-maybe distributed storage engines/kv stores are easier than all these smart folks led on.
+huh -- that was easy? nothing changed? what's all the fuss about these SQL anomalies and stuff? dirty writes? phantom skews? [^19]
 
 > Read uncommitted is a consistency model which prohibits dirty writes, where two transactions modify the same object concurrently before committing. In the ANSI SQL specification, read uncommitted is presumed to be the default
 
@@ -703,4 +705,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^16]: https://www.vldb.org/pvldb/vol8/p1654-wang.pdf
 [^17]: https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying
 [^18]: https://www.cs.cornell.edu/fbs/publications/ibmFault.sm.pdf
-
+[^19]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf
