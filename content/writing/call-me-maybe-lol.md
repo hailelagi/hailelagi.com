@@ -466,6 +466,7 @@ Hopefully this explains _why_ a replicated log[^16] [^17], partitions need to ha
 
 1. a position/offset is a "timestamp" independent of a system clock
 2. reading state from this position is a **deterministic** process
+3. write is simply an atomic `append`, to a cell that is "filled" or "not".
 3. an offset is **monotonically increasing** -- fun with binary search!
 
 ```
@@ -490,7 +491,8 @@ related information, and the replication factor for the log
 is decoupled from the number of parties required for the
 quorum to proceed
 
-Which apparently raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. 
+Which apparently raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. There's a common association between the WAL and durability, but this is not necessarily true.
+In this context, the WAL supports a pattern known as [change data capture](https://en.wikipedia.org/wiki/Change_data_capture).
 
 > All data is immediately written to a persistent log on the filesystem without necessarily flushing to disk. In effect this just means that it is transferred into the kernel's pagecache.
 - https://kafka.apache.org/documentation/#design_filesystem
@@ -603,15 +605,15 @@ Because this is a toy, the log grows forever, that's not okay  -- compaction is 
 
 ## 6. Totally-Available Transactions
 
-Apparently the last one, the big bad scary problem(for me anyway?) a distributed key-value store with transactions. 
-I promised we would revist kafka's transactions, here we are! How hard could it be? Thankfully it's nothing too crazy -- kinda.
+The scary problem(for me anyway?) a distributed key-value store with transactions. 
+I promised we would revist transactions, why and how kafka offers these semantics and demystifying transactions in general, here we are!
 
-Transactions are a deep topic but first ACID, specifically the 'C' in there consistency. Before a bunch of theory what's our goal here?
+Transactions are a deep topic but first ACID, we're interested in specifically the 'C' in there first - consistency. Before a bunch of theory what's our goal here?
 
 - weak consistency
 - total availability
 
-Hmmm... fancy distributed systems words, what could it all mean? anyway let's focus on understanding the **requirements** as we go,
+We'll revisit why these semantics matter. Let's focus on understanding the **requirements** as we go,
 we need to define a handler that takes a single message/data structure with list of `operations` that look like:
 
  `[["r", 1, null], ["w", 1, 6], ["w", 2, 9]]`.
@@ -621,19 +623,20 @@ which means our handler needs to:
 - write to kv[1]=6
 - write to kv[2]=9
 
-easy peasy lemon squeezy, we can re-use the `store` from our broadcast, no need for anything fancy:
+we can re-use the `store` from earlier as a key-value store:
+```
+type store struct {
+	index map[int]int
+	log   []float64
+}
+```
+
+all we have to is figure out the parsing for the above semantics,
+now because this is go, there's some weirdness here with dynamic interfaces 
+and type casting but it's relatively straightforward:
 
 ```go
-
-func (s *session) transactionHandler(msg maelstrom.Message) error {
-	var body map[string]any
-	if err := json.Unmarshal(msg.Body, &body); err != nil {
-		return err
-	}
-
 	kv := s.kv
-	kv.Lock()
-	defer kv.Unlock()
 
 	txn := body["txn"].([]any)
 	var result = make([][]any, 0)
@@ -653,20 +656,15 @@ func (s *session) transactionHandler(msg maelstrom.Message) error {
 			result = append(result, []any{"w", index, kv.log[int(index)]})
 		}
 	}
-
-	body["txn"] = result
-	body["type"] = "txn_ok"
-	return s.node.Reply(msg, body)
-}
 ```
 
-well, that's that, we spin up more nodes, induce network partitions and try out empirically our first consistency model `read uncommitted`:
+we try out empirically our first consistency model `read uncommitted`:
 
 ```
 Everything looks good! ヽ(‘ー`)ノ
 ```
 
-huh -- that was easy? nothing changed? what's all the fuss about these SQL anomalies and stuff? dirty writes? phantom skews? [^19]
+huh -- that was easy? what's all the fuss about these SQL anomalies and stuff? dirty writes? phantom skews? [^19]
 
 > Read uncommitted is a consistency model which prohibits dirty writes, where two transactions modify the same object concurrently before committing. In the ANSI SQL specification, read uncommitted is presumed to be the default
 
@@ -675,11 +673,12 @@ but of course there's no free lunch, not really.
 > The ANSI SQL 1999 spec places essentially no constraints on the behavior of read uncommitted. Any and all weird behavior is fair game.
 - https://jepsen.io/consistency/models/read-uncommitted
 
-There are bugs here, just depends on who's definition you like.
+There are "bugs" here, just depends on what the agreed upon definition is -- in a sense, is what consistency models are really about. 
+What are semantics and rules can we agree on what is desired behaviour?
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
-and that's it! Distributed systems are hard! These concepts are supposed to be _basics_ from which are composed and higher level abstractions like libraries, tools and applications. Scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/).
+and that's it! fun with distributed systems, scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/).
 
 {{% callout color="#ffd700" %}}
 If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting!
