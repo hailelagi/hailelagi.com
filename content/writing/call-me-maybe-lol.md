@@ -695,8 +695,7 @@ but of course there's no free lunch, not really.
 > The ANSI SQL 1999 spec places essentially no constraints on the behavior of read uncommitted. Any and all weird behavior is fair game.
 - https://jepsen.io/consistency/models/read-uncommitted
 
-There are "bugs" here, just depends on what the agreed upon definition is -- in a sense, is what consistency models are really about. 
-What are semantics and rules can we agree on what is desired behaviour?
+There are "bugs" here, just depends on what the agreed upon definition is [^21] -- in a sense, is what isolation and consistency models are really about. What are the semantics and rules can we agree on what is desired behaviour? is it fast?
 
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
@@ -728,3 +727,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^18]: https://www.cs.cornell.edu/fbs/publications/ibmFault.sm.pdf
 [^19]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf
 [^20]: https://www.microsoft.com/en-us/research/wp-content/uploads/2008/02/tr-2008-25.pdf
+[^21]: https://pmg.csail.mit.edu/papers/icde00.pdf
