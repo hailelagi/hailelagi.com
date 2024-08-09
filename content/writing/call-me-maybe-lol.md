@@ -436,8 +436,7 @@ This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives
 
 ![streams and tables](https://kafka.apache.org/images/streams-and-tables-p1_p4.png)
 
-In between producers and consumers is a broker, inside said "broker" server, we have the concept of "topics" basically a bounded buffer,
-and partitions in the image: (P1, P2, P3, P4) -- in the spirit of divide and conquer we split up the big problem into little one's, so we can process those individually.
+In between producers and consumers is a broker, inside said "broker" server, we have the concept of "topics" basically a set of bounded buffers and partitions in the image: (P1, P2, P3, P4) -- in the spirit of divide and conquer we split up the big problem into little one's, so we can process those individually -- horizontally, in parallel.
  
 ```
 Producer ->            |                           |  <- consumer
@@ -477,9 +476,15 @@ entry/tuple/event/message: {key, value, offset}
 
 Notice that keys can appear more than once and the latest entry for a key is its "current" value, each offset denotes a version of this event.
 
-To replicate this log, the paper discusses two general approaches:
+To replicate this log, two general approaches are considered [^16] [^20]:
 1. primary-backup replication 
 2. and quorum-based replication
+
+In a primary-backup setup, we elect and maintain a leader which is responsible for the total order and strong consistency:
+
+> A primary therefore assigns continuous and monotonically increasing serial
+numbers to updates and instructs all secondaries to process
+requests continuously in this order.
 
 Kafka has historically shippped quorums via a zookeeper/ZAB layer, but has recently provided [raft as an alternative](https://developer.confluent.io/learn/kraft/). Note how the abstractions are layered:
 
@@ -491,7 +496,7 @@ related information, and the replication factor for the log
 is decoupled from the number of parties required for the
 quorum to proceed
 
-Which apparently raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. There's a common association between the WAL and durability, but this is not necessarily true.
+Which apparently raises interesting questions for operability, durability and delivery semantics folks seem to have strong debates and opinions on. There's a common association between the  WAL and durability, but this is not necessarily true.
 In this context, the WAL supports a pattern known as [change data capture](https://en.wikipedia.org/wiki/Change_data_capture).
 
 > All data is immediately written to a persistent log on the filesystem without necessarily flushing to disk. In effect this just means that it is transferred into the kernel's pagecache.
@@ -506,37 +511,47 @@ node := maelstrom.NewNode()
 kv := maelstrom.NewLinKV(node)
 ```
 
-A `lin-kv` is ideally all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the difficult distributed systems problems of **ordering** and **agreement** across replicas when the leader dies.
+A `lin-kv` is ideally all you need, wheter it's powered by raft or the [sun god Ra](https://en.wikipedia.org/wiki/Ra), we've solved the difficult distributed systems problems of **ordering** and **agreement** across replicas when the leader dies, in the face of network partitions or concurrent servers which accept writes -- one source of truth.
 
 > Kafka dynamically maintains a set of in-sync replicas (ISR) that are caught-up to the leader. Only members of this set are eligible for election as leader. A write to a Kafka partition is not considered committed until all in-sync replicas have received the write
 
-In this much more simplistic model, a commit can simply block until a broadcast is fully replicated and the kv the source of truth.
+In this much more simplistic model, a commit can simply block until it reaches the `lin-kv` source of truth.
 
 Abstracting away the messaging boilerplate the data structure is:
 
 ```go
 type replicatedLog struct {
-	version map[string][]int
-	log     []entry
-	pLocks  []*sync.RWMutex
-	global  sync.RWMutex
+	committed map[string]float64
+	version   map[string][]int
+	log       []entry
+	pLocks    []*sync.RWMutex
+	global    sync.RWMutex
 }
 
 type entry struct {
-	key   string
-	value float64
-	offset int
+	key    string
+	value  float64
+	offset float64
 }
 ```
 
 - a producer can send an "event" or message to be appended:
 ```go
-// Append a k/v entry to the log and returns the last index offset
-func (l *replicatedLog) Append(key, value any) int {
-	offset := len(l.log) + 1
+// This is inefficient. In a real implementation
+// this would be a CAS against an atomic pointer or 
+// an atomic CoW memswap // for simplicity and sanity, 
+// a simple mutual exclusion lock is used
+// obviously this contends the local lock on this service.
+func (l *replicatedLog) Append(kv *maelstrom.KV, key, value any) int {
+	l.global.Lock()
+	defer l.global.Unlock()
 
-	event := entry{key: key.(string), value: value.(float64), offset: offset}
-	l.log = append(l.log, event)
+        // acquire a monotonic counter from the `lin-kv`
+	offset := l.acquireLease(kv)
+	k, v := key.(string), value.(float64)
+	event := entry{key: k, value: v, offset: float64(offset)}
+
+	l.log[offset] = event
 	l.version[key.(string)] = append(l.version[key.(string)], offset)
 
 	return offset
@@ -547,9 +562,13 @@ func (l *replicatedLog) Append(key, value any) int {
 ```go
 // Read messages from a set of logs starting from the given offset in each log
 func (l *replicatedLog) Read(offsets map[string]any) map[string][][]float64 {
+	l.global.RLock()
+	defer l.global.RUnlock()
+
 	var result = make(map[string][][]float64)
 
 	for key, offset := range offsets {
+		// resolve the replica's committed history
 		result[key] = l.seek(key, int(offset.(float64)))
 	}
 
@@ -557,61 +576,64 @@ func (l *replicatedLog) Read(offsets map[string]any) map[string][][]float64 {
 }
 ```
 
-- a client can ask if the keys it has seen, have been acknowledged:
+- a client can synchronise processed offsets with the server(s):
 ```go
-func (l *replicatedLog) HasCommitted(offsets map[string]any) bool {
-	var IsCommitted bool
+// Commit ack the last offset a client should read from by the server
+func (l *replicatedLog) Commit(kv *maelstrom.KV, offsets map[string]any) {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(400*time.Millisecond))
+	l.global.Lock()
+	defer l.global.Unlock()
+	defer cancel()
 
 	for key, offset := range offsets {
-		for _, k := range l.version[key] {
-			if k == int(offset.(float64)) {
-				IsCommitted = true
-			} else {
-				IsCommitted = false
-				break
-			}
-		}
+		l.committed[key] = offset.(float64)
+		kv.Write(ctx, key, offset)
 	}
-
-	return IsCommitted
 }
 ```
 
 - a client can read from the latest committed offset:
 ```go
-func (l *replicatedLog) ListCommitted(keys []any) map[string]any {
-	var result = make(map[string]any)
+// ListCommited view the current committed offsets ack'd by the server
+func (l *replicatedLog) ListCommitted(kv *maelstrom.KV, keys []any) map[string]any {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(400*time.Millisecond))
+	l.global.Lock()
+	defer l.global.Unlock()
+	defer cancel()
+
+	var offsets = make(map[string]any)
 
 	for _, key := range keys {
 		key := key.(string)
-		version := l.version[key]
+		lastCommitted, _ := kv.Read(ctx, key)
 
-		if len(version) == 0 {
+		if lastCommitted == nil {
 			continue
+		} else {
+			l.committed[key] = float64(lastCommitted.(int))
+			offsets[key] = float64(lastCommitted.(int))
 		}
-
-		lastPosition := len(version) - 1
-		result[key] = version[lastPosition]
 	}
 
-	return result
+	return offsets
 }
 ```
+Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation as these datasets are typically large record batches, it's also inefficient -- the `lin-kv` is a point of co-ordination and contention.
 
-Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation. There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
+There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
 ![unfinished horse](/unfinished_horse.png)
 
 
 ## 6. Totally-Available Transactions
 
-The scary problem(for me anyway?) a distributed key-value store with transactions. 
+Finally, a distributed key-value store with transactions, or rather something simpler resembling the real thing.
 I promised we would revist transactions, why and how kafka offers these semantics and demystifying transactions in general, here we are!
 
 Transactions are a deep topic but first ACID, we're interested in specifically the 'C' in there first - consistency. Before a bunch of theory what's our goal here?
 
-- weak consistency
-- total availability
+- weak consistency (here be dragons!)
+- total availability (in CAP terms - AP)
 
 We'll revisit why these semantics matter. Let's focus on understanding the **requirements** as we go,
 we need to define a handler that takes a single message/data structure with list of `operations` that look like:
@@ -705,3 +727,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^17]: https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying
 [^18]: https://www.cs.cornell.edu/fbs/publications/ibmFault.sm.pdf
 [^19]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf
+[^20]: https://www.microsoft.com/en-us/research/wp-content/uploads/2008/02/tr-2008-25.pdf
