@@ -415,7 +415,15 @@ You have 'producer' or writer threads, and 'consumer' threads which process or t
  4. goroutines may panic or fail and be observed to do so immediately, transparently and consistently according to the [runtime memory model](https://go.dev/ref/mem)
  5. Everything happens in main-memory
 
-Each of these assumptions is void, except the first.
+Each of these assumptions can be sent to `dev/null`:
+
+- the network is unreliable
+- failure is everywhere
+- latency might as well be failure
+- concurrency is weird - duplicates, re-appearing, disappearing.
+- time is a lie
+
+Except the first.
 
 In the [classic](https://www.rabbitmq.com/docs/classic-queues) publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes" messages [over the wire](https://www.rabbitmq.com/docs/channels#basics) via a router known as an exchange to the broker which has an [index queue](https://github.com/rabbitmq/rabbitmq-server/blob/main/deps/rabbit/src/rabbit_classic_queue_index_v2.erl) and persistent/on-disk [store queue](https://github.com/rabbitmq/rabbitmq-server/blob/main/deps/rabbit/src/rabbit_classic_queue_store_v2.erl#L10) (durably or transiently) which in turn [actively fowards](https://www.rabbitmq.com/docs/consumers#subscribing) the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
 
@@ -450,6 +458,11 @@ However there's a big problem -- this is a distributed system, how do these "bou
 same entries in **the same order** even when some servers **fail** [^16]
 
 We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.[^17]
+
+> Using FIFO-total order broadcast it is easy to build a replicated system: we broadcast every update request to the replicas, which update their state based on each message as it is delivered. This is called state machine replication (SMR)
+- https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-notes.pdf
+
+Can we guarantee a total consistent ordering of the log?
 
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
@@ -618,9 +631,9 @@ func (l *replicatedLog) ListCommitted(kv *maelstrom.KV, keys []any) map[string]a
 	return offsets
 }
 ```
-Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation as these datasets are typically large record batches, it's also inefficient -- the `lin-kv` is a point of co-ordination and contention.
+Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation as these datasets are typically large record batches, it's also inefficient.
 
-There you have it, tiny kafka! now all anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
+All anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
 ![unfinished horse](/unfinished_horse.png)
 
@@ -653,9 +666,7 @@ type store struct {
 }
 ```
 
-all we have to is figure out the parsing for the above semantics,
-now because this is go, there's some weirdness here with dynamic interfaces 
-and type casting but it's relatively straightforward:
+all there is to figure out is the parsing for the above semantics:
 
 ```go
 	kv := s.kv
@@ -697,6 +708,21 @@ but of course there's no free lunch, not really.
 
 There are "bugs" here, just depends on what the agreed upon definition is [^21] -- in a sense, is what isolation and consistency models are really about. What are the semantics and rules can we agree on what is desired behaviour? is it fast?
 
+## 7. Testing, Model Checkers and Simulators
+If you've been wondering, since these are just toy models, what's the delta between these simplified ideas and the real world?
+
+Where are the "unit tests"? If maelstrom/jepsen says so, does it make these implementations correct? maybe.
+
+Intuitively, if you've gotten this far, you should feel in your bones, distributed systems are different from single node ones.
+The way we test them must change, because they require a fundamental shift in thinking to reason about and therefore verifying correctness of primitives. This is a hard problem with no easy answers. An overview of interesting things to explore in the space:
+
+- [TLA+](https://lamport.azurewebsites.net/tla/tla.html)
+- [Hermitage](https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html)
+- Deterministic simulation testing: ala [foundationdb](https://apple.github.io/foundationdb/testing.html), [tigerbeetle's vopr](https://github.com/tigerbeetle/tigerbeetle/blob/main/src/vopr.zig), [antithesis](https://antithesis.com/docs/introduction/how_antithesis_works.html) and much more I probably haven't discovered.
+
+
+If that sounds like a pretty high bar for correctness **it's because it is**. Verifying the correctness of distributed systems is a non-trivial problem, when building applications implictly there's trust that the claimed semantics are true, composing them properly is a different matter entirely. This will be cursory high level overview of elle [^22] the model checker which powers a fair bit of some the invariant checks here.
+
 ![Gyomei Himejima - Good for you for seeing it through](/good.png)
 
 and that's it! fun with distributed systems, scalability but [at what COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf), here's LMAX doing [100k TPS in < 1ms](https://www.infoq.com/presentations/LMAX/) in 2010 on a single thread of "commodity hardware", [distributed systems are a necessary evil requiring a different lens](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/).
@@ -728,3 +754,4 @@ If you enjoyed reading this please consider thoughtfully sharing it with someone
 [^19]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf
 [^20]: https://www.microsoft.com/en-us/research/wp-content/uploads/2008/02/tr-2008-25.pdf
 [^21]: https://pmg.csail.mit.edu/papers/icde00.pdf
+[^22]: https://www.vldb.org/pvldb/vol14/p268-alvaro.pdf
