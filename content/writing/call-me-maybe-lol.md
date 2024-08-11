@@ -423,7 +423,7 @@ Each of these assumptions can be sent to `dev/null`:
 - concurrency is weird - duplicates, re-appearing, disappearing.
 - time is a lie
 
-Except the first.
+Except the first, this “event” is dequeued or destroyed:
 
 In the [classic](https://www.rabbitmq.com/docs/classic-queues) publisher/subscriber model of protocols like [AMQP](https://www.rabbitmq.com/tutorials/amqp-concepts), a publisher "pushes" messages [over the wire](https://www.rabbitmq.com/docs/channels#basics) via a router known as an exchange to the broker which has an [index queue](https://github.com/rabbitmq/rabbitmq-server/blob/main/deps/rabbit/src/rabbit_classic_queue_index_v2.erl) and persistent/on-disk [store queue](https://github.com/rabbitmq/rabbitmq-server/blob/main/deps/rabbit/src/rabbit_classic_queue_store_v2.erl#L10) (durably or transiently) which in turn [actively fowards](https://www.rabbitmq.com/docs/consumers#subscribing) the message to the consumer until it ACKs this message then it is typically destroyed/removed [^9]. 
 
@@ -444,12 +444,12 @@ This [nice diagram from the docs](https://kafka.apache.org/documentation/) gives
 
 ![streams and tables](https://kafka.apache.org/images/streams-and-tables-p1_p4.png)
 
-In between producers and consumers is a broker, inside said "broker" server, we have the concept of "topics" basically a set of bounded buffers and partitions in the image: (P1, P2, P3, P4) -- in the spirit of divide and conquer we split up the big problem into little one's, so we can process those individually -- horizontally, in parallel.
+In between producers and consumers is a broker, inside said "broker" server, we have the concept of "topics" basically **a set of bounded buffers** and partitions in the image: (P1, P2, P3, P4) -- in the spirit of divide and conquer we split up the big problem into little one's, so we can process those individually -- horizontally, in parallel.
  
 ```
 Producer ->            |                           |  <- consumer
-Producer -> 'push'     | topics are partitioned    | 'pull' consumer(s)
-Producer -> to topic   | over buckets or segments  |  <- consumer
+Producer -> 'push'     | 'topics' are partitioned  | 'pull' consumer(s)
+Producer -> to topic   |   via some mechanism      |  <- consumer
 ```
 
 However there's a big problem -- this is a distributed system, how do these "bounded buffers" share the same view?
@@ -457,12 +457,7 @@ However there's a big problem -- this is a distributed system, how do these "bou
 >  we need to ensure that every replica of the log **eventually** contains the
 same entries in **the same order** even when some servers **fail** [^16]
 
-We're interested in one neat thing about how it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.[^17]
-
-> Using FIFO-total order broadcast it is easy to build a replicated system: we broadcast every update request to the replicas, which update their state based on each message as it is delivered. This is called state machine replication (SMR)
-- https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-notes.pdf
-
-Can we guarantee a total consistent ordering of the log?
+We're interested in one neat thing -- it provides a _durable replicated log[^11] [^12] [^13]._ There's a common aphorism in database rhetoric, "the log is the database" - is that true? idk but replicated logs are very useful in distributed systems and databases.[^17]
 
 > At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one.
 - https://kafka.apache.org/documentation/#design_replicatedlog
@@ -528,16 +523,12 @@ A `lin-kv` is ideally all you need, wheter it's powered by raft or the [sun god 
 
 > Kafka dynamically maintains a set of in-sync replicas (ISR) that are caught-up to the leader. Only members of this set are eligible for election as leader. A write to a Kafka partition is not considered committed until all in-sync replicas have received the write
 
-In this much more simplistic model, a commit can simply block until it reaches the `lin-kv` source of truth.
-
-Abstracting away the messaging boilerplate the data structure is:
-
+In this much more simplistic model:
 ```go
 type replicatedLog struct {
 	committed map[string]float64
 	version   map[string][]int
 	log       []entry
-	pLocks    []*sync.RWMutex
 	global    sync.RWMutex
 }
 
@@ -548,40 +539,74 @@ type entry struct {
 }
 ```
 
-- a producer can send an "event" or message to be appended:
+- a producer needs to send an "event" or message to be appended, this is an _active replication_ of the state machine:
+
+> Using FIFO-total order broadcast it is easy to build a replicated system: we broadcast every update request to the replicas, which update their state based on each message as it is delivered. This is called state machine replication (SMR)
+- https://www.cl.cam.ac.uk/teaching/2122/ConcDisSys/dist-sys-notes.pdf
+> when using state machine replication, a replica that wants to update its state cannot do so immediately, but it has to go through the broadcast process, coordinate with other nodes, and wait for the update to be delivered back to itself.
 ```go
-// This is inefficient. In a real implementation
-// this would be a CAS against an atomic pointer or 
-// an atomic CoW memswap // for simplicity and sanity, 
-// a simple mutual exclusion lock is used
-// obviously this contends the local lock on this service.
-func (l *replicatedLog) Append(kv *maelstrom.KV, key, value any) int {
-	l.global.Lock()
-	defer l.global.Unlock()
+// MUST BE: Linearizable
+func (s *session) sendHandler(msg maelstrom.Message) error {
+	var body map[string]any
+	var retries chan retry
+	var wg sync.WaitGroup
 
-        // acquire a monotonic counter from the `lin-kv`
-	offset := l.acquireLease(kv)
-	k, v := key.(string), value.(float64)
-	event := entry{key: k, value: v, offset: float64(offset)}
+	if err := json.Unmarshal(msg.Body, &body); err != nil {
+		return err
+	}
 
-	l.log[offset] = event
-	l.version[key.(string)] = append(l.version[key.(string)], offset)
+	// reserve a monotonic count slot
+	offset := s.log.acquireLease(s.kv)
 
-	return offset
+	for _, dest := range s.node.NodeIDs() {
+		wg.Add(1)
+
+		go func(dest string) {
+			deadline := time.Now().Add(400 * time.Millisecond)
+			ctx, cancel := context.WithDeadline(context.Background(), deadline)
+			replicaBody := map[string]any{
+				"type": "replicate", "offset": offset,
+				"key": body["key"], "msg": body["msg"],
+			}
+
+			defer cancel()
+			defer wg.Done()
+
+			_, err := s.node.SyncRPC(ctx, dest, replicaBody)
+
+			if err == nil {
+				return
+			} else {
+				retries <- retry{body: replicaBody, dest: dest, attempt: 20, err: err}
+			}
+		}(dest)
+	}
+
+	wg.Wait()
+
+	go rebroadcast(s, retries)
+	// we must ensure this write broadcast is atomic and replicated to a quorum
+	// for real kafka this is the ISR quorum, for me, this is 2/2 eazy peazy
+	if len(retries) > 0 {
+		panic("non-atomic broadcast")
+	}
+
+	return s.node.Reply(msg, map[string]any{"type": "send_ok", "offset": offset})
 }
 ```
 
 -  a consumer can ask or poll for new events:
 ```go
-// Read messages from a set of logs starting from the given offset in each log
 func (l *replicatedLog) Read(offsets map[string]any) map[string][][]float64 {
-	l.global.RLock()
-	defer l.global.RUnlock()
+	l.global.Lock()
+	defer l.global.Unlock()
 
 	var result = make(map[string][][]float64)
 
 	for key, offset := range offsets {
-		// resolve the replica's committed history
+	        // we can binary search the log!
+		// or partition and route our search
+		// and do all sorts of fun caching :)
 		result[key] = l.seek(key, int(offset.(float64)))
 	}
 
@@ -591,47 +616,57 @@ func (l *replicatedLog) Read(offsets map[string]any) map[string][][]float64 {
 
 - a client can synchronise processed offsets with the server(s):
 ```go
-// Commit ack the last offset a client should read from by the server
 func (l *replicatedLog) Commit(kv *maelstrom.KV, offsets map[string]any) {
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(400*time.Millisecond))
 	l.global.Lock()
 	defer l.global.Unlock()
-	defer cancel()
 
 	for key, offset := range offsets {
 		l.committed[key] = offset.(float64)
-		kv.Write(ctx, key, offset)
 	}
 }
 ```
 
 - a client can read from the latest committed offset:
 ```go
-// ListCommited view the current committed offsets ack'd by the server
-func (l *replicatedLog) ListCommitted(kv *maelstrom.KV, keys []any) map[string]any {
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(400*time.Millisecond))
-	l.global.Lock()
-	defer l.global.Unlock()
-	defer cancel()
+func (l *replicatedLog) ListCommitted(keys []any) map[string]any {
+	l.global.RLock()
+	defer l.global.RUnlock()
 
 	var offsets = make(map[string]any)
 
 	for _, key := range keys {
 		key := key.(string)
-		lastCommitted, _ := kv.Read(ctx, key)
-
-		if lastCommitted == nil {
-			continue
-		} else {
-			l.committed[key] = float64(lastCommitted.(int))
-			offsets[key] = float64(lastCommitted.(int))
-		}
+		offsets[key] = l.committed[key]
 	}
 
 	return offsets
 }
 ```
-Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation as these datasets are typically large record batches, it's also inefficient.
+Because this is a toy, the log grows forever, that's not okay  -- compaction is [it's own can of worms](https://kafka.apache.org/documentation/#design_compactionbasics). The log is also not persisted, which it would have to be in a real implementation as these datasets are typically large record batches that do zero-copy from network to disk, it's also inefficient, ideally we'd want to actually partition the log for availability. However I'm satisfied with the [overall solution](https://github.com/hailelagi/gossip-glomers/tree/main/maelstrom-kafka).
+```
+ :availability {:valid? true, :ok-fraction 0.99947566},
+ :net {:all {:send-count 91240,
+             :recv-count 91240,
+             :msg-count 91240,
+             :msgs-per-op 5.980206},
+       :clients {:send-count 37488,
+                 :recv-count 37488,
+                 :msg-count 37488},
+       :servers {:send-count 53752,
+                 :recv-count 53752,
+                 :msg-count 53752,
+                 :msgs-per-op 3.5231042},
+       :valid? true},
+ :workload {:valid? true,
+            :worst-realtime-lag {:time 0.261327208,
+                                 :process 4,
+                                 :key "9",
+                                 :lag 0.0},
+            :bad-error-types (),
+            :error-types (),
+            :info-txn-causes ()},
+ :valid? true}
+```
 
 All anyone has to do to build on this knowledge and make actual real life kafka is [build literally everything else for the rest of your life](https://kafka.apache.org/documentation/#implementation).
 
