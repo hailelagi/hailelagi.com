@@ -5,9 +5,7 @@ tags: rust, storage-engine
 draft: true
 ---
 
--- why didn't this ship?
-
-I've been experimenting with the internals of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine. Main memory databases form the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, they are especially useful in soft-realtime applications. Examples are Redis, Memcached, BerkeleyDB, dragonfly and apache Ignite. They are somewhat similiar to their cousin streaming engines like kafka & redpanda but expose different apis and optimise for different access patterns at different layers.
+I've been experimenting with the internals of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine. Main memory databases form the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, they are especially useful in soft-realtime applications.
 
 ## Glancing at ets internals
 
@@ -29,6 +27,8 @@ like the [process model](https://www.erlang.org/doc/reference_manual/processes).
 
 ![Danger](/crit.png)
 
+People want to ship _applications_ and iterate quickly on product-market-fit, while you explain what are futexes and why the seven mutexes are in a the deadlock, your competitors have shipped something usable.
+
 ## Shaping constraints
 
 Conceputally a key-value store seems simple. What you want to model is an abstract interface that can store _schemaless_ data (strings, integers, arrays -- anything) and retrieve it fast, essentially a map/dictionary/associative array abstract data type. Let's see an interface example `Table` in go:
@@ -49,7 +49,7 @@ We also want flexible **data modelling** options to pass for this `Table`, we're
 3. one to many(1-N) = is a `bag` of elements of unique keys to many values.
 4. many to many(N-N) = is a `duplicate_bag` of elements with keys and values that multi-map between them.
 
-These give use the raw materials(set theory) to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables or even express _true relational algebra_ by implementing a _join_ but we'll get to those gnarly problems _later_. For now, you might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties: among them O(1) access, this is great, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data. In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
+These give use the raw materials(set theory) to model all sorts of interesting properties like _referential integrity_ - a relationship between two or more tables or even express _true relational algebra_ by implementing a _join_. You might be thinking why not implement this by just throwing a hashmap underneath and that works for types `set`, `bag` and `duplicate_bag`. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties: among them O(1) access, this is great, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe. CPU cores need to synchronize data access to avoid corrupting data or reading inconsistent or stale data. In rust - sharing an `std::collections::hash_map::HashMap` requires wrapping it in two things:
 
 1. the atomic reference count smart pointer `Arc<T>`
 2. a mutex or some other synchronization mechanism on the critical section because the type does not impl `Send` & `Sync`
