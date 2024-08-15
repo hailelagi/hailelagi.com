@@ -1,8 +1,11 @@
 ---
 title: "Trees for Fun and Profit"
-date: 2024-04-30T15:28:28+01:00
+date: 2024-08-15T08:27:22+01:00
+tags: rust, storage-engine
 draft: true
 ---
+
+-- why didn't this ship?
 
 I've been experimenting with the internals of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine. Main memory databases form the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, they are especially useful in soft-realtime applications. Examples are Redis, Memcached, BerkeleyDB, dragonfly and apache Ignite. They are somewhat similiar to their cousin streaming engines like kafka & redpanda but expose different apis and optimise for different access patterns at different layers.
 
