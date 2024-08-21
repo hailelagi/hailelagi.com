@@ -27,7 +27,7 @@ like the [process model](https://www.erlang.org/doc/reference_manual/processes).
 
 ![Danger](/crit.png)
 
-People want to ship _applications_ and iterate quickly on product-market-fit, while you explain what are futexes and why the seven mutexes are in a the deadlock, your competitors have shipped something usable.
+People want to ship _applications_ and iterate quickly on product-market-fit, while you explain what are futexes and why the seven mutexes are in a deadlock or wait -- is it livelock? your competitors have shipped something usable :)
 
 ## Shaping constraints
 

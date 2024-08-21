@@ -2,7 +2,7 @@
 title: 'Conquering costlemark tower(and what it taught me about programming and life)'
 date: Tue, 12 May 2020 04:59:38 +0000
 draft: false
-tags: ['Uncategorized', 'archive-old']
+tags: ['Uncategorized', 'archive-old', 'archive']
 ---
 
 In the game Final fantasy XV there's a curious dungeon called costlemark tower. Firstly? It's not a tower... lol. It's a long 4 hour(\*for me) descent into darkness. The horrible thing about dungeons? You can't save your progress. It's a cramped space and it's eternally "nighttime". In ffxv nighttime is where the toughest monsters come out to play. The first time I attempted to peek into this dungeon I was grossly underleveled and underprepared. I ran away once I accomplished the side quest that led me into such a curious corner. Recently I returned.

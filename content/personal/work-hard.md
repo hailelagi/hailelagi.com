@@ -1,7 +1,7 @@
 ---
 title: "Work Hard"
 date: 2022-11-06T02:44:14+01:00
-draft: false
+draft: true
 tags: ['archive']
 ---
 

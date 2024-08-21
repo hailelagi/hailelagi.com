@@ -1,7 +1,8 @@
 ---
 title: "Inefficiency"
 date: 2024-06-28T02:55:39+01:00
-draft: false
+draft: true
+tags: ['archive']
 ---
 
 NOTE TO SELF.

@@ -2,6 +2,7 @@
 title: "On Cryptocurrency"
 date: 2024-04-08T19:07:10+01:00
 draft: false
+tags: ['archive']
 ---
 
 {{% callout color="#ffd700" %}}

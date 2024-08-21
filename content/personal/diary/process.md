@@ -2,7 +2,7 @@
 title: 'Process'
 date: Thu, 02 Apr 2020 00:20:10 +0000
 draft: false
-tags: ['archive-old']
+tags: ['archive-old', 'archive']
 ---
 
 Seeing as my blog gets practically no real attention. It is a place where I get to air thoughts as I wish. To the deep deep space, through numerous protocols and packets of "words" flow. Into bits... a tiny tiny voice. When I wish, days in a row or months apart. About lovers or technical details. It doesn't matter. What matters is the thought must be put to words sent into the world, into a place that never forgets. This really is a place for my thoughts to live. I write because it keeps me sane. It helps me to articulate my thoughts and work through what I'm thinking about.

@@ -2,6 +2,7 @@
 title: "What did you get done this week?"
 date: 2024-04-01T18:37:37+01:00
 draft: false
+tags: ['archive']
 ---
 
 I've been [fun?/unemployed](../funemployment) now for a full quarter of 2024 -- an eternity in startup time where it could mean staving off death or finding yourself in a peculiar [common form of death](https://www.paulgraham.com/pinch.html), perhaps worth highlighting, given three months is long enough that most people on the other side of a resume will increasingly read the situation as:
