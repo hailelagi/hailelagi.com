@@ -5,7 +5,14 @@ tags: rust, storage-engine
 draft: true
 ---
 
-Main memory databases form the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, they are especially useful in soft-realtime applications. Here's a deep dive to compare the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine and the fairly popular Adaptive Radix Tree - the ARTful index.
+Main memory databases form the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, they are especially useful in soft-realtime applications. Here's a deep dive into the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine alongside other popular modern alternatives.
+
+<!--
+I built one kind of like it rust! 
+screen shot/demo etc some kind of easy one click?
+will need a landing page?
+ask for stuff? maybe star it if you find it useful?
+-->
 
 {{< toc >}}
 
@@ -16,21 +23,18 @@ Erlang and elixir are functional programming languages and therefore tend to avo
 
 >It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [^2]
 
-On the other hand, ARTful indexes are <fill me in>
-
-## Prelude
 Here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent/parallel and distributed programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** runtime that's **multi-core by default**, scales I/O bound soft realtime applications incredibly well with a simple model of concurrency that eliminates data races, **location transparency** across a cluster and primitives that encourage thinking about fault tolerance and reliability -- did I mention functional programming?
 
 {{< youtube bo5WL5IQAd0 >}}
 
-Sadly though, this locks you into a message passing concurrency model, let's cover some wide ranging and complex important topics, by taking a peek under the covers of what we say "yes" to when we want _shared memory concurrency_ -- spoiler it's hard, Joe's advice is let a small group muck about with these gnarly problems and produce nice clean abstractions 
+Sadly though, this locks you into a serialized message passing concurrency model, let's cover some wide ranging and complex important topics, by taking a peek under the covers of what we say "yes" to when we want _shared memory concurrency._ Joe's advice is let a small group muck about with these gnarly problems and produce nice clean abstractions 
 like the [process model](https://www.erlang.org/doc/reference_manual/processes). However rust sells itself on the basis of memory safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), is there a way to combine the two?
 
 ![Danger](/crit.png)
 
 ## Shaping constraints
 
-Conceputally a key-value store seems simple. What you want to model is an abstract interface that can store _schemaless_ data (strings, integers, arrays -- anything) and retrieve it fast, essentially a map/dictionary/associative array abstract data type. Let's see an interface example `KVStore` in go:
+Conceputally a mutable key-value store seems simple. What you want to model is an abstract interface that can store _schemaless_ data (strings, integers, arrays -- anything) and retrieve it fast, essentially a map/dictionary/associative array abstract data type. Let's see an interface example `KVStore` in go:
 
 ```go
 type KVStore[Key comparable, Value any] interface {
@@ -41,7 +45,7 @@ type KVStore[Key comparable, Value any] interface {
 }
 ```
 
-We also want flexible **data modelling** options to pass for this `KVStore`, we're looking to define the instance options **`bag`**, **`duplicate_bag`**, **`set`** and **`ordered_set`**. If familiar with sql semantics aka [relational algebra](https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf) we desire a primitive weaker subset of this model between keys and values:
+We also want flexible **data modelling** options to pass for this `KVStore`, we're looking to define the instance options **`bag`**, **`duplicate_bag`**, **`set`** and **`ordered_set`**. If familiar with sql semantics aka [relational algebra](https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf) we desire a weaker subset of this model between keys and values:
 
 1. one to one an unordered `set` of elements.
 2. one to one an `ordered_set` of unique elements.
@@ -57,34 +61,34 @@ Storage engines need to handle _concurrent_ and even better yet _parallel_ and h
 Let's do the simple thing first, let's guard/wrap our shiny conceptual key/value store's concrete implementation in a mutex from go's std lib's `sync` package:
 
 ```go
-type Map[K string, V any] struct {
+type Map[Key any, Value any] struct {
  sync.Mutex
- Data map[K]V
+ Data map[Key]Value
 }
 ```
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global Mutexes are a good solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize computation when the memory region's slots are partioned perhaps due to sharding? across independent memory regions and threads.
+key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize computation when the memory region's slots are partioned perhaps due to sharding? across independent memory regions and threads.
 
 Sharding is a wonderful idea, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's `ConcurrentHashMap` and rust's `DashMap` are defacto examples of this which overcome these limitations with caveats.
 
-The locking technique is called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific 'levels', the idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
+This locking technique is called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific 'levels', the idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
 
 ```go
-type Map[K string, V any] struct {
+type Map[K any, V any] struct {
  Data  map[K]V
  locks []*sync.Mutex
  global sync.Mutex
 }
 ```
 
-This adds some complexity but can be more write performant but suffer slightly slower reads in a naive implementation - perhaps a Read-Writer Lock can save us? This bottleneck of locks and linearization is the reason databases have Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels.
+This adds some complexity but can be more write performant but suffer slightly slower reads in a naive implementation - perhaps a Read-Writer Lock can save us? This bottleneck of locks and linearization is the reason databases have Optimistic/Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels.
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
 
 ```go
-type OrderedKVStore[Key cmp.Ordered, Value any] interface {
+type OrderedKVStore[Key constraints.Ordered, Value any] interface {
   Get(Key) (Value, error)
   Put(Key, Value) error
   Delete(Key) error
@@ -118,6 +122,14 @@ Fan favorites include the classics; an AVL Tree, Red-Black tree, B-Tree or perha
 We are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) fetched from disk? or random access? sorting files in a directory is a simple excercise that illustrates this problem. What kind of concurrent patterns are enabled? are we in a garbage collected environment? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design and optimisations.
 
+Historically the B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM. How about in RAM?
+
+## Cache lines rule everything around me
+
+What is a cache line? why is it so important?
+Beatlegeuesse joke?
+
+
 What is ets at its storage core? it is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [a tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap for the unordered api.
 
 ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations.
@@ -130,9 +142,9 @@ pub struct CATree<K, V> {
     root: Option<Box<Node<K, V>>>,
 }
 ```
-Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/).
+Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers).
 
-## ACID
+## Transactions
 
 All storage engines need to ensure certain guarantees with respect to concurrency and correctness. You've probably heard the acronymn ACID - Atomicity, Consistency, Isolation and Durability. What does that mean for ets? Lucky for us, we can cast away the durability requirement as our data set must fit in working memory(for now). That leaves us with:
 
@@ -191,12 +203,9 @@ A brief mention of rust mentioned using `Rc/Arc` implementations of [automatic r
 
 #### Lifetimes, Fragmentation & Alignment
 
-What _really happens_ when you dynamically need memory? A compiler throws up its hand and decides it [can never be really sure what you mean](https://en.wikipedia.org/wiki/Undecidable_problem), so it exposes an interface and asks you to think carefully about it and it runs that at runtime.
+What _really happens_ when you dynamically need memory? A compiler throws up its hand and decides it [can never be really sure what you mean](https://en.wikipedia.org/wiki/Undecidable_problem), so it exposes an interface and asks you to think carefully about it.
 
-When the need arises... as it often does, you politely ask a kernel for some more memory than what you initially asked for (and sometimes it says no!), and even when it does say yes, it [lies to you about what you're getting](https://en.wikipedia.org/wiki/Virtual_memory) -- and once you get it you have to give it back otherwise memory keeps growing forever - OOM.
-
-Let's recap:
-
+When the need arises... as it often does, you politely ask a kernel for some more memory than what you initially asked for (and sometimes it says no!), and even when it does say yes, it [lies to you about what you're getting](https://en.wikipedia.org/wiki/Virtual_memory) -- and once you get it you have to give it back otherwise memory keeps growing forever - OOM, in a nutshell:
 - You need to ask for memory
 - You need to keep _track of this memory_ -- it's _lifetime_
 - You need to give it back
@@ -210,57 +219,39 @@ As it turns out, the hard part is in the middle, keeping track of this forms a [
 Why is this necessary at all?
 
 #### Being a good neighbour
-The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right besides the BEAM virtual machine's global heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments, ets needs to play nice and share with the host runtime's [garbage collector](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/GarbageCollection.md) which is why it must copy in and out of the process heap, [yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the [scheduler](../../writing/a-peek-into-the-beam), and manage the lifetime of its memory seperately. This is at the blurry line between C and erlang wit the definition of a [Built In Function](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html).
+The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right besides the BEAM virtual machine's global heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments, ets needs to play nice and share with the host runtime's [garbage collector](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/GarbageCollection.md) which is why it must copy in and out of the process heap, [yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the [scheduler](../../writing/a-peek-into-the-beam), and manage the lifetime of its memory seperately. This is at the blurry line between C and erlang with the definition of a [built in function(BIF)](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html).
 
 #### Making a bad contrived allocator
 
-In _hard real-time systems_ this is a table stakes requirement. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
+In _hard real-time systems_ this is a table stakes requirement and part of everyday programming life. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
 
 What do you need? -- it's entirely dependent on the nature of the program!
 
 A few popular techniques, I'm aware of:
 1. Hazard pointers
-2. [RCU](https://en.wikipedia.org/wiki/Read-copy-update)
+2. [RCU](https://marabos.nl/atomics/inspiration.html#rcu)
 3. Epic based reclamation
 
 Here we can model the space required to fit each key-value as a node on a linkedlist. An illustrative example is a [slab allocator](https://en.wikipedia.org/wiki/Slab_allocation) using a [_free list_](https://en.wikipedia.org/wiki/Free_list):
 
 ```rust
-// statically start with 10 slots of 4096 bytes
 const INITIAL_BLOCKS: usize = 10;
-// typical page size in bytes on linux x86-64
 const DEFAULT_BLOCK_SIZE: usize = 4096;
 
 struct ListNode {
-    size: usize,
+    size: AtomicUsize,
     next: Option<Box<ListNode>>,
 }
 
 pub struct FreeList {
+    size: AtomicUsize,
     head: Option<Box<ListNode>>,
 }
 
 ```
 
-A free list is a linked list where each node is a reference to a contigous block of homogeneous memory unallocated _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory:
+A free list is a linked list where each node is a reference to a contigous block of homogeneous memory unallocated _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory, deallocation is as simple as dereferencing the raw pointer and marking that block as safe for reuse back to the kernel.
 
-```rust
-impl FreeList {
-    pub fn allocate(&mut self, size: usize, align: usize) -> *mut u8 {
-      todo()!
-    }
-}
-```
-
-Deallocation is as simple as dereferencing the raw pointer and marking that block as safe for reuse back to the kernel:
-
-```rust
-impl FreeList {
-    pub fn deallocate(&mut self, ptr: *mut u8, size: usize, align: usize) {
-        todo()!
-    }
-}
-```
 
 Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html) in rust which make syscalls like `mmap`, `sbrk` and `brk` and but we don't want to simply throw away the global allocator and talk to the operating system ourselves -- oh goodness no, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this rather than pairing allocations and deallocations everytime we can amortize memory per value stored and simplify some lifetimes. When this is not possible we default to reference counting over a pre-allocated smaller region like `Box`.
 
@@ -298,7 +289,6 @@ There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick 
 [^9]: [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
 [^10]: [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
 [^11]: [Erlang data types](https://www.erlang.org/doc/reference_manual/data_types)
-[^12]: [Glommio - thread per core](https://github.com/DataDog/glommio)
 [^13]: [Lockless Programming Considerations for Xbox 360 and Windows](https://learn.microsoft.com/en-gb/windows/win32/dxtecharts/lockless-programming?redirectedfrom=MSDN)
 [^14]: [Learnings from kCTF VRP's 42 Linux kernel exploits submissions](https://security.googleblog.com/2023/06/learnings-from-kctf-vrps-42-linux.html)
 [^16]: https://db.in.tum.de/~leis/papers/ART.pdf
@@ -306,4 +296,8 @@ There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick 
 [^18]: https://www.cs.umd.edu/~abadi/papers/vldbj-vll.pdf
 [^19]: https://disc.bu.edu/papers/fnt23-athanassoulis
 [^20]: https://ignite.apache.org/use-cases/in-memory-database.html
-[scalability](https://www.erlang.org/blog/scalable-ets-counters/)
+[^21]: [scalability](https://www.erlang.org/blog/scalable-ets-counters/)
+[^22]: https://www.cidrdb.org/cidr2021/papers/cidr2021_paper21.pdf
+[^23]: https://erdani.org/publications/cuj-2004-12.pdf
+[^24]: https://cs-people.bu.edu/mathan/publications/fnt23-athanassoulis.pdf
+[^25]: https://en.wikipedia.org/wiki/T-tree
