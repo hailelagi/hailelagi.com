@@ -2,6 +2,7 @@
 title: "Design Patterns"
 date: 2022-04-24T15:27:24+01:00
 draft: true
+tags: ['archive']
 ---
 
 todo:

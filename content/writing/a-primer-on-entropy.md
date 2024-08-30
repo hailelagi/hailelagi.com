@@ -1,6 +1,7 @@
 ---
 title: "A Primer on Entropy"
 date: 2022-11-02T22:36:21+01:00
+tags: ['archive']
 draft: true
 ---
 

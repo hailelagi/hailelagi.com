@@ -2,6 +2,7 @@
 title: "Dining"
 date: 2022-03-26T12:53:14+01:00
 draft: true
+tags: ['archive']
 ---
 
 # todo

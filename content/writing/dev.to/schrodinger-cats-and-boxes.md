@@ -2,7 +2,7 @@
 title: 'Schrödinger, cats and boxes.'
 date: 2020-07-26T17:20:14.864Z
 draft: true
-tags: ['functional', 'paradigm', 'agnostic', 'monads']
+tags: ['archive', 'functional', 'paradigm', 'agnostic', 'monads']
 original: "https://dev.to/haile/schrodinger-cats-and-boxes-l93"
 ---
 
