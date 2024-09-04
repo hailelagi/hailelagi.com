@@ -28,7 +28,9 @@ Here's Joe Armstrong explaining why writing correct, fast, well-tested, concurre
 {{< youtube bo5WL5IQAd0 >}}
 
 Sadly though, this locks you into a serialized message passing concurrency model, let's cover some wide ranging and complex important topics, by taking a peek under the covers of what we say "yes" to when we want _shared memory concurrency._ Joe's advice is let a small group muck about with these gnarly problems and produce nice clean abstractions 
-like the [process model](https://www.erlang.org/doc/reference_manual/processes). However rust sells itself on the basis of memory safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), is there a way to combine the two?
+like the [process model](https://www.erlang.org/doc/reference_manual/processes).
+
+Go and rust both have mutable state, rust sells itself on the basis of memory safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), go on simplicity, fast and easy concurrency. Perhaps go would be a simpler and more practical choice?
 
 ![Danger](/crit.png)
 
@@ -45,14 +47,14 @@ type KVStore[Key comparable, Value any] interface {
 }
 ```
 
-We also want flexible **data modelling** options to pass for this `KVStore`, we're looking to define the instance options **`bag`**, **`duplicate_bag`**, **`set`** and **`ordered_set`**. If familiar with sql semantics aka [relational algebra](https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf) we desire a weaker subset of this model between keys and values:
+We also want flexible **data modelling** options to pass for this `KVStore`, we're looking to define the instance options **`bag`**, **`duplicate_bag`**, **`set`** and **`ordered_set`**. If familiar with sql semantics aka [relational algebra](https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf) we desire a simpler subset of this model limited to keys and values:
 
 1. one to one an unordered `set` of elements.
 2. one to one an `ordered_set` of unique elements.
 3. one to many a `bag` of elements of unique keys to many values.
 4. many to many a `duplicate_bag` of elements with keys and values that multi-map between them.
 
- You might be thinking why not implement this by just throwing a concrete hashmap datastructure underneath and that works for the semantics of types `set`, `bag` and `duplicate_bag` -- point queries. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe by default. Programs need to synchronize data access to avoid corrupting data or reading inconsistent or stale data. In rust, the easiest way you can share an `std::collections::hash_map::HashMap` across threads is by wrapping it in two things:
+Why not implement this by just throwing a concrete hashmap datastructure underneath? that works for the semantics of types `set`, `bag` and `duplicate_bag` -- point queries. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe by default. Programs need to synchronize data access to avoid corrupting memory or reading inconsistent or stale data. In rust, the easiest way you can share a `HashMap` across threads is by wrapping it in two things:
 
 1. the atomic reference count smart pointer `Arc<T>`
 2. a mutex or some other synchronization mechanism on the critical section because the type does not impl `Send` & `Sync`
@@ -122,7 +124,18 @@ Fan favorites include the classics; an AVL Tree, Red-Black tree, B-Tree or perha
 We are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) fetched from disk? or random access? sorting files in a directory is a simple excercise that illustrates this problem. What kind of concurrent patterns are enabled? are we in a garbage collected environment? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design and optimisations.
 
-Historically the B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM. How about in RAM?
+It's clear we're at a language cross roads, this key-value store cannot reasonably be written in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in/with a runtime/virtual machine the BEAM.
+
+The familiar limited set of languages is known. I like rust but here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous, collections in rust is difficult, but not impossible. 
+
+The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/).
+
+A binary search tree node can be represented with an `Option<Box<Node<T>>>`. However `Box` has single ownership.
+How are we to represent bi-directional data flow? or changing ownership and relocation as one does when balancing? how do we take this binary search tree and transmogrify it into a cool data structure like an avl or red-black tree?
+
+A sane way of getting around this is by using a `Vec<u8>` of "pointers" or "page ids" and implementing "arenas" or some such strange incantation but lets save those hard problems for later. Let's keep defining key concepts.
+
+Historically B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM. How about in RAM?
 
 ## Cache lines rule everything around me
 
@@ -142,7 +155,7 @@ pub struct CATree<K, V> {
     root: Option<Box<Node<K, V>>>,
 }
 ```
-Here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers).
+
 
 ## Transactions
 

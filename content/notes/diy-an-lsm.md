@@ -11,6 +11,8 @@ day 1 personal notes from LSM in a week, basic components:
 - SSTable
 - WAL
 
+tunable parameters: compaction and memtable datastructure.
+
 ## a memtable
 
 ```rust
