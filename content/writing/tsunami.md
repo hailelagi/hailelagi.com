@@ -5,7 +5,6 @@ draft: true
 tags: rust, storage engine
 tags: ['archive']
 publicDraft: true
-recommend: true
 ---
 
 ## Querying

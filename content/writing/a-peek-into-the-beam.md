@@ -3,7 +3,6 @@ title: "A Peek Into the Beam"
 date: 2022-03-29T08:16:09+01:00
 draft: false
 tags: elixir, scheduler, concurrency
-recommend: true
 ---
 
 A long time ago, you would give a computer an intensive set of instructions - in assembly or something more sane, and

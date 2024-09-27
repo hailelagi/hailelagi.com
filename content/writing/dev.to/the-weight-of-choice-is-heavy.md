@@ -4,7 +4,6 @@ date: 2020-08-31T18:46:19.202Z
 draft: false
 tags: elixir, algorithms, probability
 original: "https://dev.to/haile/the-weight-of-choice-is-heavy-55o"
-recommend: true
 ---
 
 What are the odds? I've spent quite a few hours invested in implementing a seemingly innocent feature of a game I'm 
