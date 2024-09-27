@@ -1,7 +1,7 @@
 ---
 title: "Trees for Fun and Profit"
 date: 2024-08-15T08:27:22+01:00
-tags: rust, storage-engine
+tags: go, rust, storage-engine
 draft: true
 ---
 
@@ -71,9 +71,9 @@ type Map[Key any, Value any] struct {
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize computation when the memory region's slots are partioned perhaps due to sharding? across independent memory regions and threads.
+key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize computation when the memory region's slots are partitioned across independent memory regions and threads.
 
-Sharding is a wonderful idea, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's `ConcurrentHashMap` and rust's `DashMap` are defacto examples of this which overcome these limitations with caveats.
+One way to leverage this property is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's `ConcurrentHashMap` and rust's `DashMap` are defacto examples of this which overcome these limitations with caveats.
 
 This locking technique is called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific 'levels', the idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
 
@@ -85,7 +85,7 @@ type Map[K any, V any] struct {
 }
 ```
 
-This adds some complexity but can be more write performant but suffer slightly slower reads in a naive implementation - perhaps a Read-Writer Lock can save us? This bottleneck of locks and linearization is the reason databases have Optimistic/Multi Version Concurrency Control(MVCC) semantics for pushing reads and writes further using transactions and isolation levels.
+This adds some complexity but can be more write performant but suffer slightly slower reads in a naive implementation - perhaps a Read-Writer Lock can save us? This bottleneck of locks and linearization is the reason databases have optimistic/multi version concurrency control(MVCC) semantics for pushing reads and writes further with transaction schedules and isolation levels.
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
 
@@ -155,7 +155,6 @@ pub struct CATree<K, V> {
     root: Option<Box<Node<K, V>>>,
 }
 ```
-
 
 ## Transactions
 
