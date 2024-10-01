@@ -5,14 +5,10 @@ tags: go, rust, storage-engine
 draft: true
 ---
 
-Main memory databases form the core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, they are especially useful in soft-realtime applications. Here's a deep dive into the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine alongside other popular modern alternatives.
+Main memory databases form an important core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, a particular curious case is one designed for use in a language designed for soft-realtime applications. Here's a deep dive into the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine alongside other popular modern alternatives.
 
-<!--
-I built one kind of like it rust! 
-screen shot/demo etc some kind of easy one click?
-will need a landing page?
-ask for stuff? maybe star it if you find it useful?
--->
+
+If you know elixir, [check out the demo!](https://github.com/hailelagi/oats)
 
 {{< toc >}}
 
@@ -23,7 +19,7 @@ Erlang and elixir are functional programming languages and therefore tend to avo
 
 >It would be very difficult, if not impossible to implement ETS purely in Erlang with similar performance. Due to its reliance on mutable data, the functionality of ETS tables is very expensive to model in a functional programming language like Erlang. [^2]
 
-Here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent/parallel and distributed programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing architecture** runtime that's **multi-core by default**, scales I/O bound soft realtime applications incredibly well with a simple model of concurrency that eliminates data races, **location transparency** across a cluster and primitives that encourage thinking about fault tolerance and reliability -- did I mention functional programming?
+Here's Joe Armstrong explaining why writing correct, fast, well-tested, concurrent/parallel and distributed programs on modern CPUs is complex and difficult and why erlang/elixir is appealing, it comes with a concurrent/parallel garbage collector (no global GC pauses, **low-latency by default**), a **shared nothing** runtime that's **multi-core by default**, scales I/O bound soft realtime applications incredibly well with a simple model of concurrency that eliminates data races, **location transparency** across a cluster and primitives that encourage thinking about fault tolerance and reliability -- did I mention functional programming?
 
 {{< youtube bo5WL5IQAd0 >}}
 
@@ -124,26 +120,24 @@ Fan favorites include the classics; an AVL Tree, Red-Black tree, B-Tree or perha
 We are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) fetched from disk? or random access? sorting files in a directory is a simple excercise that illustrates this problem. What kind of concurrent patterns are enabled? are we in a garbage collected environment? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design and optimisations.
 
-It's clear we're at a language cross roads, this key-value store cannot reasonably be written in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in/with a runtime/virtual machine the BEAM.
+It's clear we're at a language cross roads, it would be difficult to express some of this in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in a runtime/vm.
 
-The familiar limited set of languages is known. I like rust but here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous, collections in rust is difficult, but not impossible. 
+The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible - i have experienced here, possibly the greatest learning curve spike in recent memory, a daily occurence of melting my brain.
 
-The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/).
+The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with [low-level concurrency into the mix and you're in for dark mystical arts,](https://marabos.nl/atomics/) few patterns like interior mutability are allowed to break these rules.
 
 A binary search tree node can be represented with an `Option<Box<Node<T>>>`. However `Box` has single ownership.
 How are we to represent bi-directional data flow? or changing ownership and relocation as one does when balancing? how do we take this binary search tree and transmogrify it into a cool data structure like an avl or red-black tree?
+We've gotta break all the compiler rules.
 
-A sane way of getting around this is by using a `Vec<u8>` of "pointers" or "page ids" and implementing "arenas" or some such strange incantation but lets save those hard problems for later. Let's keep defining key concepts.
+A sane way of of getting around this is by using a `Vec<u8>` of "pointers" or "page ids" and [implementing "arenas"](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) or some such strange incantation but lets save that bit for later in garbage collection.
 
-Historically B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM. How about in RAM?
+Historically B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM and some say it's winning in the cloud with tiered storage. How about in DRAM? How do we go fast?
 
-## Cache lines rule everything around me
+![Danger](/Speed_Racer_behind_the_wheel.webp)
 
-What is a cache line? why is it so important?
-Beatlegeuesse joke?
-
-
-What is ets at its storage core? it is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [a tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap for the unordered api.
+## Why tree, when you can forest?
+Finally, we can begin to talk about erlang term storage in context. What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [a tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap for the unordered api.
 
 ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations.
 
@@ -155,6 +149,10 @@ pub struct CATree<K, V> {
     root: Option<Box<Node<K, V>>>,
 }
 ```
+
+## Cache lines rule everything around me
+
+Memory access is an abstraction. To go fast, we peel it back. The abstraction of model of memory as a flat, never-ending, slab of memory, where access is free and fast as opposed to going to disk or going over the wire and all you really have to do is malloc/free and voila memory appears is a well-known lie. We require a different lens -- a lens of mechanical sympathy.
 
 ## Transactions
 
@@ -233,8 +231,6 @@ Why is this necessary at all?
 #### Being a good neighbour
 The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right besides the BEAM virtual machine's global heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments, ets needs to play nice and share with the host runtime's [garbage collector](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/GarbageCollection.md) which is why it must copy in and out of the process heap, [yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the [scheduler](../../writing/a-peek-into-the-beam), and manage the lifetime of its memory seperately. This is at the blurry line between C and erlang with the definition of a [built in function(BIF)](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html).
 
-#### Making a bad contrived allocator
-
 In _hard real-time systems_ this is a table stakes requirement and part of everyday programming life. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
 
 What do you need? -- it's entirely dependent on the nature of the program!
@@ -259,7 +255,6 @@ pub struct FreeList {
     size: AtomicUsize,
     head: Option<Box<ListNode>>,
 }
-
 ```
 
 A free list is a linked list where each node is a reference to a contigous block of homogeneous memory unallocated _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory, deallocation is as simple as dereferencing the raw pointer and marking that block as safe for reuse back to the kernel.

@@ -22,7 +22,7 @@ Previously Explored:
 <!--
 Interesting/on my radar but who knows if I'll ever get around to it:
 - [High Performance Browser Networking](https://hpbn.co/)
-- [Rust for Rustaceans](https://nostarch.com/rust-rustaceans)
+- https://cs186berkeley.net/resources/
 - [Nand2Tetris](https://www.nand2tetris.org/)
 - [How to Design Programs](https://htdp.org/)
 - The Kubernetes Book - Poulton N
