@@ -22,7 +22,7 @@ oh, _pretty big tables_, lots of them and ig the queries are doing a lot of stuf
 explain analyze my_shiny_queries;
 ```
 
-It produced a long series of arcane sounding words, I tried to read it bottom-up, but mostly still incomprehensible. An example:
+It produced a long series of arcane sounding words and structures the output as a _tree_ which you can read bottom-up:
 ```
 postgres=# explain analyze select 1 + 1;
                                      QUERY PLAN                                     
@@ -33,7 +33,28 @@ postgres=# explain analyze select 1 + 1;
 (3 rows)
 ```
 
-This is what is referred to as a _query plan_, it's the _output_ of a program, like all programs, someone has to write, test and build it, this is called a query engine. It takes as input a _query_ typically in a _query language_ here it's SQL:
+sqlite does things a curious thing, instead of holding a tree as an internal representation it compiles down to bytecode:
+
+```
+sqlite> explain select 1 + 1;
+addr  opcode         p1    p2    p3    p4             p5  comment      
+----  -------------  ----  ----  ----  -------------  --  -------------
+0     Init           0     4     0                    0   Start at 4
+1     Add            2     2     1                    0   r[1]=r[2]+r[2]
+2     ResultRow      1     1     0                    0   output=r[1]
+3     Halt           0     0     0                    0   
+4     Integer        1     2     0                    0   r[2]=1
+5     Goto           0     1     0                    0   
+```
+
+If reading opcodes isn't something you do for fun:
+```
+sqlite> explain query plan select 1 + 1;
+QUERY PLAN
+`--SCAN CONSTANT ROW
+```
+
+This is what is referred to as a _query plan_, it's the _output_ of a program, like all programs, someone has to write, test and build it, this is called a query/execution engine. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts':
 ```
 postgres=# select 1 + 1;
  ?column? 
@@ -42,7 +63,7 @@ postgres=# select 1 + 1;
 (1 row)
 ```
 
-A query engine needs to do a few things, first it needs to be _correct_. Correctness is an interesting word, and it has a context that's rooted in a formalism, called [_relational algebra_](https://en.wikipedia.org/wiki/Relational_algebra), it's a little mathy but not a lot. This formalism describes a number of operations on a unordered collection of sets, with a basic set of primitives:
+A query engine needs to do a few things, first it needs to be _correct_ and _fast_. Correctness is an interesting word, and it has a context that's rooted in a formalism, called [_relational algebra_](https://en.wikipedia.org/wiki/Relational_algebra), it's a little mathy but not a lot. This formalism describes a number of operations on a unordered collection of sets, with a basic set of primitives:
 
 - select
 - projection
