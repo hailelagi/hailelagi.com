@@ -4,8 +4,7 @@ date: 2024-10-16T19:05:55+01:00
 draft: true
 ---
 
-A long time ago, I was building an admin dashboard + service to pull some data out of several postgres databases for analysis.
-I wrote a bunch of sql queries, displaying stuff, rendering rows etc and a blue button to export some data to csv/excel. Pretty simple, however it broke in staging, the table had alot of records, indexed properly but the queries, were slow, why?
+A long time ago, I was building an admin dashboard + service to pull some data out of several postgres databases for analysis. I wrote a bunch of sql queries, displaying stuff, rendering rows etc and a blue button to export some data to csv/excel. Pretty simple, however it broke in staging, the table had alot of records, indexed properly but the queries, were slow, why?
 
 ```
 psql -U postgres
@@ -54,7 +53,7 @@ QUERY PLAN
 `--SCAN CONSTANT ROW
 ```
 
-This is what is referred to as a _query plan_, it's the _output_ of a program, like all programs, someone has to write, test and build it, this is called a query/execution engine. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts':
+This is what is referred to as a _query plan_, it's the _output_ of a program, like all programs, someone has to write, test and build it, this is called a query/execution engine. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts' by isolating the how from the underlying storage[^1]:
 ```
 postgres=# select 1 + 1;
  ?column? 
@@ -76,3 +75,5 @@ A query engine needs to do a few things, first it needs to be _correct_ and _fas
 
 and a few useful modern extensions, like sorting, aggregates etc.
 
+
+[^1]: System R: https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF
