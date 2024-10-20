@@ -15,13 +15,13 @@ select count(*) from table4;
 select count(*) from table5;
 ```
 
-oh, _pretty big tables_, lots of them and ig the queries are doing a lot of stuff, guess i have to _optimise_ this query, what's it doing anyway? a bit of googling and [staring at the postgres docs](https://www.postgresql.org/docs/current/using-explain.html):
+oh, _pretty big tables_, lots of them and i guess the queries are doing a lot of "stuff", guess i have to _optimise_ this query, what's it doing anyway? a bit of googling and [staring at the postgres docs](https://www.postgresql.org/docs/current/using-explain.html):
 
 ```
-explain analyze my_shiny_queries;
+explain analyze my_slow_queries;
 ```
 
-It produced a long series of arcane sounding words and structures the output as a _tree_ which you can read bottom-up:
+It produced a long series of arcane sounding words and structures the output as a _tree_ of what it's doing, which you can read bottom-up:
 ```
 postgres=# explain analyze select 1 + 1;
                                      QUERY PLAN                                     
@@ -32,7 +32,7 @@ postgres=# explain analyze select 1 + 1;
 (3 rows)
 ```
 
-sqlite does things a curious thing, instead of holding a tree as an internal representation it compiles down to bytecode:
+sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation it compiles down to bytecode:
 
 ```
 sqlite> explain select 1 + 1;
@@ -73,7 +73,14 @@ A query engine needs to do a few things, first it needs to be _correct_ and _fas
 - join
 - division(*)
 
-and a few useful modern extensions, like sorting, aggregates etc.
+and a few useful modern extensions, like sorting, windows, aggregates etc. That's it!
+
+
 
 
 [^1]: System R: https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF
+[^2]: Volcano-An Extensible and Parallel Query Evaluation System: https://paperhub.s3.amazonaws.com/dace52a42c07f7f8348b08dc2b186061.pdf
+[^3]: Everything You Always Wanted to Know About
+Compiled and Vectorized Queries But Were Afraid to Ask: https://www.vldb.org/pvldb/vol11/p2209-kersten.pdf
+[^4]: [Morsel-Driven Parallelism: A NUMA-Aware Query
+Evaluation Framework for the Many-Core Age](https://db.in.tum.de/~leis/papers/morsels.pdf)

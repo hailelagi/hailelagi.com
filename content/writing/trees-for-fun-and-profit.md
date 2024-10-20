@@ -292,6 +292,7 @@ There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick 
 [^5]: [Adaptive Hash Index in mysql](https://dev.mysql.com/doc/refman/8.3/en/innodb-adaptive-hash.html)
 [^6]: [Hstore - key/value datatype in postgres](https://www.postgresql.org/docs/current/hstore.html)
 [^7]: [Index Locking in postgres](https://www.postgresql.org/docs/current/index-locking.html)
+[^8]: [Scalable and Robust Latches for Database Systems](https://db.in.tum.de/~boettcher/locking.pdf)
 [^8]: [MVCC introduction](https://www.postgresql.org/docs/current/mvcc.html)
 [^9]: [Concurreny in ETS](https://www.erlang.org/doc/man/ets#concurrency)
 [^10]: [Memory Allocation - Linux](https://www.kernel.org/doc/html/next/core-api/memory-allocation.html#selecting-memory-allocator)
