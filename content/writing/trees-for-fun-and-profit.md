@@ -5,10 +5,9 @@ tags: go, rust, storage-engine
 draft: true
 ---
 
-Main memory databases form an important core of many platforms and are used for creating leaderboards, caches, pubsub and messaging apps, a particular curious case is one designed for use in a language designed for soft-realtime applications. Here's a deep dive into the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine alongside other popular modern alternatives.
+Key-value storage engines form an important core of many systems, a particular curious case is one designed for use in a language designed for soft-realtime applications. This is a deep dive into the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - erlang/elixir's virtual machine, at the end, we'll take home an alternative design, that's as performant?
 
-
-If you know elixir, [check out the demo!](https://github.com/hailelagi/oats)
+If you'd like, [check out the demo!](https://github.com/hailelagi/oats)
 
 {{< toc >}}
 
@@ -26,7 +25,7 @@ Here's Joe Armstrong explaining why writing correct, fast, well-tested, concurre
 Sadly though, this locks you into a serialized message passing concurrency model, let's cover some wide ranging and complex important topics, by taking a peek under the covers of what we say "yes" to when we want _shared memory concurrency._ Joe's advice is let a small group muck about with these gnarly problems and produce nice clean abstractions 
 like the [process model](https://www.erlang.org/doc/reference_manual/processes).
 
-Go and rust both have mutable state, rust sells itself on the basis of memory safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), go on simplicity, fast and easy concurrency. Perhaps go would be a simpler and more practical choice?
+Go and rust both have mutable state, rust sells itself on the basis of memory safety and [fearless concurrency](https://blog.rust-lang.org/2015/04/10/Fearless-Concurrency.html), go on simplicity, fast and easy concurrency. Perhaps go would be a simpler and more practical choice? Simple is better? maybe let's start there.
 
 ![Danger](/crit.png)
 
@@ -43,20 +42,20 @@ type KVStore[Key comparable, Value any] interface {
 }
 ```
 
-We also want flexible **data modelling** options to pass for this `KVStore`, we're looking to define the instance options **`bag`**, **`duplicate_bag`**, **`set`** and **`ordered_set`**. If familiar with sql semantics aka [relational algebra](https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf) we desire a simpler subset of this model limited to keys and values:
+We also want flexible **data modelling** options to pass for this `KVStore`, we're looking to define the instance options **`bag`**, **`duplicate_bag`**, **`set`** and **`ordered_set`**, we desire:
 
-1. one to one an unordered `set` of elements.
-2. one to one an `ordered_set` of unique elements.
-3. one to many a `bag` of elements of unique keys to many values.
-4. many to many a `duplicate_bag` of elements with keys and values that multi-map between them.
+- a `bag` of elements of unique keys to many values.
+- an unordered `set` of unique elements.
+- an `ordered_set` of unique elements.
+- a `duplicate_bag` of elements with keys and values that multi-map between them.
 
-Why not implement this by just throwing a concrete hashmap datastructure underneath? that works for the semantics of types `set`, `bag` and `duplicate_bag` -- point queries. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe by default. Programs need to synchronize data access to avoid corrupting memory or reading inconsistent or stale data. In rust, the easiest way you can share a `HashMap` across threads is by wrapping it in two things:
+Why not implement this by just throwing a concrete hashmap datastructure underneath? that works for the semantics of types `set`, `bag` and `duplicate_bag` -- point queries. Infact hashmaps are ubiquitious [^4] [^5] [^6] and contain many excellent algorithmic properties, especially when the data set fits in working memory. However most implementations in standard libraries are not thread safe. Programs need to synchronize data access to avoid corrupting memory or reading inconsistent or stale data. In rust, the easiest way you can share a `HashMap` across threads is by wrapping it in two things:
 
 1. the atomic reference count smart pointer `Arc<T>`
 2. a mutex or some other synchronization mechanism on the critical section because the type does not impl `Send` & `Sync`
 
 Storage engines need to handle _concurrent_ and even better yet _parallel_ and hopefully yet `SIMD` optimised data access.
-Let's do the simple thing first, let's guard/wrap our shiny conceptual key/value store's concrete implementation in a mutex from go's std lib's `sync` package:
+Let's do the simple thing first, let's guard/wrap our shiny conceptual key/value store's concrete implementation in a big old giant mutex from go's std lib's `sync` package:
 
 ```go
 type Map[Key any, Value any] struct {
@@ -67,21 +66,23 @@ type Map[Key any, Value any] struct {
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially when your hardware can parallelize computation when the memory region's slots are partitioned across independent memory regions and threads.
+key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially with segregated memory where the memory region's slots are partitioned across independent memory slots and maybe cores?
 
-One way to leverage this property is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's `ConcurrentHashMap` and rust's `DashMap` are defacto examples of this which overcome these limitations with caveats.
+One way to leverage this property is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's `ConcurrentHashMap` and rust's `DashMap` are great examples of this.
 
-This locking technique is called fine-grained locking, the general idea is instead of a global mutex we serialise access to specific 'levels', the idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
+This technique is called fine-grained locking or latching, the general idea is instead of a global mutex we serialise access to specific 'levels', the high-level idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
 
 ```go
 type Map[K any, V any] struct {
  Data  map[K]V
  locks []*sync.Mutex
- global sync.Mutex
+ global sync.Mutex // why this exists
+ // is left to the imaginative and curious
+ // hint: what happens during a re-partition/rehash?
 }
 ```
 
-This adds some complexity but can be more write performant but suffer slightly slower reads in a naive implementation - perhaps a Read-Writer Lock can save us? This bottleneck of locks and linearization is the reason databases have optimistic/multi version concurrency control(MVCC) semantics for pushing reads and writes further with transaction schedules and isolation levels.
+This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) adds some complexity, however we gain write performance but pay the cost of acquiring and releasing two locks per operation, perhaps a reader-writer lock, something else? we'll revisit this soon.
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
 
@@ -115,16 +116,16 @@ type BSTNode[Key constraints.Ordered, Value any] struct {
 Search trees are the "go to" structure for keeping performant ordered data with balanced read/write performance, by ensuring we keep the "search property" we can perform on average operations in `O(logN)` -- if the tree is balanced. Sadly in reality they're bounded by the worst time-complexity of `O(h)` where h is the height of the tree. What that means is if we get unlucky
 with the data - searches can devolve into searching a linked-list. That wouldn't do. Here there are many flavors thankfully.
 
-Fan favorites include the classics; an AVL Tree, Red-Black tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
+Cult classics include; an AVL Tree, Red-Black tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
 
-We are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
+Here we are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) fetched from disk? or random access? sorting files in a directory is a simple excercise that illustrates this problem. What kind of concurrent patterns are enabled? are we in a garbage collected environment? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design and optimisations.
 
-It's clear we're at a language cross roads, it would be difficult to express some of this in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in a runtime/vm.
+It's clear we're at a language cross roads, it would be more difficult but not impossible to express this in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in a runtime/vm.
 
 The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible - i have experienced here, possibly the greatest learning curve spike in recent memory, a daily occurence of melting my brain.
 
-The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with [low-level concurrency into the mix and you're in for dark mystical arts,](https://marabos.nl/atomics/) few patterns like interior mutability are allowed to break these rules.
+The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, causality graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with [low-level concurrency into the mix and you're in for dark mystical arts,](https://marabos.nl/atomics/) few patterns like interior mutability are allowed to break these rules.
 
 A binary search tree node can be represented with an `Option<Box<Node<T>>>`. However `Box` has single ownership.
 How are we to represent bi-directional data flow? or changing ownership and relocation as one does when balancing? how do we take this binary search tree and transmogrify it into a cool data structure like an avl or red-black tree?
@@ -139,20 +140,36 @@ Historically B-Trees have predominated the discussion on persistent/on-disk data
 ## Why tree, when you can forest?
 Finally, we can begin to talk about erlang term storage in context. What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [a tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap for the unordered api.
 
-ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations.
+ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations. For now, we're only interested in the structure of the tree -- in a non-thread safe context.
 
-A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
 
-What does this look like:
-```rust
-pub struct CATree<K, V> {
-    root: Option<Box<Node<K, V>>>,
+// ref tiger beetles' LSM Forest? 
+
+// ref click houses merge tree family?
+
+A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree. All this talk of locks provides an excellent segue into how/why concurrency intersects with performance.
+
+
+## Why the leaves intertwine and interleave
+
+To intuit concurrency, it's best to first look at what is _presumed_ to be the order of a program. Take counting to 10, how is this evaluated? 
+```go
+var counter int
+for i := 0; i < 10; i++ {
+    counter++
 }
+fmt.Println("liftoff!")
 ```
+This program will get compiled to a series of assembly instructions, and something called a program counter traverses this binary -- a distinction highlighted here as **execution order**, this program is **sequentially consistent**, but not necessarily **linearizable**, in other words, not only is this compiler is free to re-order for performance, but that applying a sequence of state transformations(ISA registers) it does not appear "instantaneous" to an observer, this is a tricky distinction.
+
+One useful model, is to imagine a single cpu core - it can execute one of many [_threads of execution_](https://en.wikipedia.org/wiki/Thread_control_block), but only one at a time -- it "jumps around" or context switches _within the same process address space_, which is mostly accurate with [caveats](https://wiki.xenproject.org/wiki/Hyperthreading), this distinction helps us understand _why_ concurrent programs can be **sometimes** more performant, useful programs need to do "slow" things, like reading packets from a network card, or telling some magnetic head to spin around, while these very real, physical operations occur, the cpu is bored, it can do so much more, so it "switches" to other cpu work. A concurrent program **is not** inherently faster than a sequential one. It's only _more efficient_ at not doing the worst case of "waiting/blocking", you don't magically get more cpu cycles, you just use them efficiently by intertwining and interleaving work.
+
+Except in a multi-core -- where a program really can get split into literal, physically different computations, however there's a catch, in between these independent cores are slow "connections" and many important layers of caches to speed up access, and herein lies the difficulty, the ever more wrestle with cache invalidation. Given this reality, how do we write fast data structures?
+
 
 ## Cache lines rule everything around me
 
-Memory access is an abstraction. To go fast, we peel it back. The abstraction of model of memory as a flat, never-ending, slab of memory, where access is free and fast as opposed to going to disk or going over the wire and all you really have to do is malloc/free and voila memory appears is a well-known lie. We require a different lens -- a lens of mechanical sympathy.
+Memory access is an abstraction, an `O(1)` operation is too high level a view, to go fast, we peel it back. The model of memory as a flat, never-ending, slab of memory, where access is free and fast as opposed to going to disk or going over the wire and all you really have to do is malloc/free and voila memory appears is a well-known lie. We require a different lens -- a lens of mechanical sympathy, to truly leverage fast multi-core concurrency.
 
 ## Transactions
 
@@ -162,7 +179,7 @@ All storage engines need to ensure certain guarantees with respect to concurrenc
 
 At the level of hardware what is atomicity? It's a special instruction set.
 An example of an interface to this is go's [sync/atomic](https://pkg.go.dev/sync/atomic).
-This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_. You bake a pie or you don't -- however we're getting ahead of ourselves as this part has to do with _visibility_.
+This instruction gives a certain _guarantee_,that you can perform an operation without _side effects_, in effect linearizable(ish) semantics.
 
 Now here's where we have to be careful. ETS operations are **atomic in a single operation per object/table**[^9].
 
@@ -284,7 +301,7 @@ There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick 
 [Getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors). However there's [hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in [io_uring](https://github.com/axboe/liburing) that's [the future?](https://lwn.net/Articles/902466/)
 
 
-[^1]: [†1] Immutability is not necessarily **always** a performance bottleneck. This is a common misconception about functional languages/semantics and more broadly a misunderstanding of the nuances of immutability and its advantages and disadvantages especially with respect to distributed systems, cache coherency and concurrency. Mutable semantics are broadly 'fast' at a level of abstraction closer to the hardware, it's necessary, but often isn't a layer where everyone cares about writing programs -- until they do.
+[^1]: [†1] Immutability is not necessarily **always** a performance bottleneck. This is a common critique of functional languages/semantics and more broadly a misunderstanding of the nuances of immutability and its advantages and disadvantages especially with respect to distributed systems, cache coherency and concurrency/parallelism. Mutable state is broadly 'fast' but this doesn't really say anything. Many log-based data structures are immutable? and often AOF + compaction is a great write performance strategy?
 
 [^2]: [On the scalability of the Erlang term storage](http://doi.acm.org/10.1145/2505305.2505308)
 [^3]: [More Scalable Ordered Set for ETS Using Adaptation](https://doi.org/10.1145/2633448.2633455)
