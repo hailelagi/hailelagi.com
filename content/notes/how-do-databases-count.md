@@ -190,7 +190,17 @@ todo: approach? minimal execution layer?
 ```go
 ```
 
-### Probabilistic Cardinality Estimation
+### Probabilistic Counting
+
+The intuition:
+
+{{% callout %}}
+observing in the stream S at the beginning of a string a bit- pattern 0ρ−11 is more or less a likely indication that the cardinality n of S is at least 2ρ
+{{% /callout %}}
+
+```
+
+```
 
 Hashing functions + basic probability, explain the intuition
 
@@ -200,25 +210,33 @@ Morris Counter[^4]: `log2 log2 /1 + O( 1)`
 ```go
 ```
 
- ====> LogLog.
- 
-### HyperLogLog
+### Probabilistic Cardinality Estimation with HyperLogLog
 
-> HYPERLOGLOG performs a single pass over the data and produces an estimate √
-of the cardinality such that the relative accuracy (the standard error) is typically about 1.04/ m. This improves on the best previously known cardinality estimator, LOGLOG, whose accuracy can be matched by consuming only 64% of the original memory. For instance, the new algorithm makes it possible to estimate cardinalities well beyond 109 with a typical accuracy of 2% while using a memory of only 1.5 kilobytes. The algorithm parallelizes optimally and adapts to the sliding window model.
+Time Complexity: **O(1)**
 
-Time Complexity: O(1)
+Space Complexity: **O(log log N)**
 
-Space Complexity: O(log log N)
+Parallel: (✅)
+
+This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, and a margin of error of roughly 98% accuracy, those are incredible numbers
+
+
+definitions:
+1. multiset = stream, elements to be counted belonging to a certain data domain D via a hash function:
+2. hash_fn : Domain → {0, 1}∞
+
+rely on making observations on the hashed values h(M) of the input multiset M
+then inferring a plausible estimate of the unknown cardinality n. These observations are:
+- Bit-pattern observables
+- Order statistics observables
+
+observable of a multiset(S) `S ≡ hash_fn(Multiset) of {0, 1}∞`
 
 Why?
 
 m = 2 ^ p
 
-Key points:
-- Bit-pattern observables
-- Order statistics observables
-```
+Pseudo code:
 Let h : D → [0, 1] ≡ {0, 1}∞ hash data from domain D to the binary domain. Let ρ(s), for s ∈ {0, 1}∞ , be the position of the leftmost 1-bit (ρ(0001 · · · ) = 4).
 Algorithm HYPERLOGLOG (input M : multiset of items from domain D). assumem=2b withb∈Z>0;
 initialize a collection of m registers, M [1], . . . , M [m], to −∞;
