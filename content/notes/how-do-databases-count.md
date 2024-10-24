@@ -182,19 +182,101 @@ todo: approach? minimal execution layer?
 
 ### Naive/Strawman Counting
 - stack
+```go
+```
+
 - hashmap
+
+```go
+```
 
 ### Probabilistic Cardinality Estimation
 
-### Morris Counter
-Morris Counter: `log2 log2 /1 + O( 1)`, LogLog.
+Hashing functions + basic probability, explain the intuition
 
+### Morris Counter
+Morris Counter[^4]: `log2 log2 /1 + O( 1)`
+
+```go
+```
+
+ ====> LogLog.
+ 
 ### HyperLogLog
+
+> HYPERLOGLOG performs a single pass over the data and produces an estimate √
+of the cardinality such that the relative accuracy (the standard error) is typically about 1.04/ m. This improves on the best previously known cardinality estimator, LOGLOG, whose accuracy can be matched by consuming only 64% of the original memory. For instance, the new algorithm makes it possible to estimate cardinalities well beyond 109 with a typical accuracy of 2% while using a memory of only 1.5 kilobytes. The algorithm parallelizes optimally and adapts to the sliding window model.
+
+Time Complexity: O(1)
+
+Space Complexity: O(log log N)
+
+Why?
+
+m = 2 ^ p
+
+Key points:
+- Bit-pattern observables
+- Order statistics observables
+```
+Let h : D → [0, 1] ≡ {0, 1}∞ hash data from domain D to the binary domain. Let ρ(s), for s ∈ {0, 1}∞ , be the position of the leftmost 1-bit (ρ(0001 · · · ) = 4).
+Algorithm HYPERLOGLOG (input M : multiset of items from domain D). assumem=2b withb∈Z>0;
+initialize a collection of m registers, M [1], . . . , M [m], to −∞;
+for v ∈ M do
+set x := h(v);
+set j = 1 + ⟨x1x2 · · · xb⟩2; {the binary address determined by the first b bits of x} set w := xb+1xb+2 · · · ; set M[j] := max(M[j], ρ(w));
+!−1
+m computeZ:= X2−M[j]
+j=1
+;{the“indicator”function} return E := αmm2Z with αm as given by Equation (3).
+```
+
+include pseudo code from the paper? A quick definition of terms:
+```
+Let h : D → {0, 1}32 hash data from D to binary 32–bit words.
+Let ρ(s) be the position of the leftmost 1-bit of s: e.g., ρ(1···) = 1, ρ(0001···) = 4, ρ(0K) = K + 1.
+define α16 = 0.673; α32 = 0.697; α64 = 0.709; αm = 0.7213/(1 + 1.079/m) for m ≥ 128;
+```
+
+psuedo code:
+```
+Program HYPERLOGLOG (input M : multiset of items from domain D). 
+assume m = 2b with b ∈ [4..16].
+initialize a collection of m registers, M [1], . . . , M [m], to 0;
+for v ∈ M do
+  set x := h(v);
+  set j = 1 + ⟨x1x2 · · · xb⟩2; {the binary address determined by the first b bits of x}
+  set w := xb+1xb+2 ···;
+  set M[j] := max(M[j], ρ(w)); „m «−1
+
+compute E := αm m2 · X 2−M [j ] ; {the “raw” HyperLogLog estimate} j=1
+
+if E ≤ 25 m then
+   let V be the number of registers equal to 0;
+   if V ̸= 0 then set E⋆ := m log(m/V ) else set E⋆ := E; {small range correction}
+
+if E ≤ 1/2^32 then 30
+set E⋆ := E;  {intermediate range—no correction}
+if E > (1/30)(2^32) then
+set E⋆ := −232 log(1 − E/232); {large range correction} 
+return cardinality estimate E⋆ with typical relative error ±1.04/ m.
+```
+
+
+
+todo: port over the c++ to rust
+
 ```rust
 ```
+
+HyperLogLog is now a fairly standard data structure in analytics databases, despite being invented relatively not that long ago, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions) and much more. Thanks for reading!
+
 
 [^1]: [System R](https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF)
 [^2]: [Everything You Always Wanted to Know About Compiled and Vectorized Queries But Were Afraid to Ask](https://www.vldb.org/pvldb/vol11/p2209-kersten.pdf)
 [^3]: [Probabilistic Counting Algorithms for Database Applications](https://algo.inria.fr/flajolet/Publications/src/FlMa85.pdf)
-[^4]: [Volcano-An Extensible and Parallel Query Evaluation System](https://paperhub.s3.amazonaws.com/dace52a42c07f7f8348b08dc2b186061.pdf)
-[^5]: [Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age](https://db.in.tum.de/~leis/papers/morsels.pdf)
+[^4]: [Counting Large Numbers of Events in Small Registers ](https://www.inf.ed.ac.uk/teaching/courses/exc/reading/morris.pdf)
+[^4]: [Loglog Counting of Large Cardinalities](https://algo.inria.fr/flajolet/Publications/DuFl03-LNCS.pdf)
+[^5]: [HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm](https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf)
+[^6]: [Volcano-An Extensible and Parallel Query Evaluation System](https://paperhub.s3.amazonaws.com/dace52a42c07f7f8348b08dc2b186061.pdf)
+[^7]: [Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age](https://db.in.tum.de/~leis/papers/morsels.pdf)
