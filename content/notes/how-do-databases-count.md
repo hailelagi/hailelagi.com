@@ -2,7 +2,7 @@
 title: "How do databases count?"
 date: 2024-10-16T19:05:55+01:00
 draft: true
-tags: go, rust, sql, probability
+tags: rust, sql, probability
 ---
 
 Given the simple query below, how does a database count?
@@ -86,14 +86,15 @@ To answer this query, it seems we need to _plan_ several things, two _logical op
 and a [function](https://www.postgresql.org/docs/9.2/functions.html), in this case an **aggregate function** called `COUNT(expr)`, and finally some 
 way to represent relations in this naive engine:
 
-```go
+```rust
 /*
 schema col -> row mapping
 [{k,v}, {k,v}, {k,v}, {k,v}]
 */
-type Relation struct {
-	colNames []string
-	rows     []Row
+#[derive(Debug, Clone)]
+pub struct Relation {
+    pub col_names: Vec<String>,
+    pub rows: Vec<Vec<String>>,
 }
 ```
 
@@ -104,52 +105,44 @@ A selection is:
 // 1. constant
 // 2. equality selection
 // SQL: SELECT * FROM R WHERE a_id = 'a2'
+    pub fn select(&self, idx: usize, expr: &str) -> Relation {
+        let result: Vec<Vec<String>> = self.rows
+            .iter()
+            .filter(|row| row[idx] == expr) 
+            .cloned()
+            .collect();
 
-func ConstantSelect(relation Relation, idx int, expr string) Relation {
-	result := make([]Row, 0)
+        Relation {
+            col_names: self.col_names.clone(), // Clone the column names
+            rows: result,
+        }
+    }
 
-	for _, r := range relation.rows {
-		if r[idx] == expr {
-			result = append(result, r)
-		}
-	}
-
-	return Relation{
-		colNames: relation.colNames,
-		rows:     result,
-	}
-}
 ```
 
 A projection is:
-```go
+```rust
 // Projection: modification(r/w/order) over columns, changes the shape of output/attributes
 // π(a1,a2),. . . , (a)n(R).
 // SQL: SELECT b_id-100, a_id FROM R WHERE a_id = 'a2'
-func Projection(relation Relation, columns []int) Relation {
-	result := make([]Row, 0)
+    pub fn projection(&self, columns: &[usize]) -> Relation {
+        let result: Vec<Vec<String>> = self.rows
+            .iter()
+            .map(|row| {
+                columns.iter().map(|&col_idx| row[col_idx].clone()).collect()
+            })
+            .collect();
 
-	for _, row := range relation.rows {
-		newRow := make(Row, len(columns))
+        let col_names: Vec<String> = columns
+            .iter()
+            .map(|&col_idx| self.col_names[col_idx].clone())
+            .collect();
 
-		for i, colIdx := range columns {
-			newRow[i] = row[colIdx]
-		}
-
-		result = append(result, newRow)
-	}
-
-	colNames := make([]string, len(columns))
-
-	for i, colIdx := range columns {
-		colNames[i] = relation.colNames[colIdx]
-	}
-
-	return Relation{
-		colNames: colNames,
-		rows:     result,
-	}
-}
+        Relation {
+            col_names,
+            rows: result,
+        }
+    }
 ```
 
 Now we have a **logical plan** of operations and transformations on this query, but it's defined in a _syntax_ for these operations, re-enter SQL, or was it SEQUEL? Of note is the observation, the **logical operations are independent of the syntax** used to describe them. We need to first parse the sql, and build a simple abstract syntax tree where the nodes are the logical operators: selection, projection and preserving the semantics of applying the `count`, parsing such a simple query doesn't require a [sophisticated scheme that's generalized over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser) all we need is:
@@ -192,6 +185,8 @@ todo: approach? minimal execution layer?
 
 ### Probabilistic Counting
 
+assumptions: hashed is pseudo-uniform.
+
 The intuition:
 
 {{% callout %}}
@@ -217,6 +212,8 @@ Time Complexity: **O(1)**
 Space Complexity: **O(log log N)**
 
 Parallel: (✅)
+
+assumptions: hashed is assumed uniformly distributed
 
 This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, and a margin of error of roughly 98% accuracy, those are incredible numbers
 
