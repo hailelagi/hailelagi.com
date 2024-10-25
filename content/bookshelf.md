@@ -9,6 +9,7 @@ Stuff I've read or re-read in the past few months:
 
 Previously Explored:
 
+- [A Tour of C++](https://www.amazon.co.uk/Tour-C-Depth/dp/0321958314)
 - [The Beam Book](https://github.com/happi/theBeamBook)
 - [The Go Programming Language](https://www.gopl.io/)
 - [Metaprogramming Elixir](https://pragprog.com/titles/cmelixir/metaprogramming-elixir/)

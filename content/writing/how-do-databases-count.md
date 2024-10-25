@@ -28,7 +28,7 @@ postgres=# explain analyze select 1 + 1;
 (3 rows)
 ```
 
-This is not the only way to represent a query plan, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
+This is not the only reperesentation, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
 
 ```
 sqlite> explain select 1 + 1;
@@ -58,7 +58,7 @@ postgres=# select 1 + 1;
 (1 row)
 ```
 
-Let's make a small query engine, to answer our question:
+To answer our question, a query engine in [less than 500 lines]() of rust:
 
 ```
 select count(distinct col) from table;
@@ -145,9 +145,14 @@ A projection is:
     }
 ```
 
-Now we have a **logical plan** of operations and transformations on this query, but it's defined in a _syntax_ for these operations, re-enter SQL, or was it SEQUEL? Of note is the observation, the **logical operations are independent of the syntax** used to describe them. We need to first parse the sql, and build a simple abstract syntax tree where the nodes are the logical operators: selection, projection and preserving the semantics of applying the `count`, parsing such a simple query doesn't require a [sophisticated scheme that's generalized over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser) all we need is:
+Now we have a **logical plan** of operations and transformations on this query, but it's defined in a _syntax_ for these operations, 
+re-enter SQL, or was it SEQUEL? Of note is the observation, the **logical operations are independent of the syntax** used to describe them.
+We need to first parse the sql, and build a simplified abstract syntax tree where the nodes are the logical operators: selection, projection
+and preserving the semantics of applying the `count`, luckily this query engine doesn't need to support the SQL standard or dialects! and we can get 
+away with not [using a pretty cool generalization over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser)
+all we need is:
 ```go
-// parser.go
+// parser.rs
 
 ```
 
@@ -284,7 +289,7 @@ todo: port over the c++ to rust
 ```rust
 ```
 
-HyperLogLog is now a fairly standard data structure in analytics databases, despite being invented relatively not that long ago, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions) and much more. Thanks for reading!
+HyperLogLog is now a fairly standard data structure in analytics databases, despite being invented relatively not that long ago, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. Thanks for reading!
 
 
 [^1]: [System R](https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF)
