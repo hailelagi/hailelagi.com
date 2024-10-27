@@ -2,7 +2,7 @@
 title: "How do databases count?"
 date: 2024-10-16T19:05:55+01:00
 draft: true
-tags: rust, sql, probability
+tags: rust, go, sql, probability
 ---
 
 Given the simple query below, how does a database count?
@@ -28,7 +28,7 @@ postgres=# explain analyze select 1 + 1;
 (3 rows)
 ```
 
-This is not the only reperesentation of a query plan, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
+This is not the only representation of a query plan, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
 
 ```
 sqlite> explain select 1 + 1;
@@ -68,7 +68,7 @@ The goals of a query engine specify the _need_ to be **_correct_** and **_fast_*
 
 Of interest is how the first formalism describes a number of operations on a _unordered collection_ of sets:
 
-- select
+- selection
 - projection
 - union
 - intersection
@@ -80,16 +80,16 @@ Of interest is how the first formalism describes a number of operations on a _un
 and a few useful modern extensions, like sorting, windows, aggregates etc.
 
 To answer this query, it seems we need to _plan_ several things, two _logical operators_ or _logical nodes_ which define this transformation:
-1. select - to specify we want a final count
-2. projection - to specify _which_ column is of interest
+1. select - to specify what we want
+2. projection - to specify a few details about what is of interest
 
 and a [function](https://www.postgresql.org/docs/9.2/functions.html), in this case an **aggregate function** called `COUNT(expr)`, and finally some 
-way to represent relations in this naive engine, we don't have  a real 'schema' quite yet, but you could imagine a relation as:
+way to represent relations in this naive engine, we don't have  a real 'schema' quite yet or ever will, but you could imagine a relation as:
 
 ```rust
 /*
-schema col -> row mapping
-[{k,v}, {k,v}, {k,v}, {k,v}]
+schema: relation + col -> row mapping
+storage(tuples): [{k,v}, {k,v}, {k,v}, {k,v}]
 */
 #[derive(Debug, Clone)]
 pub struct Relation {
@@ -98,13 +98,10 @@ pub struct Relation {
 }
 ```
 
-A selection is:
+A selection here does a full scan and filters out based on the predicate:
 ```rust
 // selection table/relation + predicate (expr = true | false | unknown)
-// σ predicate(R).
-// 1. constant
-// 2. equality selection
-// SQL: SELECT * FROM R WHERE a_id = 'a2'
+// σ predicate(R). SQL: SELECT * FROM R WHERE a_id = 'a2'
     pub fn select(&self, idx: usize, expr: &str) -> Relation {
         let result: Vec<Vec<String>> = self.rows
             .iter()
@@ -120,9 +117,9 @@ A selection is:
 
 ```
 
-A projection is:
+A projection here is a _modifier_ operation over the set:
 ```rust
-// Projection: modification(r/w/order) over columns, changes the shape of output/attributes
+// Projection: modification(r/w/order) over cols, changes the shape of output/attributes
 // π(a1,a2),. . . , (a)n(R).
 // SQL: SELECT b_id-100, a_id FROM R WHERE a_id = 'a2'
     pub fn projection(&self, columns: &[usize]) -> Relation {
@@ -178,16 +175,57 @@ relations of the database. The most important ones are the **sizes of relations*
 as **the number of different elements of some key fields** [8]. This information is used
 to determine the selectivity of attributes at any given time in order to decide the
 choice of keys and the choice of the appropriate algorithms to be employed when
-computing relational operators. The choices are made in order **to minimise a certain cost function** that depends on specific CPU and disk access costs as well as sizes and cardinalities of relations or fields. In system R, this information is
+computing relational operators. The choices are made in order **to minimise a certain cost function** that depends on specific CPU and disk access costs as well as **sizes and cardinalities** of relations or fields. In system R, this information is
 periodically recomputed and kept in catalogues that are companions to the database records and indexes[^3]
 
 In postgres this subsystem is called the [Cumulative Statistics System](https://www.postgresql.org/docs/current/monitoring-stats.html), hopefully this contextualizes _why_ keeping track of counts and making them fast is important. It's not just to serve the sql query aggregate function `COUNT`, it's also quite useful internally for the planner as well.
 
 ### Naive Counting
-https://en.wikipedia.org/wiki/Count-distinct_problem
+There are two flavors of counting, we're interested in:
+1. size (counting all elements)
+2. cardinality (roughly, counting unique elements)
 
-- stack
-- hashmap
+
+Counting elements for an exact size, could be as simple as a counter, an [`ADD` instruction is very fast](https://c9x.me/x86/html/file_module_x86_id_5.html), but if we're storing _alot of different counts_, wouldn't it be nice if we could save on memory too? what if you don't care about an _exact_ count? say we only desire a _rough count_ over some interval to make some informed decisions?
+
+On the other side of the coin, how do we count _unique elements_?
+
+```go
+// This is computationally inefficient in time
+func countUniqStack(arr []int) int {
+	mystack := MyStack{}
+
+	for _, element := range arr {
+                // expensive check
+		if !mystack.contains(element) {
+			mystack.stack = append(mystack.stack, element)
+		}
+	}
+
+	return len(mystack.stack)
+}
+```
+
+Perhaps a hashmap which is `O(1)`?
+```go
+// This is computationally inefficient in space
+// For a large set s, we must `make` unused space 'incase'
+func countUniqMap(arr []int) int {
+	seen := make(map[int]bool)
+	uniqs := []int{} 
+
+	for _, element := range arr {
+		if !seen[element] {
+			uniqs = append(uniqs, element) 
+			seen[element] = true
+		}
+	}
+
+	return len(stack) 
+}
+```
+
+It seems like a stack and hashmap won't work, how does one store less and compute only what's necessary?
 
 ### Probabilistic Counting
 
@@ -218,7 +256,7 @@ Parallel: (✅)
 
 assumptions: hashed is assumed uniformly distributed
 
-This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, and a margin of error of roughly 98% accuracy, those are incredible numbers
+This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, and a margin of error of roughly 98% accuracy, those are incredible numbers. [^5]
 
 
 definitions:
@@ -294,3 +332,8 @@ Thanks for reading!
 [^4]: [Counting Large Numbers of Events in Small Registers ](https://www.inf.ed.ac.uk/teaching/courses/exc/reading/morris.pdf)
 [^4]: [Loglog Counting of Large Cardinalities](https://algo.inria.fr/flajolet/Publications/DuFl03-LNCS.pdf)
 [^5]: [HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm](https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf)
+
+
+#### Notes & References
+- https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf
+- https://15445.courses.cs.cmu.edu/fall2024/notes/02-modernsql.pdf
