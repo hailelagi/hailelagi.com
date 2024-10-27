@@ -28,7 +28,7 @@ postgres=# explain analyze select 1 + 1;
 (3 rows)
 ```
 
-This is not the only reperesentation, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
+This is not the only reperesentation of a query plan, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
 
 ```
 sqlite> explain select 1 + 1;
@@ -42,14 +42,14 @@ addr  opcode         p1    p2    p3    p4             p5  comment
 5     Goto           0     1     0                    0   
 ```
 
-If reading opcodes isn't something you do for fun:
+If reading opcodes isn't quite interesting:
 ```
 sqlite> explain query plan select 1 + 1;
 QUERY PLAN
 `--SCAN CONSTANT ROW
 ```
 
-This is what is referred to as a _query plan_, it's the _output_ of a program, like all programs, it has a rich history, architectural decisions, algorithms, datastructures, trade-offs and constraints. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts' by isolating the how from the underlying storage, this **decoupling** gives many benefits and in [hindsight is obvious](https://en.wikipedia.org/wiki/Data_independence), but wasn't always so, until someone(s) figured it out[^1]:
+A query plan is the _output_ of a program, like all programs, it has a rich history, architectural decisions, algorithms, datastructures, trade-offs and constraints. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts' by isolating the how from the underlying storage, this **decoupling** gives many benefits and in [hindsight is obvious](https://en.wikipedia.org/wiki/Data_independence), but wasn't always so, until someone(s) figured it out[^1]:
 ```
 postgres=# select 1 + 1;
  ?column? 
@@ -151,7 +151,7 @@ We need to first parse the sql, and build a simplified abstract syntax tree wher
 and preserving the semantics of applying the `count`, luckily this query engine doesn't need to support the SQL standard or dialects! and we can get 
 away with not [using a pretty cool generalization over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser)
 all we need is:
-```go
+```rust
 // parser.rs
 
 ```
@@ -178,15 +178,9 @@ todo: approach? minimal execution layer?
 ```
 ```
 
-### Naive/Strawman Counting
+### Naive Counting
 - stack
-```go
-```
-
 - hashmap
-
-```go
-```
 
 ### Probabilistic Counting
 
@@ -198,17 +192,11 @@ The intuition:
 observing in the stream S at the beginning of a string a bit- pattern 0ρ−11 is more or less a likely indication that the cardinality n of S is at least 2ρ
 {{% /callout %}}
 
-```
-
-```
-
 Hashing functions + basic probability, explain the intuition
 
 ### Morris Counter
 Morris Counter[^4]: `log2 log2 /1 + O( 1)`
 
-```go
-```
 
 ### Probabilistic Cardinality Estimation with HyperLogLog
 
