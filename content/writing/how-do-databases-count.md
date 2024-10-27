@@ -17,7 +17,7 @@ Let's ask the database directly, [in this case, it's postgres](https://www.postg
 explain analyze select count(distinct col1) from table1;
 ```
 
-This produces a long series of arcane sounding words and structures, an output as a _tree_ of algorithmic paths/steps, which you can _read bottom-up_, a trivial example which is [_inlined_](https://wiki.postgresql.org/wiki/Inlining_of_SQL_functions) and doesn't need a series of 'optimisation passes':
+This produces a series of algorithmic steps and structures specific to a database, outputted as a _tree_ of "paths", which you can _read bottom-up_, a trivial example which is [_inlined_](https://wiki.postgresql.org/wiki/Inlining_of_SQL_functions) and doesn't need a series of 'optimisation passes':
 ```
 postgres=# explain analyze select 1 + 1;
                                      QUERY PLAN                                     
@@ -42,7 +42,7 @@ addr  opcode         p1    p2    p3    p4             p5  comment
 5     Goto           0     1     0                    0   
 ```
 
-If reading opcodes isn't quite interesting:
+If you'd rather see the plan, rather than reading opcodes:
 ```
 sqlite> explain query plan select 1 + 1;
 QUERY PLAN
@@ -58,7 +58,7 @@ postgres=# select 1 + 1;
 (1 row)
 ```
 
-To answer our question, a query engine in [less than 500 lines]() of rust:
+To answer our question, a query engine in [less than 500 lines](https://github.com/hailelagi/peppermint) of rust:
 
 ```
 select count(distinct col) from table;
@@ -84,7 +84,7 @@ To answer this query, it seems we need to _plan_ several things, two _logical op
 2. projection - to specify _which_ column is of interest
 
 and a [function](https://www.postgresql.org/docs/9.2/functions.html), in this case an **aggregate function** called `COUNT(expr)`, and finally some 
-way to represent relations in this naive engine:
+way to represent relations in this naive engine, we don't have  a real 'schema' quite yet, but you could imagine a relation as:
 
 ```rust
 /*
@@ -99,7 +99,7 @@ pub struct Relation {
 ```
 
 A selection is:
-```go
+```rust
 // selection table/relation + predicate (expr = true | false | unknown)
 // σ predicate(R).
 // 1. constant
@@ -113,7 +113,7 @@ A selection is:
             .collect();
 
         Relation {
-            col_names: self.col_names.clone(), // Clone the column names
+            col_names: self.col_names.clone(), 
             rows: result,
         }
     }
@@ -129,9 +129,9 @@ A projection is:
         let result: Vec<Vec<String>> = self.rows
             .iter()
             .map(|row| {
-                columns.iter().map(|&col_idx| row[col_idx].clone()).collect()
-            })
-            .collect();
+                columns.iter()
+                .map(|&col_idx| row[col_idx].clone()).collect()
+            }).collect();
 
         let col_names: Vec<String> = columns
             .iter()
@@ -148,37 +148,44 @@ A projection is:
 Now we have a **logical plan** of operations and transformations on this query, but it's defined in a _syntax_ for these operations, 
 re-enter SQL, or was it SEQUEL? Of note is the observation, the **logical operations are independent of the syntax** used to describe them.
 We need to first parse the sql, and build a simplified abstract syntax tree where the nodes are the logical operators: selection, projection
-and preserving the semantics of applying the `count`, luckily this query engine doesn't need to support the SQL standard or dialects! and we can get 
-away with not [using a pretty cool generalization over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser)
-all we need is:
+and preserving the semantics of applying the `count`, luckily this query engine doesn't need to support the SQL standard or dialects! 
+and we can cut corners :) , we can just parse out exactly what's needed, without walking the tree or [using a pretty cool generalization over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser):
 ```rust
-// parser.rs
+// parser.rs parse SELECT COUNT(DISTINCT col) FROM table; 
+// and produces a data structure we'd produce from the AST
+SelectStatement {
+            projection: AggregateExpression {
+                function: Aggregation::Count,
+                column: Column {
+                    name: "col".to_string(),
+                    distinct: true,
+                },
+            },
+            table: "table".to_string(),
+        };
 
 ```
 
-### Query Processing and Cost Optimisation
+### Statistics & Costs
 
 Lastly, all that's left is to `count`. Which brings us to feature two -- **performance**. A historical glance reveals some influential architectural decisions, we've established the need to seperate the _logical_ what of a query from the _physical_ how the query finds and further yet, realised sql (and dialects) are really syntactic abstractions.
 
-Why is the performance of counting interesting? What are the **problems**, programs are written for computers, how do you leverage all the ways a computer allows you to be fast? how do you take a program, any program, and run it across **multiple cores** and leverage hardware advances that run in data centers **distributed** across computers? https://en.wikipedia.org/wiki/Count-distinct_problem
+Why is the performance of counting interesting? 
 
 > The situation gets much more complex when operations like projections, selections, multiple joins
- in combination with various boolean operations appear in queries. As an example, the relational s
- ystem system R has a sophisticated query optimiser. In order to perform its task, that programme keeps several statistics on
-relations of the data base. The most important ones are the sizes of relations as well
+ in combination with various boolean operations appear in queries. As an example, the relational system system R has a sophisticated query optimiser. In order to perform its task, that programme keeps **several statistics** on
+relations of the database. The most important ones are the **sizes of relations** as well
 as **the number of different elements of some key fields** [8]. This information is used
 to determine the selectivity of attributes at any given time in order to decide the
 choice of keys and the choice of the appropriate algorithms to be employed when
 computing relational operators. The choices are made in order **to minimise a certain cost function** that depends on specific CPU and disk access costs as well as sizes and cardinalities of relations or fields. In system R, this information is
 periodically recomputed and kept in catalogues that are companions to the database records and indexes[^3]
 
-An influential modern design is the **volcano model**[^4], a popular idea for defining _execution semantics_ of a query and on the other hand the **Morsel-Driven model**[^5] some say is [the fastest table sort in the west](https://duckdb.org/2021/08/27/external-sorting.html) 
-
-todo: approach? minimal execution layer?
-```
-```
+In postgres this subsystem is called the [Cumulative Statistics System](https://www.postgresql.org/docs/current/monitoring-stats.html), hopefully this contextualizes _why_ keeping track of counts and making them fast is important. It's not just to serve the sql query aggregate function `COUNT`, it's also quite useful internally for the planner as well.
 
 ### Naive Counting
+https://en.wikipedia.org/wiki/Count-distinct_problem
+
 - stack
 - hashmap
 
@@ -194,11 +201,14 @@ observing in the stream S at the beginning of a string a bit- pattern 0ρ−11 i
 
 Hashing functions + basic probability, explain the intuition
 
-### Morris Counter
+### Probabilistic counting with a Morris Counter
+```sql
+select count(col) from table;
+```
+
 Morris Counter[^4]: `log2 log2 /1 + O( 1)`
 
-
-### Probabilistic Cardinality Estimation with HyperLogLog
+### Counting Unique Occurences with HyperLogLog
 
 Time Complexity: **O(1)**
 
@@ -270,14 +280,12 @@ set E⋆ := −232 log(1 − E/232); {large range correction}
 return cardinality estimate E⋆ with typical relative error ±1.04/ m.
 ```
 
-
-
-todo: port over the c++ to rust
-
 ```rust
 ```
 
-HyperLogLog is now a fairly standard data structure in analytics databases, despite being invented relatively not that long ago, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. Thanks for reading!
+HyperLogLog is now a fairly standard data structure in analytics databases, despite being invented relatively not that long ago, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. 
+
+Thanks for reading!
 
 
 [^1]: [System R](https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF)
@@ -286,5 +294,3 @@ HyperLogLog is now a fairly standard data structure in analytics databases, desp
 [^4]: [Counting Large Numbers of Events in Small Registers ](https://www.inf.ed.ac.uk/teaching/courses/exc/reading/morris.pdf)
 [^4]: [Loglog Counting of Large Cardinalities](https://algo.inria.fr/flajolet/Publications/DuFl03-LNCS.pdf)
 [^5]: [HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm](https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf)
-[^6]: [Volcano-An Extensible and Parallel Query Evaluation System](https://paperhub.s3.amazonaws.com/dace52a42c07f7f8348b08dc2b186061.pdf)
-[^7]: [Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age](https://db.in.tum.de/~leis/papers/morsels.pdf)
