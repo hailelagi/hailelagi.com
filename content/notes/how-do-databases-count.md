@@ -146,10 +146,13 @@ Now we have a **logical plan** of operations and transformations on this query, 
 re-enter SQL, or was it SEQUEL? Of note is the observation, the **logical operations are independent of the syntax** used to describe them.
 We need to first parse the sql, and build a simplified abstract syntax tree where the nodes are the logical operators: selection, projection
 and preserving the semantics of applying the `count`, luckily this query engine doesn't need to support the SQL standard or dialects! 
-and we can cut corners :) , we can just parse out exactly what's needed, without walking the tree or [using a pretty cool generalization over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser):
+and we can cut corners :) , we can just parse out exactly what's needed, without [walking the tree](https://docs.rs/sqlparser/latest/sqlparser/ast/trait.Visitor.html) or [using a pretty cool generalization over a grammar](https://en.wikipedia.org/wiki/Recursive_descent_parser):
 ```rust
 // parser.rs parse SELECT COUNT(DISTINCT col) FROM table; 
-// and produces a data structure we'd produce from the AST
+// and produces a data structure post logical we'd now pass to the
+// 'physical/execution' planning stage, select indices etc
+// in this example, there's only one possible strategy `SeqScan`
+// in a strict sense is a combined logical + physical?
 SelectStatement {
             projection: AggregateExpression {
                 function: Aggregation::Count,
@@ -165,7 +168,8 @@ SelectStatement {
 
 ### Statistics & Costs
 
-Lastly, all that's left is to `count`. Which brings us to feature two -- **performance**. A historical glance reveals some influential architectural decisions, we've established the need to seperate the _logical_ what of a query from the _physical_ how the query finds and further yet, realised sql (and dialects) are really syntactic abstractions.
+Lastly, all that's left is to `count`. Which brings us to feature two -- **performance**. A historical glance reveals some influential architectural decisions, we've established the need to seperate the _logical_ what of a query from the _physical/execution_ how the query finds,
+in this simplified all-in-one planner, we gloss over that very important detail and further yet, realised sql (and dialects) are really syntactic abstractions.
 
 Why is the performance of counting interesting? 
 

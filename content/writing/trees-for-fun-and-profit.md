@@ -160,6 +160,8 @@ We've gotta break all the compiler rules.
 
 A sane way of of getting around this is by using a `Vec<u8>` of "pointers" or "page ids" and [implementing "arenas"](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) or some such strange incantation but lets save that bit for later in garbage collection.
 
+### todo: GhostCell?? https://plv.mpi-sws.org/rustbelt/ghostcell/paper.pdf
+
 Historically B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM and some say it's winning in the cloud with tiered storage. How about in DRAM? How do we go fast?
 
 ![Danger](/Speed_Racer_behind_the_wheel.webp)
