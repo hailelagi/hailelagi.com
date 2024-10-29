@@ -402,3 +402,4 @@ There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick 
 [^23]: https://erdani.org/publications/cuj-2004-12.pdf
 [^24]: https://cs-people.bu.edu/mathan/publications/fnt23-athanassoulis.pdf
 [^25]: https://en.wikipedia.org/wiki/T-tree
+[^26]: https://people.freebsd.org/~lstewart/articles/cpumemory.pdf

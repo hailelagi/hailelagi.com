@@ -28,7 +28,7 @@ postgres=# explain analyze select 1 + 1;
 (3 rows)
 ```
 
-This is not the only representation of a query plan, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^2]:
+This is not the only representation of a query plan, sqlite on the other hand does a curious thing, instead of holding a tree as an internal representation, it compiles [down to bytecode](https://www.sqlite.org/opcode.html), why it makes this decision is a plenty interesting design space[^3]:
 
 ```
 sqlite> explain select 1 + 1;
@@ -49,7 +49,7 @@ QUERY PLAN
 `--SCAN CONSTANT ROW
 ```
 
-A query plan is the _output_ of a program, like all programs, it has a rich history, architectural decisions, algorithms, datastructures, trade-offs and constraints. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts' by isolating the how from the underlying storage, this **decoupling** gives many benefits and in [hindsight is obvious](https://en.wikipedia.org/wiki/Data_independence), but wasn't always so, until someone(s) figured it out[^1]:
+A query plan is the _output_ of a program, like all programs, it has a rich history, architectural decisions, algorithms, datastructures, trade-offs and constraints. It takes as input a _query_ typically in a _query language_ here it's SQL and lets you retrieve 'facts' by isolating the how from the underlying storage, this **decoupling** gives many benefits and in [hindsight is obvious](https://en.wikipedia.org/wiki/Data_independence), but wasn't always so, until someone(s) figured it out[^1] [^2]:
 ```
 postgres=# select 1 + 1;
  ?column? 
@@ -330,12 +330,13 @@ HyperLogLog is now a fairly standard data structure in analytics databases, desp
 Thanks for reading!
 
 
-[^1]: [System R](https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF)
-[^2]: [Everything You Always Wanted to Know About Compiled and Vectorized Queries But Were Afraid to Ask](https://www.vldb.org/pvldb/vol11/p2209-kersten.pdf)
-[^3]: [Probabilistic Counting Algorithms for Database Applications](https://algo.inria.fr/flajolet/Publications/src/FlMa85.pdf)
-[^4]: [Counting Large Numbers of Events in Small Registers ](https://www.inf.ed.ac.uk/teaching/courses/exc/reading/morris.pdf)
-[^4]: [Loglog Counting of Large Cardinalities](https://algo.inria.fr/flajolet/Publications/DuFl03-LNCS.pdf)
-[^5]: [HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm](https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf)
+[^1]: [Access Path Selection in a Relational Database Management System](https://courses.cs.duke.edu/compsci516/cps216/spring03/papers/selinger-etal-1979.pdf)
+[^2]: [System R](https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF)
+[^3]: [Everything You Always Wanted to Know About Compiled and Vectorized Queries But Were Afraid to Ask](https://www.vldb.org/pvldb/vol11/p2209-kersten.pdf)
+[^4]: [Probabilistic Counting Algorithms for Database Applications](https://algo.inria.fr/flajolet/Publications/src/FlMa85.pdf)
+[^5]: [Counting Large Numbers of Events in Small Registers ](https://www.inf.ed.ac.uk/teaching/courses/exc/reading/morris.pdf)
+[^6]: [Loglog Counting of Large Cardinalities](https://algo.inria.fr/flajolet/Publications/DuFl03-LNCS.pdf)
+[^7]: [HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm](https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf)
 
 
 #### Notes & References

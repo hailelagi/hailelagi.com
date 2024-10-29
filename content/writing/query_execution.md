@@ -8,3 +8,4 @@ An influential modern design is the **volcano model**[^1], a popular idea for de
 
 [^1]: [Volcano-An Extensible and Parallel Query Evaluation System](https://paperhub.s3.amazonaws.com/dace52a42c07f7f8348b08dc2b186061.pdf)
 [^2]: [Morsel-Driven Parallelism: A NUMA-Aware Query Evaluation Framework for the Many-Core Age](https://db.in.tum.de/~leis/papers/morsels.pdf)
+[^3]: [Orca: A Modular Query Optimizer Architecture for Big Data](https://www.vmware.com/docs/white-paper-orca-a-modular-query-optimizer-architecture-for-big-data)
