@@ -231,22 +231,7 @@ func countUniqMap(arr []int) int {
 
 It seems like a stack and hashmap won't work, how does one store less and compute only what's necessary?
 
-### Probabilistic Counting
-
-assumptions: hashed is pseudo-uniform.
-
-The intuition:
-
-{{% callout %}}
-observing in the stream S at the beginning of a string a bit- pattern 0ρ−11 is more or less a likely indication that the cardinality n of S is at least 2ρ
-{{% /callout %}}
-
-Hashing functions + basic probability, explain the intuition
-
 ### Probabilistic counting with a Morris Counter
-```sql
-select count(col) from table;
-```
 
 Morris Counter[^4]: `log2 log2 /1 + O( 1)`
 
@@ -260,24 +245,47 @@ Parallel: (✅)
 
 assumptions: hashed is assumed uniformly distributed
 
-This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, and a margin of error of roughly 98% accuracy, those are incredible numbers. [^5]
+This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, 
+and a margin of error of roughly 98% accuracy, those are incredible numbers, [^5] how does it work? 
 
+The input to this algorithm is a _continuous stream_ (elements are read sequentially) say:
 
-definitions:
-1. multiset = stream, elements to be counted belonging to a certain data domain D via a hash function:
-2. hash_fn : Domain → {0, 1}∞
+ `["hello", "bye, "hello", "world", "universe", "foo"]` 
 
-rely on making observations on the hashed values h(M) of the input multiset M
-then inferring a plausible estimate of the unknown cardinality n. These observations are:
+We want to perform a _single pass_ over these elements(_multiset_ in the paper) and the output an _estimate of the cardinality_ 
+of unique items when we're done by utilising a hash function to produce a uniformly random binary:
+
+`hash_fn : Domain → {0, 1}∞`
+
+Which might produces a binary stream(S) like:
+
+```
+[101010, 100000, 00100, 0000101, 0100101]
+```
+
+The paper draws attention on making some observations, it is possible to infer a plausible estimate of the
+unknown cardinality n. These observations are:
+
 - Bit-pattern observables
 - Order statistics observables
 
-observable of a multiset(S) `S ≡ hash_fn(Multiset) of {0, 1}∞`
+In 
+b = number initial bits
+m = 2 ^ b
+p = left most bit
 
-Why?
 
+{{% callout %}}
+in the stream S at the beginning of a string a bit-pattern 0ρ−11 is more or less a likely indication that the cardinality n of S is at least 2ρ
+{{% /callout %}}
+
+
+
+```
 m = 2 ^ p
+```
 
+The algorithm:
 Pseudo code:
 Let h : D → [0, 1] ≡ {0, 1}∞ hash data from domain D to the binary domain. Let ρ(s), for s ∈ {0, 1}∞ , be the position of the leftmost 1-bit (ρ(0001 · · · ) = 4).
 Algorithm HYPERLOGLOG (input M : multiset of items from domain D). assumem=2b withb∈Z>0;
