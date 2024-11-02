@@ -263,77 +263,30 @@ Which might produces a binary stream(S) like:
 [101010, 100000, 00100, 0000101, 0100101]
 ```
 
-The paper draws attention on making some observations, it is possible to infer a plausible estimate of the
-unknown cardinality n. These observations are:
+The paper draws attention on making some observations about _patterns_ in the bits produce which allow us to infer a plausible estimate of the unknown cardinality n. These observations are:
 
 - Bit-pattern observables
 - Order statistics observables
 
-In 
-b = number initial bits
-m = 2 ^ b
-p = left most bit
-
+In particular we're focused on the first _bit-pattern_ observables:
 
 {{% callout %}}
 in the stream S at the beginning of a string a bit-pattern 0ρ−11 is more or less a likely indication that the cardinality n of S is at least 2ρ
 {{% /callout %}}
 
-
-
+Allows to define a relationship:
 ```
 m = 2 ^ p
 ```
 
-The algorithm:
-Pseudo code:
-Let h : D → [0, 1] ≡ {0, 1}∞ hash data from domain D to the binary domain. Let ρ(s), for s ∈ {0, 1}∞ , be the position of the leftmost 1-bit (ρ(0001 · · · ) = 4).
-Algorithm HYPERLOGLOG (input M : multiset of items from domain D). assumem=2b withb∈Z>0;
-initialize a collection of m registers, M [1], . . . , M [m], to −∞;
-for v ∈ M do
-set x := h(v);
-set j = 1 + ⟨x1x2 · · · xb⟩2; {the binary address determined by the first b bits of x} set w := xb+1xb+2 · · · ; set M[j] := max(M[j], ρ(w));
-!−1
-m computeZ:= X2−M[j]
-j=1
-;{the“indicator”function} return E := αmm2Z with αm as given by Equation (3).
-```
+where:
+1. b = number initial bits
+2. m = 2 ^ b
+3. p = left most bit
 
-include pseudo code from the paper? A quick definition of terms:
-```
-Let h : D → {0, 1}32 hash data from D to binary 32–bit words.
-Let ρ(s) be the position of the leftmost 1-bit of s: e.g., ρ(1···) = 1, ρ(0001···) = 4, ρ(0K) = K + 1.
-define α16 = 0.673; α32 = 0.697; α64 = 0.709; αm = 0.7213/(1 + 1.079/m) for m ≥ 128;
-```
 
-psuedo code:
-```
-Program HYPERLOGLOG (input M : multiset of items from domain D). 
-assume m = 2b with b ∈ [4..16].
-initialize a collection of m registers, M [1], . . . , M [m], to 0;
-for v ∈ M do
-  set x := h(v);
-  set j = 1 + ⟨x1x2 · · · xb⟩2; {the binary address determined by the first b bits of x}
-  set w := xb+1xb+2 ···;
-  set M[j] := max(M[j], ρ(w)); „m «−1
 
-compute E := αm m2 · X 2−M [j ] ; {the “raw” HyperLogLog estimate} j=1
-
-if E ≤ 25 m then
-   let V be the number of registers equal to 0;
-   if V ̸= 0 then set E⋆ := m log(m/V ) else set E⋆ := E; {small range correction}
-
-if E ≤ 1/2^32 then 30
-set E⋆ := E;  {intermediate range—no correction}
-if E > (1/30)(2^32) then
-set E⋆ := −232 log(1 − E/232); {large range correction} 
-return cardinality estimate E⋆ with typical relative error ±1.04/ m.
-```
-
-```rust
-```
-
-HyperLogLog is now a fairly standard data structure in analytics databases, despite being invented relatively not that long ago, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. 
+HyperLogLog is now a fairly standard data structure in analytics databases and realtime/main memory databases, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. 
 
 Thanks for reading!
 
