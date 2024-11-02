@@ -1,5 +1,8 @@
 I'm currently reading: [Operating Systems: Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 
+What I'll probably read next:
+- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
+
 Stuff I've read or re-read in the past few months:
 - Database Internals
 - Designing Data Intensive Applications
@@ -21,7 +24,9 @@ Previously Explored:
 - [algorithms and data structures with python](https://runestone.academy/ns/books/published/pythonds/index.html)
 
 <!--
+- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 Interesting/on my radar but who knows if I'll ever get around to it:
+- http://www.redbook.io/
 - [High Performance Browser Networking](https://hpbn.co/)
 - https://cs186berkeley.net/resources/
 - [Nand2Tetris](https://www.nand2tetris.org/)
@@ -32,10 +37,7 @@ Interesting/on my radar but who knows if I'll ever get around to it:
 - [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)
 - [Erlang in Anger](https://www.erlang-in-anger.com/)
 - [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
-- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 - design patterns elements of reusable object-oriented software
-- Rust Atomics and Locks - Low-Level Concurrency in Practice
-- The critique of Pure Reason - Kant
 - [crafting interpreters](https://craftinginterpreters.com/)
 -->
 
