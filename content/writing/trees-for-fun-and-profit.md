@@ -80,13 +80,11 @@ type Map[Key any, Value any] struct {
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially with s
-egregated memory where the memory region's slots are partitioned across independent memory slots and maybe cores?
+key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially with segregated memory where the memory region's slots are partitioned across independent memory slots and maybe cores?
 
-One way to leverage this property is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's 
-`ConcurrentHashMap` and rust's `DashMap` are great examples of this.
+One way to leverage this property of partitions is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's ConcurrentHashMap` and rust's `DashMap` are great examples of this, careful with your hashing algorithm though! [something something rumble murmur hash](https://en.wikipedia.org/wiki/MurmurHash).
 
-This technique is called fine-grained locking or latching, the general idea is instead of a global mutex we serialise access to specific 'levels', the 
+A well-known technique in database literature is called fine-grained locking or latching, the general idea is instead of a global mutex we serialise access to specific 'levels', the 
 high-level idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
 
 ```go
@@ -95,12 +93,12 @@ type Map[K any, V any] struct {
  locks []*sync.Mutex
  global sync.Mutex // why this exists
  // is left to the imaginative and curious
- // hint: what happens during a re-partition/rehash?
+ // hint: what happens during a rehash/growth
+ // of linear or chain addressing ?
 }
 ```
 
-This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) adds some complexity, however we gain write performance but pay the cost of
- acquiring and releasing two locks per operation, perhaps a reader-writer lock, something else? we'll revisit this soon.
+This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) adds some complexity, however we gain write performance but pay the cost of acquiring and releasing two locks per operation, perhaps a reader-writer lock? [something else?](https://github.com/efficient/libcuckoo)
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast 
 ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
@@ -149,8 +147,7 @@ garbage collection unpredictable, it must be embedded in a runtime/vm.
 
 The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must 
 [muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), 
-if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible - 
-i have experienced here, possibly the greatest learning curve spike in recent memory, a daily occurence of melting my brain.
+if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible - i have experienced here, possibly the greatest learning curve spike in recent memory, a daily occurence of melting my brain.
 
 The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, causality graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with [low-level concurrency into the mix and you're in for dark mystical arts,](https://marabos.nl/atomics/) few patterns like interior mutability are allowed to break these rules.
 
