@@ -1,5 +1,5 @@
 ---
-title: "Query_execution"
+title: "Query Execution"
 date: 2024-10-27T14:32:18+01:00
 draft: true
 ---
