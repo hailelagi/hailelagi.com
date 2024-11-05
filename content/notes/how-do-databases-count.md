@@ -1,7 +1,7 @@
 ---
 title: "How do databases count?"
-date: 2024-10-16T19:05:55+01:00
-draft: true
+date: 2024-11-05T18:13:34+01:00
+draft: false
 tags: rust, go, sql, probability
 ---
 
@@ -58,7 +58,7 @@ postgres=# select 1 + 1;
 (1 row)
 ```
 
-To answer our question, a query engine in [less than 500 lines](https://github.com/hailelagi/peppermint) of rust:
+To answer our question, a tiny, not at all functional, but illustrative, query engine in [less than 500 lines](https://github.com/hailelagi/peppermint) of rust:
 
 ```
 select count(distinct col) from table;
@@ -231,29 +231,18 @@ func countUniqMap(arr []int) int {
 
 It seems like a stack and hashmap won't work, how does one store less and compute only what's necessary?
 
-### Probabilistic counting with a Morris Counter
+### Probabilistic counting
 
-Morris Counter[^4]: `log2 log2 /1 + O( 1)`
+Two interesting and clever data structures, relax the requirement of counting _exact_ elements in a stream by using probabilistic schemes that offer a _sketch_, the Morris Counter[^4] and the HyperLogLog. The morris counter saves on the _space_ that's required to represent or hold the reprentation of a _stream_, it gets a little "mathy" [if you're interested this excellent blog post has a great explaination to intuit the math](https://gregorygundersen.com/blog/2019/11/11/morris-algorithm/).
 
-### Counting Unique Occurences with HyperLogLog
-
-Time Complexity: **O(1)**
-
-Space Complexity: **O(log log N)**
-
-Parallel: (✅)
-
-assumptions: hashed is assumed uniformly distributed
-
-This algorithm allows the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, 
-and a margin of error of roughly 98% accuracy, those are incredible numbers, [^5] how does it work? 
+The hyperloglog on the other hand allows for the estimation of cardinality of datasets to the tune of over a billion! using only ~1.5kilobytes, and a margin of error of roughly 98% accuracy, those are incredible numbers, [^5] how does it work? 
 
 The input to this algorithm is a _continuous stream_ (elements are read sequentially) say:
 
  `["hello", "bye, "hello", "world", "universe", "foo"]` 
 
 We want to perform a _single pass_ over these elements(_multiset_ in the paper) and the output an _estimate of the cardinality_ 
-of unique items when we're done by utilising a hash function to produce a uniformly random binary:
+of unique items when we're done by utilising a hash function to produce a uniformly random binary over each element:
 
 `hash_fn : Domain → {0, 1}∞`
 
@@ -271,25 +260,16 @@ The paper draws attention on making some observations about _patterns_ in the bi
 In particular we're focused on the first _bit-pattern_ observables:
 
 {{% callout %}}
-in the stream S at the beginning of a string a bit-pattern 0ρ−11 is more or less a likely indication that the cardinality n of S is at least 2ρ
+in the stream S at the beginning of a string a bit-pattern 0^(ρ−1) . 1 is more or less a likely indication that the cardinality n of S is at least 2ρ
 {{% /callout %}}
 
-Allows to define a relationship:
-```
-m = 2 ^ p
-```
-
-where:
-1. b = number initial bits
-2. m = 2 ^ b
-3. p = left most bit
-
-
+Once we've identified this pattern in the hashed bit, we can then _combine_, several "estimation passess" by making each "guess" in parallel and later combining them using a pretty neat formula, it's a short aglorithm but requires some clever bit shifting and finding a uniform hash that behaves properly.
 
 HyperLogLog is now a fairly standard data structure in analytics databases and realtime/main memory databases, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. 
 
-Thanks for reading!
-
+{{% callout color="#ffd700" %}}
+If you enjoyed reading this please consider thoughtfully sharing it with someone who might find it interesting!
+{{% /callout %}}
 
 [^1]: [Access Path Selection in a Relational Database Management System](https://courses.cs.duke.edu/compsci516/cps216/spring03/papers/selinger-etal-1979.pdf)
 [^2]: [System R](https://www.seas.upenn.edu/~zives/cis650/papers/System-R.PDF)
@@ -303,3 +283,4 @@ Thanks for reading!
 #### Notes & References
 - https://15445.courses.cs.cmu.edu/spring2023/notes/01-introduction.pdf
 - https://15445.courses.cs.cmu.edu/fall2024/notes/02-modernsql.pdf
+- https://www.algorithm-archive.org/contents/approximate_counting/approximate_counting.html
