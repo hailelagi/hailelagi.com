@@ -189,7 +189,6 @@ There are two flavors of counting, we're interested in:
 1. size (counting all elements)
 2. cardinality (roughly, counting unique elements)
 
-
 Counting elements for an exact size, could be as simple as a counter, an [`ADD` instruction is very fast](https://c9x.me/x86/html/file_module_x86_id_5.html), but if we're storing _alot of different counts_, wouldn't it be nice if we could save on memory too? what if you don't care about an _exact_ count? say we only desire a _rough count_ over some interval to make some informed decisions?
 
 On the other side of the coin, how do we count _unique elements_?
@@ -263,7 +262,7 @@ In particular we're focused on the first _bit-pattern_ observables:
 in the stream S at the beginning of a string a bit-pattern 0^(ρ−1) . 1 is more or less a likely indication that the cardinality n of S is at least 2ρ
 {{% /callout %}}
 
-Once we've identified this pattern in the hashed bit, we can then _combine_, several "estimation passess" by making each "guess" in parallel and later combining them using a pretty neat formula, it's a short aglorithm but requires some clever bit shifting and finding a uniform hash that behaves properly.
+Once we've identified this pattern in the hashed bit, we can then _combine_, several "estimation passess" by making each "guess" in parallel and later combining them using a pretty neat formula, it's a short algorithm but requires some clever bit shifting and finding a uniform hash that behaves properly.
 
 HyperLogLog is now a fairly standard data structure in analytics databases and realtime/main memory databases, a few examples of adoption in the postgres ecosystem are: [citus](https://docs.citusdata.com/en/stable/articles/hll_count_distinct.html), [crunchydata](https://www.crunchydata.com/blog/high-compression-metrics-storage-with-postgres-hyperloglog) and [timescaleDB](https://docs.timescale.com/use-timescale/latest/hyperfunctions/approx-count-distincts/hyperloglog/), broadly at [meta(presto)](https://engineering.fb.com/2018/12/13/data-infrastructure/hyperloglog/), in [google](http://research.google/pubs/hyperloglog-in-practice-algorithmic-engineering-of-a-state-of-the-art-cardinality-estimation-algorithm/) at [Big Query](https://cloud.google.com/bigquery/docs/reference/standard-sql/hll_functions), [Redis](https://antirez.com/news/75) and much more. 
 
