@@ -139,102 +139,34 @@ Cult classics include; an AVL Tree, Red-Black tree, B-Tree or perhaps an LSM Tre
 
 Here we are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) 
-fetched from disk? or random access? sorting files in a directory is a simple excercise that illustrates this problem. What kind of concurrent patterns are enabled? are we 
+fetched from disk? or random access? What kind of concurrent patterns are enabled? are we 
 in a garbage collected environment? how do they map to our eventual high level API? These questions lead to very different choices in algorithm design and optimisations.
 
-It's clear we're at a language cross roads, it would be more difficult but not impossible to express this in go, we need precise control of memory, performance is a target, 
-garbage collection unpredictable, it must be embedded in a runtime/vm.
+It's clear we're at a language cross roads, it would be more time consuming and require greater skill than I possess but not impossible to express this in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in a runtime/vm.
 
-The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must 
-[muck about with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), 
-if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible - i have experienced here, possibly the greatest learning curve spike in recent memory, a daily occurence of melting my brain.
+The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must  be careful to **not muck about** [with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), 
+if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible, just be really, really careful.
 
-The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, causality graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with [low-level concurrency into the mix and you're in for dark mystical arts,](https://marabos.nl/atomics/) few patterns like interior mutability are allowed to break these rules.
+The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, causality graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with low-level concurrency into the mix you're in for [dark mystical arts](https://en.wikipedia.org/wiki/ABA_problem).
 
 A binary search tree node can be represented with an `Option<Box<Node<T>>>`. However `Box` has single ownership.
 How are we to represent bi-directional data flow? or changing ownership and relocation as one does when balancing? how do we take this binary search tree and transmogrify it into a cool data structure like an avl or red-black tree?
 We've gotta break all the compiler rules.
 
-A sane way of of getting around this is by using a `Vec<u8>` of "pointers" or "page ids" and [implementing "arenas"](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) or some such strange incantation but lets save that bit for later in garbage collection.
+A sane way of of getting around this is by using a `Vec<u8>` of "pointers" or "page ids" and [implementing "arenas"](https://manishearth.github.io/blog/2021/03/15/arenas-in-rust/) or some such strange incantation.
 
-### todo: GhostCell?? https://plv.mpi-sws.org/rustbelt/ghostcell/paper.pdf
-
-Historically B-Trees have predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM and some say it's winning in the cloud with tiered storage. How about in DRAM? How do we go fast?
+B-Trees have  historically predominated the discussion on persistent/on-disk data structures, these days it battles with the LSM and some say it's winning in the cloud with tiered storage and write optimised workloads. How about in DRAM? How do we go fast?
 
 ![Danger](/Speed_Racer_behind_the_wheel.webp)
 
-## Why tree, when you can forest?
-Finally, we can begin to talk about erlang term storage in context. What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [a tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap for the unordered api.
+## Indexing is an artform
+# todo: dump
+Finally, we can begin to talk about erlang term storage in context. What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [an ordered tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap.
 
 ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations. For now, we're only interested in the structure of the tree -- in a non-thread safe context.
 
 
-// ref tiger beetles' LSM Forest? 
-
-// ref click houses merge tree family?
-
 A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree. All this talk of locks provides an excellent segue into how/why concurrency intersects with performance.
-
-
-## Why the leaves intertwine and interleave
-
-To intuit concurrency, perhaps lets first look at what is _presumed_ to be the order of a program. Take counting to 10, how is this evaluated? 
-```go
-var counter int
-for i := 0; i < 10; i++ {
-    counter++
-}
-```
-This program will get compiled to a series of assembly instructions, and something called a program counter traverses this binary -- 
-a distinction highlighted here as **execution order**, this program is **sequentially consistent**, but not necessarily **linearizable**,
-in other words, not only is this compiler is free to re-order for performance, but that applying a sequence of state transformations(ISA registers)
-it does not appear "instantaneous" to an observer, this is a tricky distinction, one that can produce logically incorrect concurrent programs.
-
-To be sure, you don't have to take my word for it! -- just check the disassembly, `objdump` doesn't work, but thankfully [go maintains a similar package](https://pkg.go.dev/cmd/objdump):
-```
-go build .
-go tool objdump -gnu counter > counter.md
-```
-
-sometime [after hundreds of thousands of autogenerated lines](https://raw.githubusercontent.com/hailelagi/tiny-concurrency/refs/heads/main/counter/counter.md?token=GHSAT0AAAAAACKMUG5I6XMPMVZ3VRP74K2QZYXZTBA) of go's asm, doing "go internal things", the [_text segment_](https://en.wikipedia.org/wiki/Code_segment) of our go program appears:
-
-```
-TEXT main.main(SB) /Users/haile/Documents/GitHub/tiny-concurrency/counter/counter.go
-  counter.go:3		0x100066320		aa1f03e0		MOVD ZR, R0                          // mov x0, xzr			
-  counter.go:5		0x100066324		14000002		JMP 2(PC)                            // b .+0x8				
-  counter.go:5		0x100066328		91000400		ADD $1, R0, R0                       // add x0, x0, #0x1		
-  counter.go:5		0x10006632c		f100281f		CMP $10, R0                          // cmp x0, #0xa			
-  counter.go:5		0x100066330		54ffffcb		BLT -2(PC)                           // b.lt .+0xfffffffffffffff8	
-  counter.go:8		0x100066334		d65f03c0		RET                                  // ret				
-  counter.go:8		0x100066338		00000000		?									
-  counter.go:8		0x10006633c		00000000		?									
-```
-
-That doesn't mean much, but it's not alot of output. It's possible to _infer_ without knowing too much asm of this specific architecture.
-
-```asm
-MOVD and JMP // init our "loop"
-ADD $1, R0, R0 // counter++
-CMP $10, R0 // i < 10;
-BLT //'termination' case
-RET //returns!
-```
-
-Interesting! In what order do you read this assembly? it's certainly not how I count one to ten in my head! 
-Linearizability is _naturally intuitve_, Sequential consistency is not. What can we take away from this?
-
-A useful model, is to imagine a single cpu core - a program starts within a single `main` thread, it can fork into one of
- many [_threads of execution_](https://en.wikipedia.org/wiki/Thread_control_block) by saving and restoring few private registers and state, 
-but only one at a time -- it "jumps around" or context switches _within the same process address space_, which is mostly accurate with 
-[caveats](https://wiki.xenproject.org/wiki/Hyperthreading), this distinction helps us understand _why_ concurrent programs can be **sometimes** more performant,
-useful programs need to do "slow" things, like reading packets from a network card, or telling some magnetic head to spin around, 
-while these very real, physical operations occur, the cpu is bored, it can do so much more, so it "switches" to other cpu work. 
-A concurrent program **is not** inherently faster than a sequential one. It's only _more efficient_ at not doing the worst case of "waiting/blocking",
-you don't magically get more cpu cycles, you just use them _efficiently_ by intertwining and interleaving work.
-
-Except in a multi-core -- where a program really can get split into literal, physically different computations, however there's a catch, 
-in between these independent cores are slow "connections" and many important layers of caches to speed up access, and herein lies the difficulty,
- the ever more wrestle with cache invalidation. Given this reality, how do we write fast data structures for modern cpu architectures?
 
 ## Cache lines rule everything around me
 
@@ -289,17 +221,11 @@ Instead the time instantiation of a lock acquistion on a single node gives enoug
 
 Consistency is a tricky topic. In a way we can think of _referential integrity_ as a consistent property of a database but is it? You define a primary key and a foreign key and specify a logical relationship between entities based on this -- but really you're defining an interface and specifying a contract with an invariant that must be implemented. ETS does not have referential integrity, check constraints or schema validation, it stores/retrieves data agnostic of the kind or shape and enforces a serializable/linearizable api for concurrent reads and writes to every function API.
 
-## Garbage Collection for Mortals
-
-So far we've explored reading and writing data to the `Table` and `OrderedTable` but what happens when we delete data or concurrently try to access a deleted item?
-
 Deleting data can be thought about as two related but distinct operations _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually a well understood [let the compiler handle it problem](https://en.wikipedia.org/wiki/Stack-based_memory_allocation), fit it in the final binary or give clever hints about what to do when the process is loaded by the operating system. Asking for memory and freeing it can get complex, if a group of smart people can spend **alot of time** to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection.
 
  What happens when this model breaks down?
 
 A brief mention of rust mentioned using `Rc/Arc` implementations of [automatic reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in javascript, python and go this operation is seemingly opaque. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go snippets and explore the problems of lifetimes, alignment & fragmentation in rust.
-
-⚠️⚠️ warning `unsafe` rust ahead! ⚠️⚠️
 
 #### Lifetimes, Fragmentation & Alignment
 
@@ -321,7 +247,7 @@ Why is this necessary at all?
 #### Being a good neighbour
 The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right besides the BEAM virtual machine's global heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments, ets needs to play nice and share with the host runtime's [garbage collector](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/GarbageCollection.md) which is why it must copy in and out of the process heap, [yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the [scheduler](../../writing/a-peek-into-the-beam), and manage the lifetime of its memory seperately. This is at the blurry line between C and erlang with the definition of a [built in function(BIF)](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html).
 
-In _hard real-time systems_ this is a table stakes requirement and part of everyday programming life. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics. How does one DIY an allocator?
+In _hard real-time systems_ this is a table stakes requirement and part of everyday programming life. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics.
 
 What do you need? -- it's entirely dependent on the nature of the program!
 
@@ -329,31 +255,6 @@ A few popular techniques, I'm aware of:
 1. Hazard pointers
 2. [RCU](https://marabos.nl/atomics/inspiration.html#rcu)
 3. Epic based reclamation
-
-Here we can model the space required to fit each key-value as a node on a linkedlist. An illustrative example is a [slab allocator](https://en.wikipedia.org/wiki/Slab_allocation) using a [_free list_](https://en.wikipedia.org/wiki/Free_list):
-
-```rust
-const INITIAL_BLOCKS: usize = 10;
-const DEFAULT_BLOCK_SIZE: usize = 4096;
-
-struct ListNode {
-    size: AtomicUsize,
-    next: Option<Box<ListNode>>,
-}
-
-pub struct FreeList {
-    size: AtomicUsize,
-    head: Option<Box<ListNode>>,
-}
-```
-
-A free list is a linked list where each node is a reference to a contigous block of homogeneous memory unallocated _somewhere_ on the heap. To allocate we specify the underlying initial block size of virtual memory we need, how many blocks and how to align said raw memory, deallocation is as simple as dereferencing the raw pointer and marking that block as safe for reuse back to the kernel.
-
-
-Typically an implementation of the `GlobalAlloc` trait is where all heap memory comes from this is called the [System allocator](https://doc.rust-lang.org/std/alloc/struct.System.html) in rust which make syscalls like `mmap`, `sbrk` and `brk` and but we don't want to simply throw away the global allocator and talk to the operating system ourselves -- oh goodness no, we'd want to treat it just like `HAlloc` and carve out a region of memory just for this rather than pairing allocations and deallocations everytime we can amortize memory per value stored and simplify some lifetimes. When this is not possible we default to reference counting over a pre-allocated smaller region like `Box`.
-
-We must now consider the `types` of the key and value. In erlang every value is a `Term`[^11] and serializing and deserializing to a specific Term's size and type will also be the responsibility of our Allocator, here we need to be careful as we traverse the cache line that we aren't unnecessarily thrashing the CPU and minimizing context switches and leveraging if any vectorized instruction sets. Luckily there's an awesome 
-in-memory format lots of smart folks spent time working on and open sourced called [Arrow](https://arrow.apache.org/) which does just that!
 
 ## Persistence and Durability
 
