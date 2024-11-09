@@ -41,8 +41,7 @@ go on simplicity, fast and easy concurrency. Perhaps go would be a simpler and m
 
 ## Shaping constraints
 
-Conceputally a mutable key-value store seems simple. What you want to model is an abstract interface that can store _schemaless_ data (strings, integers, arrays -- anything) 
-and retrieve it fast, essentially a map/dictionary/associative array abstract data type. Let's see an interface example `KVStore` in go:
+Conceputally a mutable key-value store seems simple. What you want to model is an abstract interface that can store _schemaless_ data (strings, integers, arrays -- anything) and retrieve it fast, essentially a map/dictionary/associative array abstract data type. Let's see an interface example `KVStore` in go:
 
 ```go
 type KVStore[Key comparable, Value any] interface {
@@ -166,18 +165,36 @@ Finally, we can begin to talk about erlang term storage in context. What is ets?
 ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations. For now, we're only interested in the structure of the tree -- in a non-thread safe context.
 
 
-A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree. All this talk of locks provides an excellent segue into how/why concurrency intersects with performance.
+A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
 
-## Cache lines rule everything around me
+## Being a good neighbour
 
-Memory access is an abstraction, an `O(1)` operation is too high level a view, to go fast, we peel it back. The model of memory as a flat, 
-never-ending, slab of memory, where access is free and fast as opposed to going to disk or going over the wire and all you really have to do is 
-malloc/free and voila memory appears is a well-known lie. We require a different lens -- a lens of mechanical sympathy, to truly leverage fast multi-core concurrency.
+Memory access is an abstraction, an `O(1)` operation is too high level a view, let's peel it back. The model of memory as a flat, never-ending, slab of memory, where access is free, fast and  a pointer hop away as opposed to going to disk or going over the wire and all you really have to do is malloc/free and voila memory appears **is a famous illusion**. We require a different lens -- a lens of mechanical sympathy, to truly leverage fast multi-core concurrency.
+
+What _really happens_ when you dynamically need memory? A compiler throws up its hand and decides it [can never be really sure what you mean](https://en.wikipedia.org/wiki/Undecidable_problem), so it exposes an interface and asks you to think carefully about it.
+
+When the need arises... as it often does, you politely ask a kernel for some more memory than what you initially asked for (and sometimes it says no!), and even when it does say yes, it [lies to you about what you're getting](https://en.wikipedia.org/wiki/Virtual_memory) -- and once you get it you have to give it back otherwise memory keeps growing forever - OOM, in a nutshell:
+- You need to ask for memory
+- You need to keep _track of this memory_ -- it's _lifetime_
+- You need to give it back
+
+As it turns out, the hard part is in the middle, keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph _especially in a concurrent setting_ and packaging it into a nice abstraction -- so nice, it's essentially automatic! Algorithms such as the tracing algorithm // mark and sweep serve this function and much more sophisticated systems exist in real languages like [go's awesome GC](https://tip.golang.org/doc/gc-guide), otherwise:
+
+1. In C everytime we malloc//free **on demand**.
+2. RAII + reference counting
+3. [No man's land](https://zig.guide/standard-library/allocators/) <-- (we're here, oh no!)
+
+Why is this necessary at all?
+
+The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right besides the BEAM virtual machine's global heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments, we must play nice and share with the host runtime's [garbage collector](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/GarbageCollection.md) which is why it must copy in and out of 'process' address spaces, [yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the [scheduler](../../writing/a-peek-into-the-beam), and manage the lifetime of its memory seperately. This is at the blurry line between C and erlang with the definition of a [built in function(BIF)](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html).
+
+In _hard real-time systems_ this is a table stakes requirement and part of everyday programming life. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone/copy on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics.
 
 ## Transactions
 
-All storage engines need to ensure certain guarantees with respect to concurrency and correctness. You've probably heard the acronymn ACID - Atomicity, Consistency, 
-Isolation and Durability. What does that mean for ets? Lucky for us, we can cast away the durability requirement as our data set must fit in working memory(for now).
+All storage engines need to ensure certain guarantees with respect to concurrency and correctness.
+ You've probably heard the acronymn ACID - Atomicity, Consistency, Isolation and Durability.
+  What does that mean for ets? Lucky for us, we can cast away the durability requirement as our data set must fit in working memory(for now).
 That leaves us with:
 
 - Atomicity
@@ -201,7 +218,7 @@ Isolation is really about how we define the _logical concurrent access rules_ of
 - private: single reader and writer.
 
 Why does this matter? Before it was hinted at why the MVCC paradigm [^8] exists -- naive locking hurts all query performance, yet locks are desirable
-because they ensure correct logical ordering -- serializable/linearizability.
+because they ensure correctness properties such as linearizability.
 
 It's worth pausing to consider this for a moment.
 
@@ -209,7 +226,7 @@ Concurrency is a powerful concept, we can take three logically independent event
 their execution's progress and reassemble them as A, B then C -- sequential, nice & correct. Systems must be correct, but not necessarily sequential.
 
 There's a hint of that infamous word here -- a tradeoff, in a concurrent universe performance or correctness pick one? Sadly reality is more complex
-and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is in the details](https://en.wikipedia.org/wiki/Consistency_model). You can tune consistency and change what isolation means -- but that's yet further ahead, this problem is further compounded when you introduce a network call across tables but let's not try that optimisation tempting as it is.
+and there are different shades on this spectrum that trade one thing by changing the definition of another [the devil is often in the details](https://jepsen.io/consistency/models/). You can tune consistency and change what isolation means -- but that's yet further ahead, this problem is further compounded when you introduce a network call across tables but let's not try that optimisation tempting as it is.
 
 What to do? Inline with the _more is better_ philosophy of scaling an infamous default weakened guarantee of isolation is _snapshot insolation_, the [cannonical isolation level](https://en.wikipedia.org/wiki/Snapshot_isolation). The concurrency control works by keeping multiple versions on each write and matches read transactions to specific version of the database at a checkpoint matching both with a logical but not actual order. In a database like postgres you might be familiar with  row or table level locks such as `FOR UPDATE` or `ACCESS EXCLUSIVE` which give stronger guarantees, in mnesia you have similar [locking semantics](https://www.erlang.org/doc/man/mnesia#lock-2).
 
@@ -220,41 +237,6 @@ Instead the time instantiation of a lock acquistion on a single node gives enoug
 - Consistency
 
 Consistency is a tricky topic. In a way we can think of _referential integrity_ as a consistent property of a database but is it? You define a primary key and a foreign key and specify a logical relationship between entities based on this -- but really you're defining an interface and specifying a contract with an invariant that must be implemented. ETS does not have referential integrity, check constraints or schema validation, it stores/retrieves data agnostic of the kind or shape and enforces a serializable/linearizable api for concurrent reads and writes to every function API.
-
-Deleting data can be thought about as two related but distinct operations _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually a well understood [let the compiler handle it problem](https://en.wikipedia.org/wiki/Stack-based_memory_allocation), fit it in the final binary or give clever hints about what to do when the process is loaded by the operating system. Asking for memory and freeing it can get complex, if a group of smart people can spend **alot of time** to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection.
-
- What happens when this model breaks down?
-
-A brief mention of rust mentioned using `Rc/Arc` implementations of [automatic reference counting](https://doc.rust-lang.org/book/ch15-04-rc.html) and in javascript, python and go this operation is seemingly opaque. The resource allocation strategy is tightly coupled to the programming language and environment we intend our concrete key value implementation to eventually live, so at this point we bid farewall to go snippets and explore the problems of lifetimes, alignment & fragmentation in rust.
-
-#### Lifetimes, Fragmentation & Alignment
-
-What _really happens_ when you dynamically need memory? A compiler throws up its hand and decides it [can never be really sure what you mean](https://en.wikipedia.org/wiki/Undecidable_problem), so it exposes an interface and asks you to think carefully about it.
-
-When the need arises... as it often does, you politely ask a kernel for some more memory than what you initially asked for (and sometimes it says no!), and even when it does say yes, it [lies to you about what you're getting](https://en.wikipedia.org/wiki/Virtual_memory) -- and once you get it you have to give it back otherwise memory keeps growing forever - OOM, in a nutshell:
-- You need to ask for memory
-- You need to keep _track of this memory_ -- it's _lifetime_
-- You need to give it back
-
-As it turns out, the hard part is in the middle, keeping track of this forms a [graph](https://en.wikipedia.org/wiki/Graph_(abstract_data_type)) and lots of hardwork has gone into figuring out algorithms to traverse this graph _especially in a concurrent setting_ and packaging it into a nice abstraction -- so nice, it's essentially automatic! Algorithms such as the tracing algorithm // mark and sweep serve this function and much more sophisticated systems exist in real languages like [go's awesome GC](https://tip.golang.org/doc/gc-guide), otherwise:
-
-1. In C everytime we malloc//free **on demand**.
-2. RAII + reference counting
-3. [No man's land](https://zig.guide/standard-library/allocators/) <-- (we're here, oh no!)
-
-Why is this necessary at all?
-
-#### Being a good neighbour
-The current ETS exists tightly coupled to the internals of the erlang runtime system (erts) -- ETS has its own private memory allocator `erts_db_alloc` and deallocator `erts_db_free` right besides the BEAM virtual machine's global heap in `erl_alloc.c` via `HAlloc`. There's far more going on than we're interested in knowing but the gist is these interfaces know how to allocate memory on a wide variety of architecture targets and environments, ets needs to play nice and share with the host runtime's [garbage collector](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/GarbageCollection.md) which is why it must copy in and out of the process heap, [yield](https://github.com/erlang/otp/blob/maint/erts/emulator/internal_doc/AutomaticYieldingOfCCode.md) to the [scheduler](../../writing/a-peek-into-the-beam), and manage the lifetime of its memory seperately. This is at the blurry line between C and erlang with the definition of a [built in function(BIF)](http://erlang.org/pipermail/erlang-questions/2009-October/046899.html).
-
-In _hard real-time systems_ this is a table stakes requirement and part of everyday programming life. In rust as mentioned there are several common _implicit_ [RAII inspired](https://en.cppreference.com/w/cpp/language/raii) strategies to manage heap memory allocation all within the ownership/borrowing model and dellocation with the [`Drop`](https://doc.rust-lang.org/std/ops/trait.Drop.html) trait with well known reference counted smart pointers - `Rc`, `Arc` or perhaps directly pushing onto the heap using `Box` and somewhat more esoteric clone on write [`Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html) semantics.
-
-What do you need? -- it's entirely dependent on the nature of the program!
-
-A few popular techniques, I'm aware of:
-1. Hazard pointers
-2. [RCU](https://marabos.nl/atomics/inspiration.html#rcu)
-3. Epic based reclamation
 
 ## Persistence and Durability
 
@@ -274,6 +256,8 @@ There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick 
 
 [Getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors). However there's [hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in [io_uring](https://github.com/axboe/liburing) that's [the future?](https://lwn.net/Articles/902466/)
 
+## Summary & Benchmarks
+<!-- here -->
 
 [^1]: [†1] Immutability is not necessarily **always** a performance bottleneck. This is a common critique of functional languages/semantics and more broadly a misunderstanding of the nuances of immutability and its advantages and disadvantages especially with respect to distributed systems, cache coherency and concurrency/parallelism. Mutable state is broadly 'fast' but this doesn't really say anything. Many log-based data structures are immutable? and often AOF + compaction is a great write performance strategy?
 
