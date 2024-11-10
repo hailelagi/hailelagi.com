@@ -1,7 +1,7 @@
 ---
 title: "The art of multicore"
 date: 2024-11-04T10:13:39+01:00
-draft: false
+draft: true
 ---
 
 # Introduction
