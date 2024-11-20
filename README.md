@@ -3,3 +3,4 @@
 
 ## nice to have/do someday
 - https://danilafe.com/blog/blog_microfeatures/
+- soft integrate: https://github.com/asciinema/asciinema
