@@ -9,10 +9,7 @@ Key-value storage engines form an important core of many systems, a particular c
 This is a deep dive into the internal data structures of an in-memory storage engine called erlang term storage(ets) in the runtime standard library of the BEAM - 
 erlang/elixir's virtual machine, at the end, we'll take home an alternative design, that's as performant? and maybe an understanding of why this is plausible?
 
-If you'd like, [check out the demo!](https://github.com/hailelagi/oats)
-
 {{< toc >}}
-
 
 ## Setting the stage
 
@@ -81,7 +78,7 @@ To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`.
 but we can do better! We're trying to build a _general purpose_ data store for
 key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially with segregated memory where the memory region's slots are partitioned across independent memory slots and maybe cores?
 
-One way to leverage this property of partitions is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's ConcurrentHashMap` and rust's `DashMap` are great examples of this, careful with your hashing algorithm though! [something something rumble murmur hash](https://en.wikipedia.org/wiki/MurmurHash).
+One way to leverage this property of partitions is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's ConcurrentHashMap` and rust's `DashMap` are great examples of this, careful with your hashing algorithm though! 
 
 A well-known technique in database literature is called fine-grained locking or latching, the general idea is instead of a global mutex we serialise access to specific 'levels', the 
 high-level idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
@@ -97,7 +94,7 @@ type Map[K any, V any] struct {
 }
 ```
 
-This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) adds some complexity, however we gain write performance but pay the cost of acquiring and releasing two locks per operation, perhaps a reader-writer lock? [something else?](https://github.com/efficient/libcuckoo)
+This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) adds some complexity, however we gain write throughput but pay the cost of acquiring and releasing two locks on some operations, perhaps a reader-writer lock? [something more sophisticated?](https://github.com/efficient/libcuckoo)
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast 
 ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
@@ -158,14 +155,14 @@ B-Trees have  historically predominated the discussion on persistent/on-disk dat
 
 ![Danger](/Speed_Racer_behind_the_wheel.webp)
 
+What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [an ordered tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c), with a little query language as a wrapper. The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap.
+
+ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations.
+
+
+A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree. A popular in-memory state of the art data structure is the ARTful index, how do the two stack up? Let's find out!
+
 ## Indexing is an artform
-# todo: dump
-Finally, we can begin to talk about erlang term storage in context. What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [an ordered tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c). The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap.
-
-ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations. For now, we're only interested in the structure of the tree -- in a non-thread safe context.
-
-
-A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree.
 
 ## Being a good neighbour
 
@@ -237,24 +234,6 @@ Instead the time instantiation of a lock acquistion on a single node gives enoug
 - Consistency
 
 Consistency is a tricky topic. In a way we can think of _referential integrity_ as a consistent property of a database but is it? You define a primary key and a foreign key and specify a logical relationship between entities based on this -- but really you're defining an interface and specifying a contract with an invariant that must be implemented. ETS does not have referential integrity, check constraints or schema validation, it stores/retrieves data agnostic of the kind or shape and enforces a serializable/linearizable api for concurrent reads and writes to every function API.
-
-## Persistence and Durability
-
-ETS has an alternative implementation call Disk-Based Term Storage. What happens when you write some data to disk?
-
-There are roughly three odd roads/paths on a single node db:
-
-- you write to buffered memory which schedules writes.
-- you write to virtual memory and negotiate magic with the kernel.
-- you write direct to real memory.
-
-Why does the Kernel/OS want you to buffer or write to "fake" memory in the first place? -- it's mostly performance, ergonomics(you really don't want the complexity of raw memory unless you're into databases!) and security.
-
- > disks have relatively long seek times, reflecting how long it takes the desired part of the disk to rotate under the read/write head. Once the head is in the right place, the data moves relatively quickly, and it costs about the same to read a large data block as it does to read a single byte
-
-There's some nuance wheter this is an SSD or HDD, but the gist is it's lipstick on a pig. The data has to travel up, traverse the dragons and castles of memory heirarchy and the weird and wonderful complexity an OS hides -- [syscalls are an abstraction remember?](https://pages.cs.wisc.edu/~remzi/OSFEP/intro-syscall.pdf) Most of the time Buffered IO works and when that's unacceptable, wrangling with mmap is an option -- but [there are caveats](https://www.cidrdb.org/cidr2022/papers/p13-crotty.pdf), which are [subtle](https://www.symas.com/post/are-you-sure-you-want-to-use-mmap-in-your-dbms) and [not obvious](https://ravendb.net/articles/re-are-you-sure-you-want-to-use-mmap-in-your-database-management-system), so perhaps you definitely want to directly write to memory and find all [sorts of hidden fun?](https://15445.courses.cs.cmu.edu/fall2020/notes/05-bufferpool.pdf)
-
-[Getting this right is hard](https://wiki.postgresql.org/wiki/Fsync_Errors). However there's [hope](https://github.com/axboe/liburing/wiki/io_uring-and-networking-in-2023) in [io_uring](https://github.com/axboe/liburing) that's [the future?](https://lwn.net/Articles/902466/)
 
 ## Summary & Benchmarks
 <!-- here -->
