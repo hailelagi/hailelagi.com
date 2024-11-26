@@ -164,6 +164,12 @@ A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-or
 
 ## Indexing is an artform
 
+> Even though ART’s performance
+is comparable to hash tables, it maintains the data in sorted
+order, which enables additional operations like range scan and
+prefix lookup.
+
+
 ## Being a good neighbour
 
 Memory access is an abstraction, an `O(1)` operation is too high level a view, let's peel it back. The model of memory as a flat, never-ending, slab of memory, where access is free, fast and  a pointer hop away as opposed to going to disk or going over the wire and all you really have to do is malloc/free and voila memory appears **is a famous illusion**. We require a different lens -- a lens of mechanical sympathy, to truly leverage fast multi-core concurrency.
