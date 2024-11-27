@@ -4,12 +4,13 @@ date: 2024-10-23T13:09:40+01:00
 draft: true
 ---
 
-fun facts:
+"fun" c++ "facts":
 - multiple inheritance
 - https://en.wikipedia.org/wiki/Copy_elision
 - https://eli.thegreenplace.net/2012/06/28/the-type-variable-name-ambiguity-in-c
 - https://en.wikipedia.org/wiki/Most_vexing_parse
-
+- the thin-air problem: https://www.cl.cam.ac.uk/~pes20/cpp/notes42.html
+- Curiously recurring templates: https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 
 things I don't like:
 ~~syntax ambiguity~~ not that bad

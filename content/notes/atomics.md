@@ -13,6 +13,15 @@ draft: true
 Typically a compiler intrinsic, platform/hardware dependent(x86, risc-v, arm etc), OS dependent.
 Typically at least a pointer size -- in rust a [`usize`](https://doc.rust-lang.org/std/primitive.usize.html)
 
+## Orderings
+- Relaxed: total modification order
+- Release & Acquire: happens-before btw  thread A & B
+
+> A happens-before relationship is formed when an acquire-load operation observes the result of a release-store operation. In this case, the store and everything before it, happened before the load and everything after it.
+
+- AcqRel, SeqCst: 
+- *Consume
+
 ## Load and Store
 
 ```rust
@@ -89,8 +98,30 @@ fn increment(a: &AtomicU32) {
 ```
 
 ## Locks - Mutexes/ RwLock etc
+
 design axis:
 - fairness (FIFO)
 - correctness (mutual exlusion)
 - performance (syscall overhead, space etc)
 - priority inversion
+
+mutex lock/unlock atomic:
+```rust
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::{Acquire, Relaxed, Release};
+use std::thread;
+
+static mut DATA: String = String::new();
+static LOCKED: AtomicBool = AtomicBool::new(false);
+
+fn mu() {
+    if LOCKED
+        .compare_exchange(false, true, Acquire, Relaxed)
+        .is_ok()
+    {
+        // Safety: We hold the exclusive lock, so nothing else is accessing DATA.
+        unsafe { DATA.push('!') };
+        LOCKED.store(false, Release);
+    }
+}
+```
