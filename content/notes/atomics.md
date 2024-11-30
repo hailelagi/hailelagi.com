@@ -19,6 +19,8 @@ Typically at least a pointer size -- in rust a [`usize`](https://doc.rust-lang.o
 
 > A happens-before relationship is formed when an acquire-load operation observes the result of a release-store operation. In this case, the store and everything before it, happened before the load and everything after it.
 
+super helpful summary: https://gist.github.com/kprotty/bb26b963441baf2ab3486a07fbf4762e
+
 - AcqRel, SeqCst: 
 - *Consume
 
