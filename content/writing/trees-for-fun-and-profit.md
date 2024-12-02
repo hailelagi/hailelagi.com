@@ -76,7 +76,7 @@ type Map[Key any, Value any] struct {
 
 To `Read` and `Write` we must acquire `*Map.Lock()` and release `*Map.Unlock()`. This works, up to a point --
 but we can do better! We're trying to build a _general purpose_ data store for
-key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially with segregated memory where the memory region's slots are partitioned across independent memory slots and maybe cores?
+key-value data. Global mutexes are a practical solution but you tend to encounter inefficiencies like _lock contention_ on higher values of R/W data access, especially with [segregated memory](https://www.boost.io/doc/libs/1_66_0/libs/pool/doc/html/boost_pool/pool/pooling.html) where the memory region's slots are partitioned across independently and maybe across cores?
 
 One way to leverage this property of partitions is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's ConcurrentHashMap` and rust's `DashMap` are great examples of this, careful with your hashing algorithm though! 
 
@@ -89,12 +89,11 @@ type Map[K any, V any] struct {
  locks []*sync.Mutex
  global sync.Mutex // why this exists
  // is left to the imaginative and curious
- // hint: what happens during a rehash/growth
- // of linear or chain addressing ?
+ // hint: what happens during a rehash/growth?
 }
 ```
 
-This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) adds some complexity, however we gain write throughput but pay the cost of acquiring and releasing two locks on some operations, perhaps a reader-writer lock? [something more sophisticated?](https://github.com/efficient/libcuckoo)
+This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) could add some complexity, however we gain write throughput but pay the cost of acquiring and releasing two locks on some operations, perhaps a reader-writer lock? [something more sophisticated?](https://github.com/efficient/libcuckoo) conceptually we're on track.
 
 Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast 
 ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
@@ -131,7 +130,7 @@ Search trees are the "go to" structure for keeping performant ordered data with 
 average operations in `O(logN)` -- if the tree is balanced. Sadly in reality they're bounded by the worst time-complexity of `O(h)` where h is the height of the tree. 
 What that means is if we get unlucky with the data - searches can devolve into searching a linked-list. That wouldn't do. Here there are many flavors thankfully.
 
-Cult classics include; an AVL Tree, Red-Black tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
+friendly favorites include; an AVL Tree, Red-Black tree, B-Tree or perhaps an LSM Tree, which all come with spices and even more variety.
 
 Here we are concerned about much more than order of magnitude choices ultimately, we are also interested in how these structures
 interact with memory layout, can the data fit in main memory (internal) or is it on disk(external)? is it cache friendly? are the node values blocks of virtual memory(pages) 
@@ -141,7 +140,7 @@ in a garbage collected environment? how do they map to our eventual high level A
 It's clear we're at a language cross roads, it would be more time consuming and require greater skill than I possess but not impossible to express this in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in a runtime/vm.
 
 The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must  be careful to **not muck about** [with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), 
-if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, but not impossible, just be really, really careful.
+if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, as more often than not you're touching `unsafe`, but not impossible, just be really, really careful -- maddeningly so.
 
 The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, causality graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with low-level concurrency into the mix you're in for [dark mystical arts](https://en.wikipedia.org/wiki/ABA_problem).
 
@@ -155,14 +154,29 @@ B-Trees have  historically predominated the discussion on persistent/on-disk dat
 
 ![Danger](/Speed_Racer_behind_the_wheel.webp)
 
-What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [an ordered tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c), with a little query language as a wrapper. The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap.
+What is ets? at the heart of its ~10k lines of C code is two data structures a [hash map](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c), and [an ordered tree](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_tree.c), with a little query language interface. The tree is basically an AVL Tree + a CA Tree(more on this shortly) for the [ordered api](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/) and a linear addressed hashmap.
 
 ETS hashmaps are amortized O(1) access, insertions and deletions. It's a concurrent linear hashmap with [fine-grained rw-locks](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L35), [lockeless atomic operations](https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_db_hash.c#L133) and lots of interesting optimisations.
 
 
-A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree. A popular in-memory state of the art data structure is the ARTful index, how do the two stack up? Let's find out!
+A [Contention Adapting Tree](https://www.erlang.org/blog/the-new-scalable-ets-ordered_set/)[^3] is interesting because it dynamically at runtime changes the behaviour and number of locks it holds depending on nature of contention protecting underneath a sequential ordered data structure such as a treap or AVL Tree. A popular in-memory state of the art data structure is the Adative Radix Tree(an ARTful) index, how do the two stack up? Let's find out!
 
 ## Indexing is an artform
+
+Choosing a data structure for indexing is in truth, more art than science, there are many competing objectives and trade-offs, this is an experimental comparision, first, what is a `trie` anyway?
+
+```go
+type Trie struct {
+	root *TrieNode
+}
+
+type TrieNode struct {
+	children map[rune]*TrieNode
+	isEnd    bool
+}
+```
+
+A trie is pretty simple data-structure used for pattern-matching & autocomplete, it does so by storing a representation of the "paths" in a string and bounds its performance by `O(k)`, sadly though it wastes alot of space which necessitates finding ways of compressing this information, you can [play around with it here](https://cmps-people.ok.ubc.ca/ylucet/DS/CompressedTrie.html). The adaptive radix tree takes this one step even further, in theory it sounds like it fits the bill quite nicely.
 
 > Even though ART’s performance
 is comparable to hash tables, it maintains the data in sorted
