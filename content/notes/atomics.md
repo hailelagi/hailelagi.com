@@ -1,31 +1,41 @@
 ---
 title: "Atomics"
 date: 2024-11-26T12:57:51+01:00
-draft: true
+draft: false
 ---
+
+{{% callout %}}
+This initial draft was to make some notes while reading marabos' atomics and locks,
+and somehow transmogrify key concepts, distilling yet and perhaps wrapping it into a case study of 
+some sort, perhaps `WTF::parking_lot` or my own lock-free linked-list, sadly, although it does not meet any standards of quality or 
+comprehension, here it is, anyway, otherwise it may never escape my drafts.
+{{% /callout %}}
+
+
+Atomics, typically a compiler intrinsic, platform/hardware dependent(x86, risc-v, arm etc), OS dependent.
+typically at least a pointer size -- in rust a [`usize`](https://doc.rust-lang.org/std/primitive.usize.html)
 
 ## Usecases/Patterns
 - stop flag/locking primitive/aka naive mutex + busy wait
 - thread progress reporting
-- synchronization/barrier/fence etc
-- lazy initialization
+- synchronization/barrier fence etc
+> A SeqCst fence is both a release fence and an acquire fence (just like AcqRel), but also part of the single total order of sequentially consistent operations. However, only the fence is part of the total order, but not necessarily the atomic operations before or after it.
 
-Typically a compiler intrinsic, platform/hardware dependent(x86, risc-v, arm etc), OS dependent.
-Typically at least a pointer size -- in rust a [`usize`](https://doc.rust-lang.org/std/primitive.usize.html)
+- lazy initialization
 
 ## Orderings
 - Relaxed: total modification order
 - Release & Acquire: happens-before btw  thread A & B
+- AcqRel, SeqCst: 
+- *Consume
 
 > A happens-before relationship is formed when an acquire-load operation observes the result of a release-store operation. In this case, the store and everything before it, happened before the load and everything after it.
 
-go mem: https://research.swtch.com/gomm
-super helpful summary: https://gist.github.com/kprotty/bb26b963441baf2ab3486a07fbf4762e
-overview: https://doc.rust-lang.org/nightly/nomicon/atomics.html
-in full: https://en.cppreference.com/w/cpp/atomic/memory_order
+- go mem: https://research.swtch.com/gomm
+- overview: https://doc.rust-lang.org/nightly/nomicon/atomics.html
+- super helpful summary(formalism): https://gist.github.com/kprotty/bb26b963441baf2ab3486a07fbf4762e
+- c++ mem: https://en.cppreference.com/w/cpp/atomic/memory_order
 
-- AcqRel, SeqCst: 
-- *Consume
 
 ## Load and Store
 
@@ -84,6 +94,34 @@ impl AtomicI32 {
             Err(v)
         }
     }
+}
+```
+
+CAS Loop lock-free, but not wait-free, dist-sys context, but same principle, wait-free affects availability/liveness:
+```go
+func (l *replicatedLog) acquireLease(kv *maelstrom.KV) int {
+	l.global.Lock()
+	defer l.global.Unlock()
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(400*time.Millisecond))
+	var count int
+	defer cancel()
+
+	err := errors.New("busy wait")
+
+	for err != nil {
+		previous, _ := kv.Read(ctx, "monotonic-counter")
+
+		if previous == nil {
+			previous = 0
+			count = 1
+		} else {
+			count = previous.(int) + 1
+		}
+
+		err = kv.CompareAndSwap(ctx, "monotonic-counter", previous, count, true)
+	}
+
+	return count
 }
 ```
 
