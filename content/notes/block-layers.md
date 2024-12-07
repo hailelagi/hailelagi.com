@@ -12,7 +12,7 @@ Let's conceptually trace our way down the block layers and see where data goes b
 All problems in comp sci. can be solved by another level of indirection.
 {{% /callout %}}
 
-Why a filesystem? It's **a key abstraction** we'll use to go spelunking and of course we'll spin up an ec2 instance + and mount a filesystem for it with s3!
+Why a filesystem? It's **a key abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, and of course we'll explore ideas from great filesystems like xfs, zfs, discuss key ideas and tradeoffs and at the end some practical implications.
 
 
 ## Hardware
@@ -26,7 +26,7 @@ flash/cells.
 - Latent sector errors
 - Misdirected IO
 - Disk corruption (physical media - heat etc)
-
+- Fragmentation
 
 ### Disk IO scheduling/schedulers
 - SSTF
@@ -62,3 +62,9 @@ An OS interface/sub-system that allows the management of blocks + block devices 
 - Bitmap index vs free list vs Btree
 - Indexing non-contiguous layout (pointers vs extents)
 - static vs dynamic partitioning
+- Block size
+
+## References
+[^1]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
+[^2]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
+[^3]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
