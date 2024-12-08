@@ -1,7 +1,7 @@
 ---
 title: "through the looking glass of block layers"
 date: 2024-12-06T17:38:16+01:00
-draft: true
+draft: false
 ---
 
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). 
@@ -17,21 +17,10 @@ Why a filesystem? It's **a key abstraction** we'll use to go spelunking into the
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
 
-```
-application/process (read/write)
-            |
-POSIX (open, read, write, close)
-            |
-(filesystem - files and directories) <-- yay!
-            |
-Block Interface(read/write)
-            |
-Device Drivers(specific read/write)
-            |
-Physical Media (HDD/SSD - sector/page r/w)
-```
+![simplified sketch of file system layering](/sketch_fs.svg)
 
-This is a roughly sketch made for simplicity.
+<p class="subtext" style="font-size: 0.8em; color: #666;">This is a rough sketch for simplicity, I wrote some ascii and let claude render :) </p>
+
 
 An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (512-byte block) and flash based 
 SSDs expose a unit called a "page" which we can read or write higher level "chunks" of. [†1] to create a _file system abstraction_ over this **block interface**, what does it look like?
