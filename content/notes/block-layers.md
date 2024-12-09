@@ -1,7 +1,7 @@
 ---
 title: "through the looking glass of block layers"
 date: 2024-12-06T17:38:16+01:00
-draft: true
+draft: false
 ---
 
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). 
