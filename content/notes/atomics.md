@@ -5,9 +5,7 @@ draft: false
 ---
 
 {{% callout %}}
-This initial draft was to make some notes while reading marabos' atomics and locks,
-and somehow transmogrify key concepts, distilling yet and perhaps wrapping it into a case study of 
-some sort, perhaps `WTF::parking_lot` or my own lock-free linked-list, sadly, although it does not meet any standards of quality or 
+random notes and scribbles, does not meet any standards of quality or 
 comprehension, here it is, anyway, otherwise it may never escape my drafts.
 {{% /callout %}}
 
@@ -143,7 +141,7 @@ fn increment(a: &AtomicU32) {
 ## Locks - Mutexes/ RwLock etc
 
 design axis:
-- fairness (FIFO)
+- fairness (FIFO) vs starvation
 - correctness (mutual exlusion)
 - performance (syscall overhead, space etc)
 - priority inversion
