@@ -13,7 +13,7 @@ Let's conceptually trace our way up the block layers and see where data goes by 
 All problems in comp sci. can be solved by another level of indirection.
 {{% /callout %}}
 
-Why a filesystem? It's **a key abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, and of course we'll explore ideas from more sophisticated filesystems like xfs, zfs, ext4 and discuss key ideas and tradeoffs and at the end some practical implications on kubernetes! Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem? It's **a key abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, and of course we'll explore ideas from more sophisticated filesystems like **xfs**, **zfs**, **ext4** and discuss key ideas and tradeoffs and at the end some practical implications on kubernetes! Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
@@ -37,7 +37,7 @@ What is a filesystem _really?_ to linux at least it's [the universe and everythi
 
 That's a very generic definition.
 
-Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems, [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
+Filesystems are an incredibly versatile abstraction, applying to [networked/distributed systems](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf), [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
 A simple interpretation of a filesystem can be an interface/sub-system that allows the management of blocks of data on disk via metadata known as **files** and **directories.** One layout could be:
 ```
@@ -54,6 +54,9 @@ Some definitions of these data structures:
 and access methods responding to syscalls: open(), read(), write(), fstat() etc
 
 ## Filesystems are composable!
+
+- https://systemd.io/MOUNT_REQUIREMENTS/
+
 [FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html)
 
 ## Design choices/tradeoffs
