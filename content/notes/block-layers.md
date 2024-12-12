@@ -1,6 +1,7 @@
 ---
 title: "through the looking glass of block layers"
 date: 2024-12-06T17:38:16+01:00
+tags: go, filesystems
 draft: true
 ---
 
@@ -22,32 +23,38 @@ At the bottom, there must exist some _physical media_ which will hold these bits
 <p class="subtext" style="font-size: 0.8em; color: #666;">This is a rough sketch for simplicity, I wrote some ascii and let claude render :) </p>
 
 
-An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (512-byte block) and flash based 
-SSDs expose a unit called a "page" which we can read or write higher level "chunks" of. [†1] to create a _file system abstraction_ over this **block interface**, what does it look like?
+An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based 
+SSDs expose a unit called a "page" which we can read or write higher level "chunks" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (let's assume that part exists) and then the somewhat generic block interfaces:
 
 We have quite a few flavors, a few highlights for linux: 
-1. [The internal Kernel Block Device Layer](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
+1. [the kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
-3. [FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html)
-4. [libvirt](https://libvirt.org/storage.html)
+3. [libvirt](https://libvirt.org/storage.html)
 
-As it turns out a filesystem is historically a sub-component of the operating system! However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a docker container? now that _virtualisation_ technology is ubiquitous how does that change the interface? anyway, I'm picking FUSE - file system in userspace back up to filesystems!
+As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a docker container? now that _virtualisation_ technology is ubiquitous how does that change the interface?
 
+What is a filesystem _really?_ to linux at least it's [the universe and everything else](https://en.wikipedia.org/wiki/Everything_is_a_file), in general it's way of **organising** data and metadata for **access.**
 
-### A File system
-An interface/sub-system that allows the management of blocks + block devices on disk via abstractons, provides files and directories.
-One layout could be:
+That's a very generic definition.
+
+Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems, [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
+
+A simple interpretation of a filesystem can be an interface/sub-system that allows the management of blocks of data on disk via metadata known as **files** and **directories.** One layout could be:
 ```
 ++++++++++++++++++++++++++++++++++++++++++
 + superblock + inode-table + user data!  +
 ++++++++++++++++++++++++++++++++++++++++++
 ```
 
-Data structures:
-1. the file (Index-Node(INode))
-2. The directory (self `.`, parent `..`, etc)
-3. access methods: open(), read(), write(), fstat() etc
-4. super block - metadata about other metadata (inode count, fs version, etc)
+Some definitions of these data structures:
+1. the file (Index-Node(inode) - managing information to find where this block lives, mapping the human readable name to a pointer - and so much more!)
+2. The directory (also an inode! `.`, parent `..`, etc)
+3. super block - metadata about other metadata (inode count, fs version, etc), this is read by the operating system.
+
+and access methods responding to syscalls: open(), read(), write(), fstat() etc
+
+## Filesystems are composable!
+[FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html)
 
 ## Design choices/tradeoffs
 - Tree vs Array
@@ -75,7 +82,6 @@ transparently map logical IO to physical IO for fault-tolerance(fail-stop model)
 - stripping
 - mirroring
 - parity
-
 
 ## References & Notes
 [^1]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
