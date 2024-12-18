@@ -7,7 +7,7 @@ draft: true
 
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). 
 Let's explore a tiny slice of it, what happens when you read or write some data **persistently** on a modern cloud provider?
-Let's conceptually trace our way up the block layers and see where data goes by writing a filesystem ???
+Let's conceptually trace our way up the block layers and see where data goes by writing a filesystem conceptually similar to [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview).
 
 {{% callout %}}
 All problems in comp sci. can be solved by another level of indirection.
@@ -58,6 +58,11 @@ and access methods responding to syscalls: open(), read(), write(), fstat() etc
 - https://systemd.io/MOUNT_REQUIREMENTS/
 
 [FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html)
+
+## In search of POSIX
+todo posix?
+
+## POSIX concurrent semantics
 
 ## Design choices/tradeoffs
 - Tree vs Array
