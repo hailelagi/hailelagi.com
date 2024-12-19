@@ -140,7 +140,32 @@ in a garbage collected environment? how do they map to our eventual high level A
 It's clear we're at a language cross roads, it would be more time consuming and require greater skill than I possess but not impossible to express this in go, we need precise control of memory, performance is a target, garbage collection unpredictable, it must be embedded in a runtime/vm.
 
 The familiar limited set of languages is known: C, C++. I like rust, and have been learning it for awhile, but here we must  be careful to **not muck about** [with rust's ownership rules](https://eli.thegreenplace.net/2021/rust-data-structures-with-circular-references/), 
-if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing asynchronous collections in rust is difficult, as more often than not you're touching `unsafe`, but not impossible, just be really, really careful -- maddeningly so.
+if the tree [gets cyclic](https://marabos.nl/atomics/building-arc.html#weak-pointers), writing concurrent collections in rust is difficult, as more often than not you're touching `unsafe`, but not impossible, just be really, really careful -- maddeningly so, sometimes.
+
+Using the hashmap as an example, a mutex guard on a data structure in rust _contains_ or wraps the underlying type:
+
+```rust
+pub struct HashMap<K, V, S = RandomState> {
+    base: base::HashMap<K, V, S>,
+}
+
+let mymap = Arc::new(RwLock::new(HashMap::new()));
+```
+
+as opposed to _embedding_ it in go or something like in C:
+
+
+```c
+typedef struct {
+    Entry* buckets[4096];
+    pthread_mutex_t lock; 
+    size_t size;
+} HashMap;
+
+HashMap*mymap = (HashMap*)malloc(sizeof(HashMap));
+```
+
+Supposedly we'd like a _mutable reference_ to logically seperate buckets the slice type we'd get back from this idiomatic construction would semantically prevent us from doing so, what does a different api look like?
 
 The blessing and curse is there is no garbage collector, and the ownership model neatly assumes dataflow is a [sub-structural](https://en.wikipedia.org/wiki/Substructural_type_system), one-way/fork/join "tree-like" flow, bi-drectional trees, causality graphs and [linkedlists are anything but](https://rust-unofficial.github.io/too-many-lists/), with low-level concurrency into the mix you're in for [dark mystical arts](https://en.wikipedia.org/wiki/ABA_problem).
 
