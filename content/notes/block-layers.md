@@ -95,5 +95,6 @@ transparently map logical IO to physical IO for fault-tolerance(fail-stop model)
 [^1]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
 [^2]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
 [^3]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
+[^4]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
