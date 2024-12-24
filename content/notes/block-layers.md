@@ -55,6 +55,14 @@ and access methods responding to syscalls: open(), read(), write(), fstat() etc
 
 ## Filesystems are composable!
 
+anecdote about stupid thing i did like mounting myself on myself and being locked out:
+
+```bashrc
+haile@ubuntu:/Users/haile$ mount | grep flubber
+rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=0,group_id=0,max_read=131072)
+rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
+```
+
 - https://systemd.io/MOUNT_REQUIREMENTS/
 
 [FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html)
