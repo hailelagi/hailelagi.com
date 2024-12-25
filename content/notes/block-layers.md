@@ -111,5 +111,6 @@ transparently map logical IO to physical IO for fault-tolerance(fail-stop model)
 [^5]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
 [^6]: [Understanding Modern Storage APIs](https://atlarge-research.com/pdfs/2022-systor-apis.pdf)
 [^7]: [Clarifying Direct I/O Semantics](https://lwn.net/Articles/348739/)
+[^8]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
