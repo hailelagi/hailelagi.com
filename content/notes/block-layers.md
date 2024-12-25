@@ -6,14 +6,18 @@ draft: true
 ---
 
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). 
-Let's explore a tiny slice of it, what happens when you read or write some data **persistently** on a modern cloud provider?
-Let's conceptually trace our way up the block layers and see where data goes by writing a filesystem conceptually similar to [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview).
+Let's explore a tiny slice of it, what happens when you read or write some data persistently on a cloud provider?
+
+Through the looking glass of the strange and worderful world of disk io, let's dive down the block layers and see where data goes
+ by writing a filesystem conceptually similar to [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview).
 
 {{% callout %}}
 All problems in comp sci. can be solved by another level of indirection.
 {{% /callout %}}
 
-Why a filesystem? It's **a key abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, and of course we'll explore ideas from more sophisticated filesystems like **xfs**, **zfs**, **ext4** and discuss key ideas and tradeoffs and at the end some practical implications on kubernetes! Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem? It's **a fundamental abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, 
+and of course we'll explore more sophisticated filesystems like **zfs**[^3], **xfs**[^4], **ffs**[^6] and of course **ext4**, 
+what are the key ideas and tradeoffs? Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
@@ -57,7 +61,7 @@ and access methods responding to syscalls: open(), read(), write(), fstat() etc
 
 anecdote about stupid thing i did like mounting myself on myself and being locked out:
 
-```bashrc
+```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
 rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=0,group_id=0,max_read=131072)
 rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
@@ -103,6 +107,9 @@ transparently map logical IO to physical IO for fault-tolerance(fail-stop model)
 [^1]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
 [^2]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
 [^3]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
-[^4]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
+[^4]: [Scalability in the XFS File System](https://users.soe.ucsc.edu/~sbrandt/290S/xfs.pdf)
+[^5]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
+[^6]: [Understanding Modern Storage APIs](https://atlarge-research.com/pdfs/2022-systor-apis.pdf)
+[^7]: [Clarifying Direct I/O Semantics](https://lwn.net/Articles/348739/)
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
