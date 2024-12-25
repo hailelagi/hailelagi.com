@@ -1,5 +1,5 @@
 ---
-title: "Byzantine"
+title: "but how do consensus?"
 date: 2024-12-22T04:31:19+01:00
 draft: true
 ---
