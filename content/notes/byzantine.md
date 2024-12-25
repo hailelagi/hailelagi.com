@@ -4,6 +4,8 @@ date: 2024-12-22T04:31:19+01:00
 draft: true
 ---
 
+general/must read for everyone: https://dsrg.pdos.csail.mit.edu/papers/
+
 consensus but make it hard mode!
 
 DLS: https://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf
