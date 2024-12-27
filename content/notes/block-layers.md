@@ -12,8 +12,8 @@ Through the looking glass of the strange and worderful world of disk io, let's d
  by writing a filesystem conceptually similar to [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview).
 
 Why a filesystem? It's **a fundamental abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, 
-and of course we'll explore more sophisticated filesystems like **zfs**[^3], **xfs**[^4], **ffs**[^6] and of course **ext4**, 
-what are the key ideas and tradeoffs? Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+and of course we'll explore more sophisticated filesystems old and new alike **zfs**[^3], **xfs**[^4], **ffs**[^6] and of course **ext4**, 
+what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
@@ -73,7 +73,7 @@ getconf PAGESIZE
 
 ## Filesystems are composable!
 
-anecdote about stupid thing i did like mounting myself on myself and being locked out:
+The idea that filesystems are _composable_, no matter how many times I heard it or read about it didn't quite make sense. An early anecdote about something dumb I did - I mounted my filesystem on the `src` dir I got locked out:
 
 ```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
@@ -87,108 +87,27 @@ Here's an example [from the go-fuse documentation](https://github.com/hanwen/go-
 of what this looks like:
 
 ```go
-package main
-
-import (
-	"flag"
-	"fmt"
-	"log"
-	"os"
-	"os/signal"
-	"path"
-	"runtime/pprof"
-	"syscall"
-	"time"
-
-	"github.com/hanwen/go-fuse/v2/fs"
-	"github.com/hanwen/go-fuse/v2/fuse"
-)
-
-func writeMemProfile(fn string, sigs <-chan os.Signal) {
-	i := 0
-	for range sigs {
-		fn := fmt.Sprintf("%s-%d.memprof", fn, i)
-		i++
-
-		log.Printf("Writing mem profile to %s\n", fn)
-		f, err := os.Create(fn)
-		if err != nil {
-			log.Printf("Create: %v", err)
-			continue
-		}
-		pprof.WriteHeapProfile(f)
-		if err := f.Close(); err != nil {
-			log.Printf("close %v", err)
-		}
-	}
-}
 
 func main() {
-	log.SetFlags(log.Lmicroseconds)
-	// Scans the arg list and sets up flags
-	debug := flag.Bool("debug", false, "print debugging messages.")
-	other := flag.Bool("allow-other", false, "mount with -o allowother.")
 	quiet := flag.Bool("q", false, "quiet")
 	ro := flag.Bool("ro", false, "mount read-only")
 	directmount := flag.Bool("directmount", false, "try to call the mount syscall instead of executing fusermount")
 	directmountstrict := flag.Bool("directmountstrict", false, "like directmount, but don't fall back to fusermount")
-	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to this file")
-	memprofile := flag.String("memprofile", "", "write memory profile to this file")
 	flag.Parse()
-	if flag.NArg() < 2 {
-		fmt.Printf("usage: %s MOUNTPOINT ORIGINAL\n", path.Base(os.Args[0]))
-		fmt.Printf("\noptions:\n")
-		flag.PrintDefaults()
-		os.Exit(2)
-	}
-	if *cpuprofile != "" {
-		if !*quiet {
-			fmt.Printf("Writing cpu profile to %s\n", *cpuprofile)
-		}
-		f, err := os.Create(*cpuprofile)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(3)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
-	if *memprofile != "" {
-		if !*quiet {
-			log.Printf("send SIGUSR1 to %d to dump memory profile", os.Getpid())
-		}
-		profSig := make(chan os.Signal, 1)
-		signal.Notify(profSig, syscall.SIGUSR1)
-		go writeMemProfile(*memprofile, profSig)
-	}
-	if *cpuprofile != "" || *memprofile != "" {
-		if !*quiet {
-			fmt.Printf("Note: You must unmount gracefully, otherwise the profile file(s) will stay empty!\n")
-		}
-	}
-
-	orig := flag.Arg(1)
-	loopbackRoot, err := fs.NewLoopbackRoot(orig)
-	if err != nil {
-		log.Fatalf("NewLoopbackRoot(%s): %v\n", orig, err)
-	}
 
 	sec := time.Second
 	opts := &fs.Options{
-		// The timeout options are to be compatible with libfuse defaults,
-		// making benchmarking easier.
 		AttrTimeout:  &sec,
 		EntryTimeout: &sec,
-
-		NullPermissions: true, // Leave file permissions on "000" files as-is
+		NullPermissions: true,
 
 		MountOptions: fuse.MountOptions{
 			AllowOther:        *other,
 			Debug:             *debug,
 			DirectMount:       *directmount,
 			DirectMountStrict: *directmountstrict,
-			FsName:            orig,       // First column in "df -T": original dir
-			Name:              "loopback", // Second column in "df -T" will be shown as "fuse." + Name
+			FsName:            orig,   
+			Name:              "loopback",
 		},
 	}
 	if opts.AllowOther {
@@ -203,12 +122,6 @@ func main() {
 		opts.Logger = log.New(os.Stderr, "", 0)
 	}
 	server, err := fs.Mount(flag.Arg(0), loopbackRoot, opts)
-	if err != nil {
-		log.Fatalf("Mount fail: %v\n", err)
-	}
-	if !*quiet {
-		fmt.Println("Mounted!")
-	}
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
