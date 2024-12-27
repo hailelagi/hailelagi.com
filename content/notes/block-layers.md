@@ -11,10 +11,6 @@ Let's explore a tiny slice of it, what happens when you read or write some data 
 Through the looking glass of the strange and worderful world of disk io, let's dive down the block layers and see where data goes
  by writing a filesystem conceptually similar to [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview).
 
-{{% callout %}}
-All problems in comp sci. can be solved by another level of indirection.
-{{% /callout %}}
-
 Why a filesystem? It's **a fundamental abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, 
 and of course we'll explore more sophisticated filesystems like **zfs**[^3], **xfs**[^4], **ffs**[^6] and of course **ext4**, 
 what are the key ideas and tradeoffs? Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
@@ -24,17 +20,23 @@ At the bottom, there must exist some _physical media_ which will hold these bits
 
 ![simplified sketch of file system layering](/sketch_fs.svg)
 
-<p class="subtext" style="font-size: 0.8em; color: #666;">This is a rough sketch for simplicity, I wrote some ascii and let claude render :) </p>
+<p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
 
 An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based 
 SSDs expose a unit called a "page" which we can read or write higher level "chunks" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (let's assume that part exists) and then the somewhat generic block interfaces:
 
-We have quite a few flavors to "plug into", a few highlights for linux: 
-1. [the kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
+We have quite a few 'flavors' to "plug into", a few highlights: 
+1. [the (deprecated?) kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
 4. [fuse](https://www.kernel.org/doc/html/v6.3/filesystems/fuse.html)
+5. [k8's container storage interface](https://github.com/container-storage-interface/spec/blob/master/spec.md)
+
+
+{{% callout %}}
+All problems in comp sci. can be solved by another level of indirection.
+{{% /callout %}}
 
 As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a docker container? now that _virtualisation_ technology is ubiquitous how does that change the interface?
 
@@ -53,16 +55,17 @@ A simple interpretation of a filesystem can be an interface/sub-system that allo
 
 Some definitions of these data structures:
 1. super block - metadata about other metadata (inode count, fs version, etc), this is read by the operating system.
-2. the file (Index-Node(inode) - managing information to find where this block lives, mapping the human readable name to a pointer - and so much more!)
-3. The directory (also an inode! `.`, parent `..`, etc)
-4. bitmaps/btrees/free-lists: garbage collection
+2. the file (Index-Node(inode) - managing information to find where this file's blocks are, mapping the human readable name to a interal pointer(i number) and external handle(the file descriptor) - and so much more!)
+3. The directory (also an inode! `.`, parent `..`)
+4. bitmaps/b-trees/free-lists: how do we keep track of _free space_ efficiently?
+5. user data/the data region - the actual data we care about storing!
 
 and access methods responding to syscalls: open(), read(), write(), fstat() etc
 
-pretty intuitive explaination mapping a block, to an inumber and to the sector region.
+pretty intuitive: how to map a block, to an inumber and to the sector region.
 ```zsh
 blk = (inumber * sizeof(inode_t)) / blockSize;
- sector = ((blk * blockSize) + inodeStartAddr) / sectorSize;
+sector = ((blk * blockSize) + inodeStartAddr) / sectorSize(512 - say);
 
 # to retrieve the page size of an fs
 getconf PAGESIZE
@@ -220,8 +223,6 @@ func main() {
 
 - https://systemd.io/MOUNT_REQUIREMENTS/
 
-[FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html)
-
 ## File systems come with great responsibility
 crash stop, fail stop, data loss, guarantees? journal fs
 
@@ -236,6 +237,7 @@ todo posix?
 - Indexing non-contiguous layout (pointers vs extents)
 - static vs dynamic partitioning
 - Block size
+- Multi-level indexing vs extents
 
 ### Problems
 - Latent sector errors
