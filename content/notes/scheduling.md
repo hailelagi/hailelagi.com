@@ -39,6 +39,12 @@ non-blocking magic:
 ```
 man aio
 ```
+
+> The existing aio interface is comprised of three main system calls: a system call to setup an aio context (io_setup(2)),
+one to submit IO (io_submit(2)), and one to reap or wait for completions of IO (io_getevents(2)). Since a change
+in behavior was required for multiple of these system calls, we needed to add new system calls to pass in this
+information
+
 see: https://www.gnu.org/s/libc/manual/html_node/Asynchronous-I_002fO.html
 rust: these calls are made via mio: https://github.com/tokio-rs/mio
 see: https://wycats.gitbooks.io/mio-book/content/
@@ -116,3 +122,7 @@ loop {
 - implicit blocking due to page faults is hard to avoid and thus can lead to large performance problems when prevalent.
 - semantics of the api
 
+
+## Essential reading
+- https://kernel.dk/io_uring.pdf
+- https://unixism.net/loti/
