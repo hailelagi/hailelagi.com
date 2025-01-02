@@ -48,11 +48,10 @@ A simple (and useful) interpretation of a filesystem is an interface/sub-system 
 ```
 
 Quick definitions of these data structures and why we need them:
-1. **file**
-
+1. **file
 Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to a internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
 
-2. **directory**
+2. **directory*
 
 also an inode! the `.`, parent `..` `/foo` etc
 
@@ -77,6 +76,8 @@ ls -i hello.txt
 block = (inumber * sizeof(inode_t)) / blockSize;
 sector = ((block * blockSize) + inodeStartAddr) / sectorSize;
 ```
+
+This glosses over a super important bit about how `ls -i` _finds_ the inumber in the first place, more on access methods and path traversal later!
 
 ## Filesystems are composable!
 
@@ -139,12 +140,13 @@ func main() {
 }
 ```
 
-At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/)!
+At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/)
 
 ## File systems come with great responsibility
-An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it via some kind of pinky promise like`fsync`, in the face of the real world(tm) which can and does _lose_ data[^4] and sometimes lies about it, alas our software is trying its best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^6] where data loss isn't just loss, it's a cascade failure mode of corruption.
+An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it via some kind of pinky promise like`fsync`, in the face of the real world(tm) which can and does _lose_ data[^4] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^6] where data loss isn't just loss, it's a cascade failure mode of corruption. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model and performance via your preffered mapping (stripping, mirroring & parity.)
 
-### Disk IO scheduling/schedulers
+
+### Concurrency Disk IO scheduling/schedulers
 - SSTF
 - NBF
 - SCAN vs C-SCAN (elevator algorithm)
@@ -152,11 +154,15 @@ An unreasonable semantic guarantee that filesystems and tangentially databases m
 
 linux: https://wiki.ubuntu.com/Kernel/Reference/IOSchedulers
 
-### RAID
-transparently map logical IO to physical IO for fault-tolerance(fail-stop model) and performance.
-- stripping
-- mirroring
-- parity
+### Design choices/tradeoffs
+- Inode design: b-tree vs bitmap vs linked list
+- Concurrency/transactions
+- in search of POSIX
+- Bitmap index vs free list vs Btree vs log structure
+- Indexing non-contiguous layout (multi level pointers vs extents)
+- static vs dynamic partitioning
+- Block size
+
 
 ## References & Notes
 [^1]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
@@ -168,4 +174,8 @@ transparently map logical IO to physical IO for fault-tolerance(fail-stop model)
 
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
+
+- Multi-level indexing vs extents
+
+[†2]: An aside on permissions, user groups and access control lists, I don't  think security will make the cut, but prob worth an aside.
 

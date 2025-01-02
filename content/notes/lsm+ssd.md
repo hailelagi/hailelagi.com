@@ -9,3 +9,4 @@ LSM + SSD
 [^1]: [Understanding Modern Storage APIs](https://atlarge-research.com/pdfs/2022-systor-apis.pdf)
 [^2]: [What Modern NVMe Storage Can Do, And How To Exploit It](https://vldb.org/pvldb/vol16/p2090-haas.pdf)
 [^3]: [Clarifying Direct I/O Semantics](https://lwn.net/Articles/348739/)
+[^4]: [What Are You Waiting For? Use Coroutines for Asynchronous I/O to Hide I/O Latencies and Maximize the Read Bandwidth!](https://db.in.tum.de/~fent/papers/coroutines.pdf)
