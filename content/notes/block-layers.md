@@ -5,15 +5,11 @@ tags: go, filesystems
 draft: true
 ---
 
-The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). 
-Let's explore a tiny slice of it, what happens when you read or write some data persistently on a cloud provider?
+The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). What happens when you read or write some data persistently?
 
-Through the looking glass of the strange and worderful world of disk io, let's dive down the block layers and see where data goes
- by writing a filesystem conceptually similar to [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview).
+What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) come to be?
 
-Why a filesystem? It's **a fundamental abstraction** we'll use to go spelunking into the lifecycle of a block destined for persistence, 
-and of course we'll explore more sophisticated filesystems old and new alike **zfs**[^3], **xfs**[^4], **ffs**[^6] and of course **ext4**, 
-what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem in the first place? It seems like **a fundamental abstraction**, an idea pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^3], **xfs**[^4], **ffs**[^6] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
