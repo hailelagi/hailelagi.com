@@ -1,5 +1,5 @@
 ---
-title: "through the looking glass of block layers"
+title: "through the looking glass of blocks"
 date: 2024-12-06T17:38:16+01:00
 tags: go, filesystems
 draft: true
@@ -9,7 +9,7 @@ The modern computing/data infrastructure is [vast and interesting](https://lands
 
 What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) come to be?
 
-Why a filesystem in the first place? It seems like **a fundamental abstraction**, an idea pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^3], **xfs**[^4], **ffs**[^6] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem in the first place? It seems like **a fundamental abstraction**, an idea pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
@@ -18,17 +18,14 @@ At the bottom, there must exist some _physical media_ which will hold these bits
 
 <p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
+An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based SSDs expose a unit called a "page" which we can read or write higher level "chunks" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (let's assume that part exists) and then the somewhat generic block interfaces:
 
-An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based 
-SSDs expose a unit called a "page" which we can read or write higher level "chunks" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (let's assume that part exists) and then the somewhat generic block interfaces:
-
-We have quite a few 'flavors' to "plug into", a few highlights: 
+Filesystems are software, there are quite a few layers to experiment, what we need is a block device abstraction, but which one? a few options: 
 1. [the (deprecated?) kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
 4. [fuse](https://www.kernel.org/doc/html/v6.3/filesystems/fuse.html)
 5. [k8's container storage interface](https://github.com/container-storage-interface/spec/blob/master/spec.md)
-
 
 {{% callout %}}
 All problems in comp sci. can be solved by another level of indirection.
@@ -38,38 +35,54 @@ As it turns out a filesystem is historically an _internal_ sub-component of the 
 
 What is a filesystem _really?_ to linux at least it's [the universe and everything else](https://en.wikipedia.org/wiki/Everything_is_a_file), in general it's way of **organising** data and metadata for **access.**
 
-That's a very generic definition.
+That's a very generic definition, that doesn't say much.
 
 Filesystems are an incredibly versatile abstraction, applying to [networked/distributed systems](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf), [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
-A simple interpretation of a filesystem can be an interface/sub-system that allows the management of blocks of data on disk via metadata known as **files** and **directories.** One layout could be:
+A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk, managing metadata and exposing the interface of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation could be:
+
 ```
-++++++++++++++++++++++++++++++++++++++++++
-+ superblock + inode-table + user data!  +
-++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++
++ superblock + inodes + data region  +
+++++++++++++++++++++++++++++++++++++++
 ```
 
-Some definitions of these data structures:
-1. super block - metadata about other metadata (inode count, fs version, etc), this is read by the operating system.
-2. the file (Index-Node(inode) - managing information to find where this file's blocks are, mapping the human readable name to a interal pointer(i number) and external handle(the file descriptor) - and so much more!)
-3. The directory (also an inode! `.`, parent `..`)
-4. bitmaps/b-trees/free-lists: how do we keep track of _free space_ efficiently?
-5. user data/the data region - the actual data we care about storing!
+Quick definitions of these data structures and why we need them:
+1. **file**
 
-and access methods responding to syscalls: open(), read(), write(), fstat() etc
+Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to a internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
 
-pretty intuitive: how to map a block, to an inumber and to the sector region.
-```zsh
-blk = (inumber * sizeof(inode_t)) / blockSize;
-sector = ((blk * blockSize) + inodeStartAddr) / sectorSize(512 - say);
+2. **directory**
 
-# to retrieve the page size of an fs
+also an inode! the `.`, parent `..` `/foo` etc
+
+3. **super block**
+
+A special kind of header stores interesting metadata (inode count, fs version, etc) this is read by the operating system during "mount" more on this later!
+
+4. **data region**: the actual data we care about storing!
+
+and access methods responding to the syscalls users care about for actually interacting with their data: open(), read(), write(), fstat() etc
+
+Files and directories are really inodes which can map `hello.txt` in `user/hello`to some arbitrary block location `0x88a` dumped as hex pointed to by an `inumber` and finally to the sector region(assuming an HDD). For example to find the block for `hello.txt`:
+```bash
+# assuming a unix(ish)
+# to retrieve the pagesize on a unix
+# assume the sector size is 512bytes and a block 4KiB
 getconf PAGESIZE
+
+## you can see an inode's inumber via:
+ls -i hello.txt
+
+block = (inumber * sizeof(inode_t)) / blockSize;
+sector = ((block * blockSize) + inodeStartAddr) / sectorSize;
 ```
 
 ## Filesystems are composable!
 
-The idea that filesystems are _composable_, no matter how many times I heard it or read about it didn't quite make sense. An early anecdote about something dumb I did - I mounted my filesystem on the `src` dir I got locked out:
+A filesystem is software. It compiles down to binary known as an image, to use this _image_ we need to `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
+
+Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example I mounted my fuse filesystem on its self and broke the link to it's parent filesystem, why was i able to do this? why could I?:
 
 ```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
@@ -77,11 +90,7 @@ rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,us
 rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
 ```
 
-recursive mounts ie explain what a loopback is. 
-
-Here's an example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go)
-of what this looks like:
-
+As it turns out this is a somewhat reasonable thing to do and is known as a recursive mount or a loopback, here's an example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go):
 ```go
 
 func main() {
@@ -113,7 +122,7 @@ func main() {
 	if *ro {
 		opts.MountOptions.Options = append(opts.MountOptions.Options, "ro")
 	}
-	// Enable diagnostics logging
+
 	if !*quiet {
 		opts.Logger = log.New(os.Stderr, "", 0)
 	}
@@ -130,29 +139,10 @@ func main() {
 }
 ```
 
-- https://systemd.io/MOUNT_REQUIREMENTS/
+At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/)!
 
 ## File systems come with great responsibility
-crash stop, fail stop, data loss, guarantees? journal fs
-
-## In search of POSIX
-todo posix?
-
-## POSIX concurrent/file semantics
-
-## Design choices/tradeoffs
-- Tree vs Array
-- Bitmap index vs free list vs Btree
-- Indexing non-contiguous layout (pointers vs extents)
-- static vs dynamic partitioning
-- Block size
-- Multi-level indexing vs extents
-
-### Problems
-- Latent sector errors
-- Misdirected IO
-- Disk corruption (physical media - heat etc)
-- Fragmentation
+An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it via some kind of pinky promise like`fsync`, in the face of the real world(tm) which can and does _lose_ data[^4] and sometimes lies about it, alas our software is trying its best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^6] where data loss isn't just loss, it's a cascade failure mode of corruption.
 
 ### Disk IO scheduling/schedulers
 - SSTF
@@ -169,11 +159,13 @@ transparently map logical IO to physical IO for fault-tolerance(fail-stop model)
 - parity
 
 ## References & Notes
-[^1]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
-[^2]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
-[^3]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
-[^4]: [Scalability in the XFS File System](https://users.soe.ucsc.edu/~sbrandt/290S/xfs.pdf)
-[^5]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
-[^8]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
+[^1]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
+[^2]: [Scalability in the XFS File System](https://users.soe.ucsc.edu/~sbrandt/290S/xfs.pdf)
+[^3]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
+[^4]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
+[5]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
+[6]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
+
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
+
