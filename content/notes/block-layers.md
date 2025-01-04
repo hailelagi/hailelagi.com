@@ -37,7 +37,7 @@ What is a filesystem _really?_ to linux at least it's [the universe and everythi
 
 That's a very generic definition, that doesn't say much.
 
-Filesystems are an incredibly versatile abstraction, applying to [networked/distributed systems](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf), [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
+Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems[^4][^5], [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
 A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk, managing metadata and exposing the interface of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation could be:
 
@@ -47,23 +47,23 @@ A simple (and useful) interpretation of a filesystem is an interface/sub-system 
 ++++++++++++++++++++++++++++++++++++++
 ```
 
-Quick definitions of these data structures and why we need them:
+Quick definitions of these data structures:
 1. **file
 Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to a internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
 
 2. **directory*
 
-also an inode! the `.`, parent `..` `/foo` etc
+also an inode! the `.`, parent `..` path name `/foo` etc
 
 3. **super block**
 
-A special kind of header stores interesting metadata (inode count, fs version, etc) this is read by the operating system during "mount" more on this later!
+A special kind of header stores interesting global metadata (inode count, fs version, etc) this is read by the operating system during "mount" more on this later!
 
 4. **data region**: the actual data we care about storing!
 
 and access methods responding to the syscalls users care about for actually interacting with their data: open(), read(), write(), fstat() etc
 
-Files and directories are really inodes which can map `hello.txt` in `user/hello`to some arbitrary block location `0x88a` dumped as hex pointed to by an `inumber` and finally to the sector region(assuming an HDD). For example to find the block for `hello.txt`:
+Files and directories are really inodes which can map `hello.txt` in `user/hello`to some arbitrary block location(on disk) `0x88a...` dumped as hex pointed to by an `inumber` and finally to the sector region(assuming an HDD). For example to find the block for `hello.txt`:
 ```bash
 # assuming a unix(ish)
 # to retrieve the pagesize on a unix
@@ -137,7 +137,7 @@ func main() {
 	}()
 
 	server.Wait()
-}
+}:
 ```
 
 At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/)
@@ -168,14 +168,12 @@ linux: https://wiki.ubuntu.com/Kernel/Reference/IOSchedulers
 [^1]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
 [^2]: [Scalability in the XFS File System](https://users.soe.ucsc.edu/~sbrandt/290S/xfs.pdf)
 [^3]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
-[^4]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
-[5]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
-[6]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
-
+[^4]: [Ceph: A Scalable, High-Performance Distributed File System](https://www.usenix.org/legacy/event/osdi06/tech/full_papers/weil/weil.pdf)
+[^5]: [Google File System](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf)
+[^6]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
+[^7]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
+[^8]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
-
-- Multi-level indexing vs extents
-
 [†2]: An aside on permissions, user groups and access control lists, I don't  think security will make the cut, but prob worth an aside.
 
