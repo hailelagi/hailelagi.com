@@ -20,7 +20,7 @@ At the bottom, there must exist some _physical media_ which will hold these bits
 
 An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based SSDs expose a unit called a "page" which we can read or write higher level "chunks" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (let's assume that part exists) and then the somewhat generic block interfaces:
 
-Filesystems are software, there are quite a few layers to experiment, what we need is a block device abstraction, but which one? a few options: 
+Filesystems are software, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
 1. [the (deprecated?) kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
@@ -37,7 +37,7 @@ What is a filesystem _really?_ to linux at least it's [the universe and everythi
 
 That's a very generic definition, that doesn't say much.
 
-Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems[^4][^5], [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
+Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems[^4] [^5], [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
 A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk, managing metadata and exposing the interface of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation could be:
 
@@ -47,8 +47,9 @@ A simple (and useful) interpretation of a filesystem is an interface/sub-system 
 ++++++++++++++++++++++++++++++++++++++
 ```
 
-Quick definitions of these data structures:
-1. **file
+Some definitions:
+1. **file**
+
 Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to a internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
 
 2. **directory*
@@ -57,7 +58,7 @@ also an inode! the `.`, parent `..` path name `/foo` etc
 
 3. **super block**
 
-A special kind of header stores interesting global metadata (inode count, fs version, etc) this is read by the operating system during "mount" more on this later!
+A special kind of header stores interesting global metadata (inode count, fs version, etc) this is read by the operating system during "mount" [more on this](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/mounting-file-systems_managing-file-systems#the-linux-mount-mechanism_mounting-file-systems)
 
 4. **data region**: the actual data we care about storing!
 
@@ -66,7 +67,7 @@ and access methods responding to the syscalls users care about for actually inte
 Files and directories are really inodes which can map `hello.txt` in `user/hello`to some arbitrary block location(on disk) `0x88a...` dumped as hex pointed to by an `inumber` and finally to the sector region(assuming an HDD). For example to find the block for `hello.txt`:
 ```bash
 # assuming a unix(ish)
-# to retrieve the pagesize on a unix
+# to retrieve the pagesize
 # assume the sector size is 512bytes and a block 4KiB
 getconf PAGESIZE
 
@@ -81,9 +82,9 @@ This glosses over a super important bit about how `ls -i` _finds_ the inumber in
 
 ## Filesystems are composable!
 
-A filesystem is software. It compiles down to binary known as an image, to use this _image_ we need to `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
+A filesystem is software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
 
-Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example I mounted my fuse filesystem on its self and broke the link to it's parent filesystem, why was i able to do this? why could I?:
+Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example I mounted my fuse filesystem on its self and broke the link to it's parent filesystem, why could I?:
 
 ```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
@@ -173,7 +174,9 @@ linux: https://wiki.ubuntu.com/Kernel/Reference/IOSchedulers
 [^6]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
 [^7]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
 [^8]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
+[^9]: [Why Files If You Have a DBMS?](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/blob.pdf)
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
+
 [†2]: An aside on permissions, user groups and access control lists, I don't  think security will make the cut, but prob worth an aside.
 
