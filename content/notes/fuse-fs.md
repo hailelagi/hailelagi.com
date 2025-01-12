@@ -1,5 +1,5 @@
 ---
-title: "through the looking glass of blocks"
+title: "stitching together filesystems"
 date: 2024-12-06T17:38:16+01:00
 tags: go, filesystems
 draft: true
@@ -9,18 +9,16 @@ The modern computing/data infrastructure is [vast and interesting](https://lands
 
 What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) come to be?
 
-Why a filesystem in the first place? It seems like **a fundamental abstraction**, an idea pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 ## Physical Layer
-At the bottom, there must exist some _physical media_ which will hold these bits and bytes we conveniently call a block. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
+At the bottom, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
 
 ![simplified sketch of file system layering](/sketch_fs.svg)
 
 <p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
-An HDD exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based SSDs expose a unit called a "page" which we can read or write higher level "chunks" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (let's assume that part exists) and then the somewhat generic block interfaces:
-
-Filesystems are software, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
+A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based Solid State Drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
 1. [the (deprecated?) kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
@@ -33,13 +31,13 @@ All problems in comp sci. can be solved by another level of indirection.
 
 As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a docker container? now that _virtualisation_ technology is ubiquitous how does that change the interface?
 
-What is a filesystem _really?_ to linux at least it's [the universe and everything else](https://en.wikipedia.org/wiki/Everything_is_a_file), in general it's way of **organising** data and metadata for **access.**
+What is a filesystem _really?_ to linux at least it's [the universe and everything else](https://en.wikipedia.org/wiki/Everything_is_a_file), in general it's a way of **organising** data and metadata for **access.**
 
 That's a very generic definition, that doesn't say much.
 
 Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems[^4] [^5], [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
-A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk, managing metadata and exposing the interface of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation could be:
+A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk, metadata and exposing the interface of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation could be:
 
 ```
 ++++++++++++++++++++++++++++++++++++++
@@ -50,7 +48,7 @@ A simple (and useful) interpretation of a filesystem is an interface/sub-system 
 Some definitions:
 1. **file**
 
-Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to a internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
+Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to an internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
 
 2. **directory*
 
@@ -58,7 +56,7 @@ also an inode! the `.`, parent `..` path name `/foo` etc
 
 3. **super block**
 
-A special kind of header stores interesting global metadata (inode count, fs version, etc) this is read by the operating system during "mount" [more on this](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/mounting-file-systems_managing-file-systems#the-linux-mount-mechanism_mounting-file-systems)
+A special kind of header stores interesting global metadata (inode count, fs version, etc) this is read by the operating system during [mount](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/mounting-file-systems_managing-file-systems#the-linux-mount-mechanism_mounting-file-systems)
 
 4. **data region**: the actual data we care about storing!
 
@@ -85,6 +83,10 @@ This glosses over a super important bit about how `ls -i` _finds_ the inumber in
 A filesystem is software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
 
 Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example I mounted my fuse filesystem on its self and broke the link to it's parent filesystem, why could I?:
+```bash
+haile@ubuntu:/Users/haile/documents/github$ cd flubber
+-bash: cd: flubber: Transport endpoint is not connected
+```
 
 ```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
@@ -141,21 +143,14 @@ func main() {
 }:
 ```
 
-At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/)
+At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace!
+
+Hopefully it makes sense why and how building a file system heirarchy over block storage might be a good idea[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a few tradeoffs especially on latency, where this might not make sense for every usecase.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs). However, in theory you can fuse any kind of backing store into a filesystem.
 
 ## File systems come with great responsibility
-An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it via some kind of pinky promise like`fsync`, in the face of the real world(tm) which can and does _lose_ data[^4] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^6] where data loss isn't just loss, it's a cascade failure mode of corruption. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model and performance via your preffered mapping (stripping, mirroring & parity.)
+An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of pinky promise like `fsync`, in the face of the real world(tm) which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^6] where data loss isn't just loss, it's a cascade failure mode of corruption. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model and performance via your preffered mapping (stripping, mirroring & parity.)
 
-
-### Concurrency Disk IO scheduling/schedulers
-- SSTF
-- NBF
-- SCAN vs C-SCAN (elevator algorithm)
-- SPTF
-
-linux: https://wiki.ubuntu.com/Kernel/Reference/IOSchedulers
-
-### Design choices/tradeoffs
+## Inodes, access methods & garbage collection
 - Inode design: b-tree vs bitmap vs linked list
 - Concurrency/transactions
 - in search of POSIX
