@@ -1,7 +1,7 @@
 ---
 title: "stitching together filesystems"
 date: 2024-12-06T17:38:16+01:00
-tags: go, filesystems
+tags: go, filesystems, fuse, s3
 draft: true
 ---
 
@@ -76,17 +76,23 @@ block = (inumber * sizeof(inode_t)) / blockSize;
 sector = ((block * blockSize) + inodeStartAddr) / sectorSize;
 ```
 
-This glosses over a super important bit about how `ls -i` _finds_ the inumber in the first place, more on access methods and path traversal later!
+This glosses over a super important bit about how `ls -i` _finds_ the inumber in the first place, and presumes that our files
+fit in a 4KiB chunk -- examing `cutecat.gif` on any computer eludes to more going on, and as a play on our re-occurent theme, to represent more space than a page size **we introduce indirection** in the form of _pointers_, these pointers can come in the form of 
+_extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page.
+This represents a choice/tradeoff of flexibility vs a space compact representation.
 
 ## Filesystems are composable!
 
-A filesystem is software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
-
-Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example I mounted my fuse filesystem on its self and broke the link to it's parent filesystem, why could I?:
+Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example when I first mounted my fuse filesystem, I hadn't implemented directory path traveral the link to it's parent filesystem was broken:
 ```bash
 haile@ubuntu:/Users/haile/documents/github$ cd flubber
 -bash: cd: flubber: Transport endpoint is not connected
 ```
+
+// todo fix this
+A filesystem is software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
+
+// todo better explain mounts and binds
 
 ```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
@@ -94,43 +100,12 @@ rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,us
 rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
 ```
 
-As it turns out this is a somewhat reasonable thing to do and is known as a recursive mount or a loopback, here's an example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go):
+As it turns out this is a somewhat reasonable thing to do and is known as a recursive mount or here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of a loopback filesystem which implements a recursive mount using an fs layer below it as storage:
+
 ```go
-
 func main() {
-	quiet := flag.Bool("q", false, "quiet")
-	ro := flag.Bool("ro", false, "mount read-only")
-	directmount := flag.Bool("directmount", false, "try to call the mount syscall instead of executing fusermount")
-	directmountstrict := flag.Bool("directmountstrict", false, "like directmount, but don't fall back to fusermount")
-	flag.Parse()
-
-	sec := time.Second
-	opts := &fs.Options{
-		AttrTimeout:  &sec,
-		EntryTimeout: &sec,
-		NullPermissions: true,
-
-		MountOptions: fuse.MountOptions{
-			AllowOther:        *other,
-			Debug:             *debug,
-			DirectMount:       *directmount,
-			DirectMountStrict: *directmountstrict,
-			FsName:            orig,   
-			Name:              "loopback",
-		},
-	}
-	if opts.AllowOther {
-		// Make the kernel check file permissions for us
-		opts.MountOptions.Options = append(opts.MountOptions.Options, "default_permissions")
-	}
-	if *ro {
-		opts.MountOptions.Options = append(opts.MountOptions.Options, "ro")
-	}
-
-	if !*quiet {
-		opts.Logger = log.New(os.Stderr, "", 0)
-	}
-	server, err := fs.Mount(flag.Arg(0), loopbackRoot, opts)
+	loopbackRoot, err := fs.NewLoopbackRoot("/")
+	server, err := fs.Mount("/mnt", loopbackRoot, opts)
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -145,19 +120,79 @@ func main() {
 
 At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace!
 
-Hopefully it makes sense why and how building a file system heirarchy over block storage might be a good idea[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a few tradeoffs especially on latency, where this might not make sense for every usecase.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs). However, in theory you can fuse any kind of backing store into a filesystem.
-
-## File systems come with great responsibility
-An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of pinky promise like `fsync`, in the face of the real world(tm) which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^6] where data loss isn't just loss, it's a cascade failure mode of corruption. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model and performance via your preffered mapping (stripping, mirroring & parity.)
+Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural  to do[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs).
 
 ## Inodes, access methods & garbage collection
-- Inode design: b-tree vs bitmap vs linked list
+The command `ls -i hello.txt` helped us find the inode for our file, what does examining it reveal?
+A key decision in the design and performance of filesystems is the inode representation, to see why this is impactful,
+let's trace the path of such an access, this snippet is abridged from `xv6`: 
+
+```c
+void
+ls(char *path)
+{
+  char buf[512], *p;
+  int fd;
+  struct dirent de;
+  struct stat st;
+
+  if((fd = open(path, O_RDONLY)) < 0){
+    fprintf(2, "ls: cannot open %s\n", path);
+    return;
+  }
+
+  if(fstat(fd, &st) < 0){
+    fprintf(2, "ls: cannot stat %s\n", path);
+    close(fd);
+    return;
+  }
+
+
+  // todo implement ls -i
+  // notice the path traversal cost in translating a path to an inode
+  // to service a single path we trace our way from root, incuring a read syscall
+  // if our 
+
+  switch(st.type){
+  case T_DEVICE:
+  case T_FILE:
+    printf("%s %d %d %d\n", fmtname(path), st.type, st.ino, (int) st.size);
+    break;
+
+  case T_DIR:
+    if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
+      printf("ls: path too long\n");
+      break;
+    }
+    strcpy(buf, path);
+    p = buf+strlen(buf);
+
+    *p++ = '/';
+    while(read(fd, &de, sizeof(de)) == sizeof(de)){
+      if(de.inum == 0)
+        continue;
+      memmove(p, de.name, DIRSIZ);
+      p[DIRSIZ] = 0;
+      if(stat(buf, &st) < 0){
+        printf("ls: cannot stat %s\n", buf);
+        continue;
+      }
+      printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, (int) st.size);
+    }
+    break;
+  }
+  close(fd);
+}
+```
+
+An inode can most commonly be represented by a bitmap, linked-list or b-tree!
+
+## in search of POSIX
 - Concurrency/transactions
-- in search of POSIX
-- Bitmap index vs free list vs Btree vs log structure
-- Indexing non-contiguous layout (multi level pointers vs extents)
-- static vs dynamic partitioning
-- Block size
+
+
+## File systems come with great responsibility
+An unreasonable semantic guarantee that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of pinky promise like `fsync`, in the face of the real world(tm) which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^8] where data loss isn't just loss, it's a cascade failure mode of corruption. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model and performance via your preffered mapping (stripping, mirroring & parity.)
 
 
 ## References & Notes
