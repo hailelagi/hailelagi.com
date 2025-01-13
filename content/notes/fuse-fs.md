@@ -76,10 +76,68 @@ block = (inumber * sizeof(inode_t)) / blockSize;
 sector = ((block * blockSize) + inodeStartAddr) / sectorSize;
 ```
 
-This glosses over a super important bit about how `ls -i` _finds_ the inumber in the first place, and presumes that our files
-fit in a 4KiB chunk -- examing `cutecat.gif` on any computer eludes to more going on, and as a play on our re-occurent theme, to represent more space than a page size **we introduce indirection** in the form of _pointers_, these pointers can come in the form of 
-_extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page.
-This represents a choice/tradeoff of flexibility vs a space compact representation.
+To make this concrete, with some help from `xv6-riscv`, when the filesystem reads from disk given an `inumber`:
+```c
+void
+rinode(uint inum, struct dinode *ip)
+{
+  char buf[BSIZE];
+  uint bn;
+  struct dinode *dip;
+
+  bn = IBLOCK(inum, sb);
+  rsect(bn, buf);
+  dip = ((struct dinode*)buf) + (inum % IPB);
+  *ip = *dip;
+}
+```
+
+This glosses over an important considering about how `ls -i` _finds_ the inumber from **disk** in the first place: and presumes that our files
+fit in a 4KiB chunk -- examing `cutecat.gif` on any computer eludes to more going on.
+
+In a nutshell, answering the first question requires traversing from the _root_ **on every single access to resolve hello.txt**:
+```c
+// Look up and return the inode for a path name.
+// If parent != 0, return the inode for the parent and copy the final
+// path element into name, which must have room for DIRSIZ bytes.
+// Must be called inside a transaction since it calls iput().
+static struct inode*
+namex(char *path, int nameiparent, char *name)
+{
+  struct inode *ip, *next;
+
+  if(*path == '/')
+    ip = iget(ROOTDEV, ROOTINO);
+  else
+    ip = idup(myproc()->cwd);
+
+  while((path = skipelem(path, name)) != 0){
+    ilock(ip);
+    if(ip->type != T_DIR){
+      iunlockput(ip);
+      return 0;
+    }
+    if(nameiparent && *path == '\0'){
+      // Stop one level early.
+      iunlock(ip);
+      return ip;
+    }
+    if((next = dirlookup(ip, name, 0)) == 0){
+      iunlockput(ip);
+      return 0;
+    }
+    iunlockput(ip);
+    ip = next;
+  }
+  if(nameiparent){
+    iput(ip);
+    return 0;
+  }
+  return ip;
+}
+```
+
+This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers. This highlights a choice between flexibility vs a space compact representation.
 
 ## Filesystems are composable!
 
@@ -123,69 +181,8 @@ At every point during the boot <> runtime lifecycle of an operating system(linux
 Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural  to do[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs).
 
 ## Inodes, access methods & garbage collection
-The command `ls -i hello.txt` helped us find the inode for our file, what does examining it reveal?
-A key decision in the design and performance of filesystems is the inode representation, to see why this is impactful,
-let's trace the path of such an access, this snippet is abridged from `xv6`: 
-
-```c
-void
-ls(char *path)
-{
-  char buf[512], *p;
-  int fd;
-  struct dirent de;
-  struct stat st;
-
-  if((fd = open(path, O_RDONLY)) < 0){
-    fprintf(2, "ls: cannot open %s\n", path);
-    return;
-  }
-
-  if(fstat(fd, &st) < 0){
-    fprintf(2, "ls: cannot stat %s\n", path);
-    close(fd);
-    return;
-  }
-
-
-  // todo implement ls -i
-  // notice the path traversal cost in translating a path to an inode
-  // to service a single path we trace our way from root, incuring a read syscall
-  // if our 
-
-  switch(st.type){
-  case T_DEVICE:
-  case T_FILE:
-    printf("%s %d %d %d\n", fmtname(path), st.type, st.ino, (int) st.size);
-    break;
-
-  case T_DIR:
-    if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
-      printf("ls: path too long\n");
-      break;
-    }
-    strcpy(buf, path);
-    p = buf+strlen(buf);
-
-    *p++ = '/';
-    while(read(fd, &de, sizeof(de)) == sizeof(de)){
-      if(de.inum == 0)
-        continue;
-      memmove(p, de.name, DIRSIZ);
-      p[DIRSIZ] = 0;
-      if(stat(buf, &st) < 0){
-        printf("ls: cannot stat %s\n", buf);
-        continue;
-      }
-      printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, (int) st.size);
-    }
-    break;
-  }
-  close(fd);
-}
-```
-
-An inode can most commonly be represented by a bitmap, linked-list or b-tree!
+The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
+what more can it tell us? A key decision in the design and performance of filesystems is the inode representation, inodes can most commonly be represented by a bitmap, linked-list or a b-tree.
 
 ## in search of POSIX
 - Concurrency/transactions
