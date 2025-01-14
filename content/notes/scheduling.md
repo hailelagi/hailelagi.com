@@ -1,7 +1,7 @@
 ---
 title: "scheduling stuff -_-"
 date: 2024-11-10T14:21:59+01:00
-draft: true
+draft: false
 ---
 
 {{% callout %}}
