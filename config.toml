@@ -1,7 +1,7 @@
 baseURL = "https://www.hailelagi.com/"
 languageCode = "en-us"
 title = "Haile (ሐይሌ)"
-ignoreErrors = ["error-remote-getjson"]
+ignoreErrors = []
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 [params]
@@ -66,16 +66,9 @@ pygmentsCodeFences = true
     startLevel = 2
 
   [[menu.main]]
-    identifier = "bookshelf"
-    name = "bookshelf"
-    title = "bookshelf"
-    url = "/bookshelf"
-    weight = 25
-
-  [[menu.main]]
-    identifier = "writing"
-    name = "writing"
-    title = "writing"
+    identifier = "notes"
+    name = "notes"
+    title = "notes"
     url = "/notes"
     weight = 25
 

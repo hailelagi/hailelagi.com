@@ -1,3 +1,5 @@
+
+<!---
 I'm currently reading: [Operating Systems: Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)
 
 <!--
@@ -35,6 +37,8 @@ Interesting/on my radar but who knows if I'll ever get around to it:
 - [crafting interpreters](https://craftinginterpreters.com/)
 -->
 
+<!--
 Recommendations:
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [Designing Data-Intensive Applications](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)
+-->

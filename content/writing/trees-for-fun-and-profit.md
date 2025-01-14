@@ -1,6 +1,6 @@
 ---
 title: "Trees for Fun and Profit"
-date: 2024-08-15T08:27:22+01:00
+date: 2025-01-14T19:53:42+01:00
 tags: go, rust, storage-engine
 draft: true
 ---
