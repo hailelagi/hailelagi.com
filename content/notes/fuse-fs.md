@@ -26,7 +26,8 @@ A hard disk drive exposes a "flat" address space to read or write, the smallest 
 5. [k8's container storage interface](https://github.com/container-storage-interface/spec/blob/master/spec.md)
 
 {{% callout %}}
-All problems in comp sci. can be solved by another level of indirection.
+All problems in computer science can be solved by another level of
+indirection, except of course for the problem of too many indirections.
 {{% /callout %}}
 
 As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a docker container? now that _virtualisation_ technology is ubiquitous how does that change the interface?
@@ -92,10 +93,10 @@ rinode(uint inum, struct dinode *ip)
 }
 ```
 
-This glosses over an important considering about how `ls -i` _finds_ the inumber from **disk** in the first place: and presumes that our files
-fit in a 4KiB chunk -- examing `cutecat.gif` on any computer eludes to more going on.
+This glosses over considering how `ls -i` _finds_ the inumber from **disk** in the first place: and presumes that our files
+fit in a 4KiB chunk -- examining `cutecat.gif` on any computer eludes to more going on.
 
-In a nutshell, answering the first question requires traversing from the _root_ **on every single access to resolve hello.txt**:
+In a nutshell, answering the first question requires traversing from the _root_ **on every single access to resolve hello.txt -> inum 2**:
 ```c
 // Look up and return the inode for a path name.
 // If parent != 0, return the inode for the parent and copy the final
@@ -137,7 +138,7 @@ namex(char *path, int nameiparent, char *name)
 }
 ```
 
-This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers. This highlights a choice between flexibility vs a space compact representation.
+This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting a choice between flexibility vs a space compact representation.
 
 ## Filesystems are composable!
 
@@ -178,7 +179,7 @@ func main() {
 
 At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace!
 
-Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural  to do[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs).
+Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural to do[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs).
 
 ## Inodes, access methods & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
