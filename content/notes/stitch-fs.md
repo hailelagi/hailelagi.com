@@ -1,7 +1,7 @@
 ---
 title: "stitching together filesystems"
 date: 2024-12-06T17:38:16+01:00
-tags: go, filesystems, fuse, s3
+tags: go, c, filesystems, fuse, s3
 draft: true
 ---
 
@@ -11,7 +11,7 @@ What _really_ lurks in the world of disk IO? what is at the core? how do abstrac
 
 Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
-A quick glance at [flubber a FUSE on S3](https://github.com/hailelagi/flubber):
+A quick glance at [flubber a FUSE on object storage](https://github.com/hailelagi/flubber):
 <script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
 
 ## Physical Layer
@@ -182,22 +182,29 @@ func main() {
 
 At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace!
 
-Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural to do[^6], for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs).
+Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural to do[^6], for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
 
-## Inodes, access methods & garbage collection
+{{% callout %}}
+An aside on POSIX
+{{% /callout %}}
+
+## Inodes, access methods, concurrency & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
 what more can it tell us? A key decision in the design and performance of filesystems is the inode representation, inodes can most commonly be represented by a bitmap, linked-list or a b-tree.
 
-## in search of POSIX
-- Concurrency/transactions
-
 
 ## File systems come with great responsibility
-A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^8] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.)
+A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^8] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.) and of course the [clever rabbit hole bit flip repairing algorithms](https://transactional.blog/blog/2024-erasure-coding).
 
 Perhaps a more disturbing thought, why a filesystem if you have a database? [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly an interesting argument [^9] perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^10] questions for another time :)
 
 ## References & Notes
+
+[†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
+
+[†2]: An aside on permissions, user groups and access control lists, I don't  think security will make the cut, but prob worth an aside.
+
+
 [^1]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
 [^2]: [Scalability in the XFS File System](https://users.soe.ucsc.edu/~sbrandt/290S/xfs.pdf)
 [^3]: [fast file system(FFS)](https://dsf.berkeley.edu/cs262/FFS-annotated.pdf)
@@ -208,8 +215,3 @@ Perhaps a more disturbing thought, why a filesystem if you have a database? [SQL
 [^8]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
 [^9]: [Why Files If You Have a DBMS?](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/blob.pdf)
 [^10]: [Cloud-Native Database Systems and Unikernels: Reimagining OS Abstractions for Modern Hardware](https://www.vldb.org/pvldb/vol17/p2115-leis.pdf)
-
-[†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
-
-[†2]: An aside on permissions, user groups and access control lists, I don't  think security will make the cut, but prob worth an aside.
-
