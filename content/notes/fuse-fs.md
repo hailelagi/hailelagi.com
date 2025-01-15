@@ -11,6 +11,9 @@ What _really_ lurks in the world of disk IO? what is at the core? how do abstrac
 
 Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
+A quick glance at [flubber a FUSE on S3](https://github.com/hailelagi/flubber):
+<script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
+
 ## Physical Layer
 At the bottom, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
 
@@ -192,7 +195,7 @@ what more can it tell us? A key decision in the design and performance of filesy
 ## File systems come with great responsibility
 A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^8] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.)
 
-Perhaps a more disturbing thought, why a filesystem if you have a database? [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly an interesting argument [^9] perhaps it's worth the inherented complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^10] questions for another time :)
+Perhaps a more disturbing thought, why a filesystem if you have a database? [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly an interesting argument [^9] perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^10] questions for another time :)
 
 ## References & Notes
 [^1]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
