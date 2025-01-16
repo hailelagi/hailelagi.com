@@ -9,9 +9,9 @@ The modern computing/data infrastructure is [vast and interesting](https://lands
 
 What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) come to be?
 
-Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
-A quick glance at [flubber a FUSE on object storage](https://github.com/hailelagi/flubber):
+A quick glance at [flubber a FUSE fs on object storage](https://github.com/hailelagi/flubber):
 <script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
 
 ## Physical Layer
@@ -21,7 +21,7 @@ At the bottom, there must exist some _physical media_ which will hold data we co
 
 <p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
-A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based Solid State Drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
+A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based solid state drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
 1. [the (deprecated?) kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
@@ -180,12 +180,15 @@ func main() {
 }:
 ```
 
-At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace!
+At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace! -- more important than _how_ is _why._
 
-Hopefully it makes sense why and how building a file system heirarchy over block storage isn't just possible but natural to do[^6], for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [there's a tradeoff here on latency.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
+## why fuse?
+Hopefully it makes sense that file system heirarchies can be built as an interface over whatever you like -- with FUSE or `ublk` it's right in userspace, no need to muck about the kernel, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
 
 {{% callout %}}
-An aside on POSIX
+aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
+but how about flock, fcntl and ioctl? How would those work across a network call? what syscalls
+do applications need?
 {{% /callout %}}
 
 ## Inodes, access methods, concurrency & garbage collection
@@ -194,9 +197,9 @@ what more can it tell us? A key decision in the design and performance of filesy
 
 
 ## File systems come with great responsibility
-A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^7] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^8] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.) and of course the [clever rabbit hole bit flip repairing algorithms](https://transactional.blog/blog/2024-erasure-coding).
+A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^8] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^9] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.) and of course the [clever rabbit hole of bit flipping repair algorithms](https://transactional.blog/blog/2024-erasure-coding).
 
-Perhaps a more disturbing thought, why a filesystem if you have a database? [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly an interesting argument [^9] perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^10] questions for another time :)
+Perhaps a more disturbing thought, why a filesystem if you have a database?[^10] [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly interesting and perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^11] questions for another time :)
 
 ## References & Notes
 
@@ -211,7 +214,8 @@ Perhaps a more disturbing thought, why a filesystem if you have a database? [SQL
 [^4]: [Ceph: A Scalable, High-Performance Distributed File System](https://www.usenix.org/legacy/event/osdi06/tech/full_papers/weil/weil.pdf)
 [^5]: [Google File System](https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf)
 [^6]: [Exploiting Cloud Object Storage for High-Performance Analytics](https://www.vldb.org/pvldb/vol16/p2769-durner.pdf)
-[^7]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
-[^8]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
-[^9]: [Why Files If You Have a DBMS?](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/blob.pdf)
-[^10]: [Cloud-Native Database Systems and Unikernels: Reimagining OS Abstractions for Modern Hardware](https://www.vldb.org/pvldb/vol17/p2115-leis.pdf)
+[^7]: [To FUSE or Not to FUSE: Performance of User-Space File Systems](https://libfuse.github.io/doxygen/fast17-vangoor.pdf)
+[^8]: [Can Applications Recover from fsync Failures?](https://www.usenix.org/system/files/atc20-rebello.pdf)
+[^9]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
+[^10]: [Why Files If You Have a DBMS?](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/blob.pdf)
+[^11]: [Cloud-Native Database Systems and Unikernels: Reimagining OS Abstractions for Modern Hardware](https://www.vldb.org/pvldb/vol17/p2115-leis.pdf)
