@@ -4,7 +4,9 @@ date: 2024-11-09T21:48:27+01:00
 draft: true
 ---
 
-An attempt to explain and intuit garbage collection.
+An attempt to explain and intuit garbage collection. To do so we're going to implement a [free list](https://opendsa-server.cs.vt.edu/OpenDSA/Books/CS3/html/Freelist.html) and strip it away and discover its _intrusive_ version.
+
+{{< youtube vHWiDx_l4V0 >}}
 
 Deleting data can be thought about as two related but distinct operations _reclaiming_ and _destroying_. What happens when a program needs memory? If it's _statically known_ it's usually a well understood [let the compiler handle it problem](https://en.wikipedia.org/wiki/Stack-based_memory_allocation), fit it in the final binary or give clever hints about what to do when the process is loaded by the operating system. Asking for memory and freeing it can get complex, if a group of smart people can spend **alot of time** to get it right once and automagically solve it that would be nice indeed. This is the allure of automatic garbage collection.
 
