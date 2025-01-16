@@ -38,4 +38,6 @@ Typically an implementation of the `GlobalAlloc` trait is where all heap memory 
 [^1]: [From Buffer Overflows to “Weird Machines” and Theory of Computation](https://www.usenix.org/system/files/login/articles/105516-Bratus.pdf)
 [^2]: [Secure by Design: Google’s Perspective on Memory Safety](https://storage.googleapis.com/gweb-research2023-media/pubtools/7665.pdf)
 
-
+# todo read
+http://www.dullien.net/thomas/weird-machines-exploitability.pdf
+https://alexgaynor.net/2019/aug/12/introduction-to-memory-unsafety-for-vps-of-engineering/
