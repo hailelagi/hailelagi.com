@@ -4,7 +4,7 @@ date: 2024-12-29T02:27:02+01:00
 draft: true
 ---
 
-LSM + SSD + Buffer Pool?
+LSM + SSD
 
 [^1]: [The Log-Structured Merge-Tree](https://www.cs.umb.edu/~poneil/lsmtree.pdf)
 [^2]: [Understanding Modern Storage APIs](https://atlarge-research.com/pdfs/2022-systor-apis.pdf)
