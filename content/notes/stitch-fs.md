@@ -7,7 +7,7 @@ draft: true
 
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). What happens when you read or write some data persistently?
 
-What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) come to be?
+What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) or [ceph-fuse](https://docs.ceph.com/en/reef/man/8/ceph-fuse/) come to be?
 
 Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
@@ -22,7 +22,7 @@ At the bottom, there must exist some _physical media_ which will hold data we co
 <p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
 A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based solid state drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
-1. [the (deprecated?) kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
+1. [the linux kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
 4. [fuse](https://www.kernel.org/doc/html/v6.3/filesystems/fuse.html)
