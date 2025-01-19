@@ -194,20 +194,20 @@ do applications need?
 
 ## interacting with the fuse protocol
 
-There's an abstraction layer that wasn't mentioned in the first diagram - which sits just below the application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol:
+There's an abstraction layer that wasn't mentioned in the first diagram - which sits just below the application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol somewhat similar to a client-server model:
 
 ```
 +++++++        +++++++++++         ++++++++++++
 + app +  <-->  + go-fuse + <------> +  daemon +
 +++++++        ++++++++++          +++++++++++++
-   |                               \ (exchange messages!)
+   |                               \ (exchange messages at `/dev/fuse`)
+   |                                | (memcpy per msg)
 ------(user/kernel boundary)------
    |                               +++++++++++++++
 +++++++                            ++ fuse kernel +
 + VFS + -------------------------> ++  driver ++++
 +++++++                            +++++++++++++++
 ```
-
 
 > The High-level FUSE API builds on top of the lowlevel API and allows developers to skip the implementation of the path-to-inode mapping. Therefore, neither inodes nor lookup operations exist in the high-level API,
 easing the code development. Instead, all high-level API
@@ -218,6 +218,16 @@ common chown(), chmod(), and truncate()
 methods, instead of the lower-level setattr(). File
 system developers must decide which API to use, by balancing flexibility vs. development ease.
 
+
+>  If a user-space file system implements
+the write buf() method, then FUSE splices the data
+from /dev/fuse and passes the data directly to this
+method in a form of the buffer containing a file descriptor. FUSE splices WRITE requests that contain more than
+a single page of data. Similar logic applies to replies to
+READ requests with more than two pages of data
+
+## Write-back caching
+The basic write behavior of FUSE is synchronous and only 4KB of data is sent to the user daemon for writing.
 
 ## Inodes, access methods, concurrency & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
