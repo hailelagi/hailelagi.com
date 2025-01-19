@@ -33,7 +33,7 @@ All problems in computer science can be solved by another level of
 indirection, except of course for the problem of too many indirections.
 {{% /callout %}}
 
-As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a docker container? now that _virtualisation_ technology is ubiquitous how does that change the interface?
+As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a [docker container?](https://docs.docker.com/engine/storage/) today where workloads run above [hypervisors](https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf) how does that change the interface?
 
 What is a filesystem _really?_ to linux at least it's [the universe and everything else](https://en.wikipedia.org/wiki/Everything_is_a_file), in general it's a way of **organising** data and metadata for **access.**
 
@@ -180,16 +180,44 @@ func main() {
 }:
 ```
 
-At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). By interacting with the FUSE kernel api, you can mount anything you'd like right in userspace! -- more important than _how_ is _why._
+At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by CoW filesystems to cache or recreate filesystem objects, by interacting with the FUSE kernel api, you can mount anything you'd like right in userspace! -- more important than _how_ is _why._
 
 ## why fuse?
 Hopefully it makes sense that file system heirarchies can be built as an interface over whatever you like -- with FUSE or `ublk` it's right in userspace, no need to muck about the kernel, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
 
 {{% callout %}}
 aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
-but how about flock, fcntl and ioctl? How would those work across a network call? what syscalls
+but how about the flock, fcntl and ioctl family? How would those work across a network boundary? what syscalls
 do applications need?
 {{% /callout %}}
+
+
+## interacting with the fuse protocol
+
+There's an abstraction layer that wasn't mentioned in the first diagram - which sits just below the application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol:
+
+```
++++++++        +++++++++++         ++++++++++++
++ app +  <-->  + go-fuse + <------> +  daemon +
++++++++        ++++++++++          +++++++++++++
+   |                               \ (exchange messages!)
+------(user/kernel boundary)------
+   |                               +++++++++++++++
++++++++                            ++ fuse kernel +
++ VFS + -------------------------> ++  driver ++++
++++++++                            +++++++++++++++
+```
+
+
+> The High-level FUSE API builds on top of the lowlevel API and allows developers to skip the implementation of the path-to-inode mapping. Therefore, neither inodes nor lookup operations exist in the high-level API,
+easing the code development. Instead, all high-level API
+methods operate directly on file paths. The high-level
+API also handles request interrupts and provides other
+convenient features: e.g., developers can use the more
+common chown(), chmod(), and truncate()
+methods, instead of the lower-level setattr(). File
+system developers must decide which API to use, by balancing flexibility vs. development ease.
+
 
 ## Inodes, access methods, concurrency & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
@@ -201,11 +229,14 @@ A semantic guarantee with a heavy burden that filesystems and tangentially datab
 
 Perhaps a more disturbing thought, why a filesystem if you have a database?[^10] [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly interesting and perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^11] questions for another time :)
 
+
+{{% callout %}}
+Security and access control in whatever form is an important consideration in filesystem design, especially in a distributed context where the network provides a wider surface area of attack than the process boundary. User groups and access control lists are often something to considering when implementing a filesystem abstraction.
+{{% /callout %}}
+
 ## References & Notes
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
-
-[†2]: An aside on permissions, user groups and access control lists, I don't  think security will make the cut, but prob worth an aside.
 
 
 [^1]: [End-to-end Data Integrity for File Systems: A ZFS Case Study](https://research.cs.wisc.edu/wind/Publications/zfs-corruption-fast10.pdf)
