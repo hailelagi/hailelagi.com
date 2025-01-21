@@ -260,3 +260,4 @@ Security and access control in whatever form is an important consideration in fi
 [^9]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
 [^10]: [Why Files If You Have a DBMS?](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/blob.pdf)
 [^11]: [Cloud-Native Database Systems and Unikernels: Reimagining OS Abstractions for Modern Hardware](https://www.vldb.org/pvldb/vol17/p2115-leis.pdf)
+
