@@ -2,14 +2,14 @@
 title: "Stitching Together Filesystems"
 date: 2024-12-06T17:38:16+01:00
 tags: go, c, filesystems, fuse, s3
-draft: false
+draft: true
 ---
 
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). What happens when you read or write some data persistently?
 
 What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [mountpoint-s3](https://github.com/awslabs/mountpoint-s3), [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) or [ceph-fuse](https://docs.ceph.com/en/reef/man/8/ceph-fuse/) come to be filesystems?
 
-Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are some of the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
 
 A quick glance at [flubber a FUSE fs on object storage](https://github.com/hailelagi/flubber):
 <script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
@@ -177,7 +177,7 @@ func main() {
 	}()
 
 	server.Wait()
-}:
+}
 ```
 
 At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by CoW filesystems to cache or recreate filesystem objects, by interacting with the FUSE kernel api, you can mount anything you'd like right in userspace! -- more important than _how_ is _why._
@@ -231,7 +231,11 @@ The basic write behavior of FUSE is synchronous and only 4KB of data is sent to 
 
 ## Inodes, access methods, concurrency & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
-what more can it tell us? A key decision in the design and performance of filesystems is the inode representation, inodes can most commonly be represented by a bitmap, linked-list or a b-tree.
+what more can it tell us? A key decision in the design and performance of filesystems is the inode representation, inodes can most commonly be represented by a bitmap, linked-list or a b-tree
+
+todo a contrast with log structured filesystems.
+
+todo RUM ref
 
 
 ## File systems come with great responsibility
@@ -241,7 +245,7 @@ Perhaps a more disturbing thought, why a filesystem if you have a database?[^10]
 
 
 {{% callout %}}
-Security and access control in whatever form is an important consideration in filesystem design, especially in a distributed context where the network provides a wider surface area of attack than the process boundary. User groups and access control lists are often something to considering when implementing a filesystem abstraction.
+Security and access control in whatever form is an important consideration in filesystem design, especially in a distributed context where the network provides a wider surface area of attack than the process boundary. User groups and access control lists are often something worth considering when implementing a filesystem abstraction.
 {{% /callout %}}
 
 ## References & Notes
@@ -260,4 +264,5 @@ Security and access control in whatever form is an important consideration in fi
 [^9]: [Protocol Aware Recovery](https://www.usenix.org/conference/fast18/presentation/alagappan)
 [^10]: [Why Files If You Have a DBMS?](https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/blob.pdf)
 [^11]: [Cloud-Native Database Systems and Unikernels: Reimagining OS Abstractions for Modern Hardware](https://www.vldb.org/pvldb/vol17/p2115-leis.pdf)
-
+[^12]: [Don't stack your Log on my Log](https://www.usenix.org/system/files/conference/inflow14/inflow14-yang.pdf)
+[^13]: [Designing Access Methods: The RUM Conjecture](https://www.eecs.harvard.edu/~kester/files/rum_conjecture.pdf)
