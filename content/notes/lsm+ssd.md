@@ -6,8 +6,11 @@ draft: true
 
 LSM + SSD
 
+
 [^1]: [The Log-Structured Merge-Tree](https://www.cs.umb.edu/~poneil/lsmtree.pdf)
-[^2]: [Understanding Modern Storage APIs](https://atlarge-research.com/pdfs/2022-systor-apis.pdf)
-[^3]: [What Modern NVMe Storage Can Do, And How To Exploit It](https://vldb.org/pvldb/vol16/p2090-haas.pdf)
-[^4]: [Clarifying Direct I/O Semantics](https://lwn.net/Articles/348739/)
-[^5]: [What Are You Waiting For? Use Coroutines for Asynchronous I/O to Hide I/O Latencies and Maximize the Read Bandwidth!](https://db.in.tum.de/~fent/papers/coroutines.pdf)
+[^2]: [Designing Access Methods: The RUM Conjecture](https://www.eecs.harvard.edu/~kester/files/rum_conjecture.pdf)
+[^3]: [Understanding Modern Storage APIs](https://atlarge-research.com/pdfs/2022-systor-apis.pdf)
+[^4]: [What Modern NVMe Storage Can Do, And How To Exploit It](https://vldb.org/pvldb/vol16/p2090-haas.pdf)
+[^5]: [Clarifying Direct I/O Semantics](https://lwn.net/Articles/348739/)
+[^6]: [What Are You Waiting For? Use Coroutines for Asynchronous I/O to Hide I/O Latencies and Maximize the Read Bandwidth!](https://db.in.tum.de/~fent/papers/coroutines.pdf)
+[^7]: [The Unwritten Contract of Solid State Drives](https://pages.cs.wisc.edu/~jhe/eurosys17-he.pdf)

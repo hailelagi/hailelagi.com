@@ -266,3 +266,4 @@ Security and access control in whatever form is an important consideration in fi
 [^11]: [Cloud-Native Database Systems and Unikernels: Reimagining OS Abstractions for Modern Hardware](https://www.vldb.org/pvldb/vol17/p2115-leis.pdf)
 [^12]: [Don't stack your Log on my Log](https://www.usenix.org/system/files/conference/inflow14/inflow14-yang.pdf)
 [^13]: [Designing Access Methods: The RUM Conjecture](https://www.eecs.harvard.edu/~kester/files/rum_conjecture.pdf)
+[^14]: [Application Crash Consistency and Performance with CCFS](https://www.usenix.org/system/files/conference/fast17/fast17_pillai.pdf)
