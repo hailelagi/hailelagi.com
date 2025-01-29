@@ -1,7 +1,7 @@
 ---
 title: "Atomics"
 date: 2024-11-26T12:57:51+01:00
-draft: false
+draft: true
 ---
 
 {{% callout %}}
