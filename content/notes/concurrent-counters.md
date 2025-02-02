@@ -60,5 +60,14 @@ you don't magically get more cpu cycles, you just use them _efficiently_ by inte
 
 Except in a multi-core -- where a program really can get split into literal, physically different computations, however there's a catch,  in between these independent cores are slow "connections" and many important layers of caches to speed up access, and herein lies the difficulty, the ever more wrestle with cache invalidation. Given this reality, how do we write fast data structures for modern cpu architectures?
 
+## Starting simple? with decentralised counters!
+
+### Using a mutex
+
+### Just use an atomic!
+
+## Beyond a pointer width
+
 [^1]: [Efficient Locking Techniques for Databases on Modern Hardware](https://db.in.tum.de/~boettcher/locking.pdf)
 [^2]: [Scalable and Robust Latches for Database Systems](https://adms-conf.org/kimura_adms12.pdf)
+[^3]: [Simple, Fast, and Practical Non-Blocking and Blocking Concurrent Queue Algorithms](https://www.cs.rochester.edu/~scott/papers/1996_PODC_queues.pdf)
