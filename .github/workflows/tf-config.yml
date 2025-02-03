@@ -1,0 +1,14 @@
+name: terraform build and deploy
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    plan:
+        runs-on: ubuntu-latest
+    apply:
+        runs-on: ubuntu-latest
+    upload-to-s3:
+        runs-on: ubuntu-latest
