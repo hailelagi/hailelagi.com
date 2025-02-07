@@ -1,11 +1,16 @@
 ---
-title: "K8s/cloud vms cheatsheet"
+title: "K8s and the 😶‍🌫️"
 date: 2025-02-05T06:43:40+01:00
 draft: true
 ---
 
 k8s manages and orchestrates clusters of containerised applications, 
 by abstracting over pools of computing resources cpu, network, memory & disk. and abstracting deploying to a public cloud(s).
+via declarative yaml, json (but also [imperative apis](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/imperative-command/))
+
+```sh
+[desired] <-> observed <-> reconciliation
+```
 
 intuition/basic algorithm: https://en.wikipedia.org/wiki/Bin_packing_problem
 
@@ -83,6 +88,18 @@ kubectl api-resources
 kubectl get svc --namespace kube-system
 kubectl config set-context --current --namespace <ns>
 ```
+
+deployments: (stateless pods/container mngmt) spec + controller viz replicaset |labels + selectors| to pod,
+[exposing over an external IP](https://kubernetes.io/docs/tutorials/stateless-application/expose-external-ip-address/)
+```sh
+kubectl get | describe deploy <deployment>
+kubectl get | describe rs # at least one replica set per deploy
+kubectl scale deploy <deployment> --replicas 5
+kubectl rollout (status | history) | pause | resume | rollback  deploy <deployment>
+```
+
+services:
+
 
 data plane
 
