@@ -9,7 +9,7 @@ by abstracting over pools of computing resources cpu, network, memory & disk. an
 via declarative yaml, json (but also [imperative apis](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/imperative-command/))
 
 ```sh
-[desired] <-> observed <-> reconciliation
+desired <-> observed <-> reconciliation
 ```
 
 intuition/basic algorithm: https://en.wikipedia.org/wiki/Bin_packing_problem
@@ -45,7 +45,7 @@ k3d cluster create <name_cluster> <flags> <image>
 provisioning and deployment packaging:
 ```sh
 helm
-terrform
+terraform
 ```
 
 control plane:

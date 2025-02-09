@@ -5,6 +5,8 @@ tags: go, c, filesystems, fuse, s3
 draft: true
 ---
 
+{{< toc >}}
+
 The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). What happens when you read or write some data persistently?
 
 What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [mountpoint-s3](https://github.com/awslabs/mountpoint-s3), [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) or [ceph-fuse](https://docs.ceph.com/en/reef/man/8/ceph-fuse/) come to be filesystems?
@@ -14,26 +16,29 @@ Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervas
 A quick glance at [flubber a FUSE fs on object storage](https://github.com/hailelagi/flubber):
 <script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
 
-## Physical Layer
+## physical layer
 At the bottom, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
 
 ![simplified sketch of file system layering](/sketch_fs.svg)
 
 <p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
-A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based solid state drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one? a few options: 
+A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based solid state drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one?
+
 1. [the linux kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
 3. [libvirt](https://libvirt.org/storage.html)
 4. [fuse](https://www.kernel.org/doc/html/v6.3/filesystems/fuse.html)
 5. [k8's container storage interface](https://github.com/container-storage-interface/spec/blob/master/spec.md)
 
+(among others)
+
 {{% callout %}}
 All problems in computer science can be solved by another level of
 indirection, except of course for the problem of too many indirections.
 {{% /callout %}}
 
-As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a [docker container?](https://docs.docker.com/engine/storage/) today where workloads run above [hypervisors](https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf) how does that change the interface?
+As it turns out a filesystem is historically an _internal_ sub-component of the operating system! in kernel/priviledged space. However there's all these interesting _usecases_ for writing all sorts of different _kinds of filesystems_ which make different _design decisions_ at different layers, wouldn't it be nice to not brick yourself mounting some random filesystem I made? How about an _EC2 instance_? or a [docker container?](https://docs.docker.com/engine/storage/) today where workloads often run above [hypervisors](https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf) how does that change the interface?
 
 What is a filesystem _really?_ to linux at least it's [the universe and everything else](https://en.wikipedia.org/wiki/Everything_is_a_file), in general it's a way of **organising** data and metadata for **access.**
 
@@ -41,7 +46,7 @@ That's a very generic definition, that doesn't say much.
 
 Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems[^4] [^5], [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
-A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk, metadata and exposing the interface of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation could be:
+A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk via metadata and exposing the abstraction of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation of this metadata could be:
 
 ```
 ++++++++++++++++++++++++++++++++++++++
@@ -54,7 +59,7 @@ Some definitions:
 
 Is really a `struct` called an index-node (inode) - managing information to find where this file's blocks are, it maps the human readable name to an internal pointer(i number), services an external handle/view(the file descriptor `fd`) - and so much more! perhaps laid as some kind of hashmap/table?
 
-2. **directory*
+2. **directory**
 
 also an inode! the `.`, parent `..` path name `/foo` etc
 
@@ -64,7 +69,7 @@ A special kind of header stores interesting global metadata (inode count, fs ver
 
 4. **data region**: the actual data we care about storing!
 
-and access methods responding to the syscalls users care about for actually interacting with their data: open(), read(), write(), fstat() etc
+and access methods responding to the syscalls users care about for actually interacting with their data: `open`, `read`, `write`, `fstat`, `mkdir` etc
 
 Files and directories are really inodes which can map `hello.txt` in `user/hello`to some arbitrary block location(on disk) `0x88a...` dumped as hex pointed to by an `inumber` and finally to the sector region(assuming an HDD). For example to find the block for `hello.txt`:
 ```bash
@@ -143,7 +148,7 @@ namex(char *path, int nameiparent, char *name)
 
 This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting a choice between flexibility vs a space compact representation.
 
-## Filesystems are composable!
+## filesystems are composable!
 
 Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example when I first mounted my fuse filesystem, I hadn't implemented directory path traversal, the link to it's parent filesystem was broken:
 ```bash
@@ -226,10 +231,10 @@ method in a form of the buffer containing a file descriptor. FUSE splices WRITE 
 a single page of data. Similar logic applies to replies to
 READ requests with more than two pages of data
 
-## Write-back caching
+## write-back caching
 The basic write behavior of FUSE is synchronous and only 4KB of data is sent to the user daemon for writing.
 
-## Inodes, access methods, concurrency & garbage collection
+## inodes, access methods, concurrency & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
 what more can it tell us? A key decision in the design and performance of filesystems is the inode representation, inodes can most commonly be represented by a bitmap, linked-list or a b-tree
 
@@ -237,8 +242,7 @@ todo a contrast with log structured filesystems.
 
 todo RUM ref
 
-
-## File systems come with great responsibility
+## file systems come with great responsibility
 A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^8] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^9] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.) and of course the [clever rabbit hole of bit flipping repair algorithms](https://transactional.blog/blog/2024-erasure-coding).
 
 Perhaps a more disturbing thought, why a filesystem if you have a database?[^10] [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly interesting and perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^11] questions for another time :)
@@ -248,7 +252,10 @@ Perhaps a more disturbing thought, why a filesystem if you have a database?[^10]
 Security and access control in whatever form is an important consideration in filesystem design, especially in a distributed context where the network provides a wider surface area of attack than the process boundary. User groups and access control lists are often something worth considering when implementing a filesystem abstraction.
 {{% /callout %}}
 
-## References & Notes
+## transactions and the WAL
+todo: a simple commit protocol + wal over object storage.
+
+## references & notes
 
 [†1]: Although the smallest unit of a flash is actually a cell, and a write/erase may touch on the block, for simplicity and rough equivalence these are equated.
 
