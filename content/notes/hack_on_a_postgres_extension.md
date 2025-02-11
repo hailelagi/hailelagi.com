@@ -13,11 +13,12 @@ https://github.com/pgcentralfoundation/pgrx
 - I like postgres/sort of already know it a little from a user perspective.
 - breaking databases is fun, it feels good to add and remove things, hack around.
 
-### Cons
+### getting better at hacking on postgres
+- re-read: https://www.interdb.jp/pg/
+read: https://edu.postgrespro.com/postgresql_internals-14_en.pdf
 
-- context switches are extremely expensive - more so than typical projects: there is alot to keep in your head, meaning at most you
-can only ever work on a handful of specific projects, ideally just one at a time. I don't do this because I'm unsure if this what I 
-want to be doing.
-- the compile times are really bad (this is not fun)
-- because C and therefore means learning/reading writing unsafe rust
-(this is not fun)
+- build an extension end to end.
+- practice C.
+- practice unsafe rust.
+- find sometime to peruse the mailing list for ideas on current issues and "easy" patches
+- peruse the pg discords
