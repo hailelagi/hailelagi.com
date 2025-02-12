@@ -98,12 +98,20 @@ kubectl scale deploy <deployment> --replicas 5
 kubectl rollout (status | history) | pause | resume | rollback  deploy <deployment>
 ```
 
-services:
+services: RESTful Object - stable IP, DNS and port coupled & load-balances(endpoint slice) to pods via labels + selectors.
+- dns lookup
+- query endpoint slices
+
+internal: (ClusterIP - internal DNS [switched fabric](https://en.wikipedia.org/wiki/Switched_fabric))
+external: NodePort + LB
 
 
 data plane
 
-## spin up an ec2 box
+## spin up an ec2 jumpbox
+
+todo: https://github.com/kelseyhightower/kubernetes-the-hard-way
+
 https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html
 
 ```sh
@@ -136,3 +144,6 @@ echo "Setup complete! Remember to 'source ~/.bashrc' to load the new environment
 
 ## spin up a compute engine
 https://cloud.google.com/compute/docs/instances
+
+
+## Terraform
