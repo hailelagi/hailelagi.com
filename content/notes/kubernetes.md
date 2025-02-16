@@ -5,7 +5,7 @@ draft: true
 ---
 
 k8s manages and orchestrates clusters of containerised applications, 
-by abstracting over pools of computing resources cpu, network, memory & disk. and abstracting deploying to a public cloud(s).
+by abstracting over pools of computing resources cpu, network, memory & disk and abstracting deploying to a public cloud(s).
 via declarative yaml, json (but also [imperative apis](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/imperative-command/))
 
 ```sh
@@ -46,7 +46,8 @@ kind
 k3d cluster create <name_cluster> <flags> <image>
 ```
 
-provisioning and deployment packaging:
+tools to observe of performance, behaviour and health of software systems: metrics, logs & traces.
+tools to create/ provisioning and deployment packaging:
 ```sh
 helm
 terraform
@@ -106,6 +107,17 @@ services: RESTful Object - stable IP, DNS and port coupled & load-balances(endpo
 - internal dns lookup  (ClusterIP - internal DNS [switched fabric](https://en.wikipedia.org/wiki/Switched_fabric))
 - query endpoint slices `kubectl get endpointslices`
 externally via `NodePort` + `LoadBalancer`
+- (NodePorts only work on high port numbers (30000-32767) and require knowledge of node names or IPs)
+- cloud lb <-> `LoadBalancer`
+
+ingress/service meshes(istio, linkerd - layer 7): expose multiple clusterIP services <-> clould lb, routing rules etc
+lb service: 80 || 443 - host/path deploys ingress objects
+
+- controller (install/setup) - parse hostnames , resolve dns routes etc
+- object spec
+```
+kubectl get ing
+```
 
 data plane
 
