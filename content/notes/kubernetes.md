@@ -12,6 +12,10 @@ via declarative yaml, json (but also [imperative apis](https://kubernetes.io/doc
 desired <-> observed <-> reconciliation
 ```
 
+- achieve high-availability while running in **fault-prone environments**
+- to allow us to continuously release new versions with **zero downtime**
+- to handle **dynamic workloads** (e.g. request volumes)
+
 intuition/basic algorithm: https://en.wikipedia.org/wiki/Bin_packing_problem
 
 hypervisors: https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf
@@ -99,12 +103,9 @@ kubectl rollout (status | history) | pause | resume | rollback  deploy <deployme
 ```
 
 services: RESTful Object - stable IP, DNS and port coupled & load-balances(endpoint slice) to pods via labels + selectors.
-- dns lookup
-- query endpoint slices
-
-internal: (ClusterIP - internal DNS [switched fabric](https://en.wikipedia.org/wiki/Switched_fabric))
-external: NodePort + LB
-
+- internal dns lookup  (ClusterIP - internal DNS [switched fabric](https://en.wikipedia.org/wiki/Switched_fabric))
+- query endpoint slices `kubectl get endpointslices`
+externally via `NodePort` + `LoadBalancer`
 
 data plane
 

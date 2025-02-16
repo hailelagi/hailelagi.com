@@ -78,14 +78,15 @@ Files and directories are really inodes which can map `hello.txt` in `user/hello
 # assume the sector size is 512bytes and a block 4KiB
 getconf PAGESIZE
 
-## you can see an inode's inumber via:
+# you can see an inode's inumber via:
 ls -i hello.txt
 
+# some rudimentary math to figure out block positions
 block = (inumber * sizeof(inode_t)) / blockSize;
 sector = ((block * blockSize) + inodeStartAddr) / sectorSize;
 ```
 
-To make this concrete, with some help from `xv6-riscv`, when the filesystem reads from disk given an `inumber`:
+To make this concrete, a small function with some help from `xv6-riscv`, when the filesystem reads from disk given an `inumber`:
 ```c
 void
 rinode(uint inum, struct dinode *ip)
@@ -146,20 +147,15 @@ namex(char *path, int nameiparent, char *name)
 }
 ```
 
-This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence conceptually a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting a choice between flexibility vs a space compact representation.
+This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables, nevermind transactions. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting an important design choice between flexibility vs a space compact representation.
 
 ## filesystems are composable!
 
-Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example when I first mounted my fuse filesystem, I hadn't implemented directory path traversal, the link to it's parent filesystem was broken:
+Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example when I first mounted an early version of this fuse filesystem, I hadn't implemented directory path traversal, the link to it's parent filesystem was broken:
 ```bash
 haile@ubuntu:/Users/haile/documents/github$ cd flubber
 -bash: cd: flubber: Transport endpoint is not connected
 ```
-
-// todo fix this
-A filesystem is software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount` it - producing a visible interface to interact with it via -- yet another filesystem?
-
-// todo better explain mounts and binds
 
 ```bash
 haile@ubuntu:/Users/haile$ mount | grep flubber
@@ -167,7 +163,7 @@ rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,us
 rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
 ```
 
-As it turns out this is a somewhat reasonable thing to do and is known as a recursive mount or here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of a loopback filesystem which implements a recursive mount using an fs layer below it as storage:
+A filesystem is by and large just software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount`, but not all filesystems do the same things. An interesting highlight is a recursive mount, here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of a loopback filesystem which implements a recursive mounting using the filesystem below it _transparently_ as storage:
 
 ```go
 func main() {
@@ -185,21 +181,21 @@ func main() {
 }
 ```
 
-At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by CoW filesystems to cache or recreate filesystem objects, by interacting with the FUSE kernel api, you can mount anything you'd like right in userspace! -- more important than _how_ is _why._
+At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by `copy-on-write` filesystems to cache, decouple and recreate snapshots of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
 
 ## why fuse?
-Hopefully it makes sense that file system heirarchies can be built as an interface over whatever you like -- with FUSE or `ublk` it's right in userspace, no need to muck about the kernel, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
+Hopefully it makes sense that file system heirarchies can be built as an interface over whatever you like -- with FUSE or `ublk` it's right in userspace, no need to muck about inside a kernel - that's a scary place, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
 
 {{% callout %}}
-aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
-but how about the flock, fcntl and ioctl family? How would those work across a network boundary? what syscalls
-do applications need?
+A brief aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
+but how about the flock, fcntl and the ioctl family? How would locking and transactional semantics work across a network boundary that can fail?
+what consistency guarantees?
 {{% /callout %}}
 
 
 ## interacting with the fuse protocol
 
-There's an abstraction layer that wasn't mentioned in the first diagram - which sits just below the application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol somewhat similar to a client-server model:
+There's an abstraction layer that wasn't mentioned in the first diagram - which sits just below this filesystem application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol somewhat similar to a client-server model:
 
 ```
 +++++++        +++++++++++         ++++++++++++
