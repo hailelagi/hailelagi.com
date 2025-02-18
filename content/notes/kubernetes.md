@@ -88,6 +88,7 @@ kubectl exec -it <pod> -- sh #--container=<c>
 ```
 
 namespaces: quotas + policies to sub-clusters of pods, services & deployments.
+(kube-system(dns, metrics) - control plane, kube-public, kube-node-lease(heartbeat))
 ```sh
 kubectl api-resources
 kubectl get svc --namespace kube-system
@@ -109,12 +110,18 @@ services: RESTful Object - stable IP, DNS and port coupled & load-balances(endpo
 externally via `NodePort` + `LoadBalancer`
 - (NodePorts only work on high port numbers (30000-32767) and require knowledge of node names or IPs)
 - cloud lb <-> `LoadBalancer`
+(layer 4 via cloud controller manager <-> Service (k8s) - need layer 7(app) below to multiplex routes)
 
-ingress/service meshes(istio, linkerd - layer 7): expose multiple clusterIP services <-> clould lb, routing rules etc
-lb service: 80 || 443 - host/path deploys ingress objects
+options:
+- https://gateway-api.sigs.k8s.io/#what-is-the-gateway-api
+- ingress: expose multiple clusterIP services <-> clould lb, routing rules etc
+- service meshes(istio, linkerd - layer 7): expose multiple clusterIP services <-> clould lb, routing rules etc
+- lb service: 80 || 443 - host/path deploys ingress objects
 
+ingress:
 - controller (install/setup) - parse hostnames , resolve dns routes etc
 - object spec
+
 ```
 kubectl get ing
 ```
