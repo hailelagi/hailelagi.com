@@ -7,17 +7,19 @@ draft: true
 
 {{< toc >}}
 
-The modern computing/data infrastructure is [vast and interesting](https://landscape.cncf.io/). What happens when you read or write some data persistently?
+The modern open source computing/data infrastructure is [vast](https://landscape.cncf.io/) and [interesting](https://projects.apache.org/projects.html). What happens when you read or write some data persistently?
 
-What _really_ lurks in the world of disk IO? what is at the core? how do abstractions like [mountpoint-s3](https://github.com/awslabs/mountpoint-s3), [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) or [ceph-fuse](https://docs.ceph.com/en/reef/man/8/ceph-fuse/) come to be filesystems?
+What _really_ lurks in the world of disk IO? what does storage mean in the cloud? how do filesystems like [mountpoint-s3](https://github.com/awslabs/mountpoint-s3), [google's cloud-storage fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview) or [ceph-fuse](https://docs.ceph.com/en/reef/man/8/ceph-fuse/) come to be?
 
-Why a filesystem? It seems like **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike, say **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are some of the _key ideas and design tradeoffs?_ what are the _workloads?_ Like all abstractions we begin not by looking at the implementation we look at the _interfaces_.
+Filesystems seem like such **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike: **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are some of the _key ideas and design tradeoffs?_ what are the _workloads?_
 
-A quick glance at [flubber a FUSE fs on object storage](https://github.com/hailelagi/flubber):
+To explore these questions I made [a filesystem over object storage](https://github.com/hailelagi/flubber):
 <script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
 
-## physical layer
-At the bottom, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be an HDD, SSD, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
+To understand any abstraction and its composition we begin not by looking at the implementation we look at the _interfaces_ and _primitives_.
+
+## storage
+At the bottom, [somewhere](https://cloud.google.com/docs/geography-and-regions), in the long lost, cold, and distant datacenter, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be a Hard Disk Drive, Solid State Drive, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
 
 ![simplified sketch of file system layering](/sketch_fs.svg)
 
@@ -46,7 +48,7 @@ That's a very generic definition, that doesn't say much.
 
 Filesystems are an incredibly versatile abstraction, applying to networked/distributed systems[^4] [^5], [process management](https://man7.org/linux/man-pages/man7/cgroups.7.html), [memory management](https://docs.kernel.org/filesystems/tmpfs.html) and what one would normally assume it's for -- persistent storage.
 
-A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data on disk via metadata and exposing the abstraction of **files** and **directories.** This system needs to be laid out on disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation of this metadata could be:
+A simple (and useful) interpretation of a filesystem is an interface/sub-system that allows the management of blocks of data over some underlying storage via metadata and exposing the abstraction of **files** and **directories.** Let's say this storage medium is to be laid out on a hard disk, which is not byte-addressable and therefore requires a bit of thinking about layout, a first approximation of this metadata could be:
 
 ```
 ++++++++++++++++++++++++++++++++++++++
@@ -147,11 +149,11 @@ namex(char *path, int nameiparent, char *name)
 }
 ```
 
-This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables, nevermind transactions. As a play on our re-occurent theme, to represent more space than a page size **we introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting an important design choice between flexibility vs a space compact representation.
+This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables, nevermind transactions. As a play on our re-occurent theme, to represent more space than a page size we **introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting an important design choice between flexibility vs a space compact representation.
 
 ## filesystems are composable!
 
-Filesystems are an interface and one goal of a good interface is _composability_, no matter how many times I heard it or read about it didn't quite make sense. For example when I first mounted an early version of this fuse filesystem, I hadn't implemented directory path traversal, the link to it's parent filesystem was broken:
+Filesystems are an **interface** and one goal of a good interface is _composability_ -- this is a point worth appreciating _carefully_. For example when I first mounted an early version of this fuse filesystem, I hadn't implemented directory path traversal, the "link" to ext4 was broken and it took awhile to understand the connection:
 ```bash
 haile@ubuntu:/Users/haile/documents/github$ cd flubber
 -bash: cd: flubber: Transport endpoint is not connected
@@ -163,7 +165,7 @@ rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,us
 rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
 ```
 
-A filesystem is by and large just software. It compiles down to a binary known as an image, to use this _image_ we need to execute it through `mkfs` a fancy way of registering it with the operating system and `mount`, but not all filesystems do the same things. An interesting highlight is a recursive mount, here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of a loopback filesystem which implements a recursive mounting using the filesystem below it _transparently_ as storage:
+A classic filesystem is by and large just software. It compiles down to a custom binary data format known as an image which is **not executable** (as opposed to an ELF binary), to use this _image_ we need to write it to the underlying disk, through `mkfs` in some _format_ - and finally `mount` it - a way of registering metadata on disk with the operating system for reading and writing, but not all filesystems do the same things. An interesting concept is a recursive mount, here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of registering a`loopback` FUSE filesystem which implements a recursive mounting using the filesystem below it _transparently_ as storage -- typically used for testing:
 
 ```go
 func main() {
@@ -181,21 +183,21 @@ func main() {
 }
 ```
 
-At every point during the boot <> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point**, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by `copy-on-write` filesystems to cache, decouple and recreate snapshots of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
+At every point during the boot <-> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point** or interact with each other using the filesystem interface, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by `copy-on-write` filesystems to cache, decouple and recreate snapshots of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
 
 ## why fuse?
 Hopefully it makes sense that file system heirarchies can be built as an interface over whatever you like -- with FUSE or `ublk` it's right in userspace, no need to muck about inside a kernel - that's a scary place, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
 
 {{% callout %}}
-A brief aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
+An aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
 but how about the flock, fcntl and the ioctl family? How would locking and transactional semantics work across a network boundary that can fail?
-what consistency guarantees?
+what consistency guarantees do we present?
 {{% /callout %}}
 
 
 ## interacting with the fuse protocol
 
-There's an abstraction layer that wasn't mentioned in the first diagram - which sits just below this filesystem application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol somewhat similar to a client-server model:
+There's an abstraction layer that wasn't visualised in the first diagram - which sits just below this filesystem "server" application in linux known as the [linux virtual filesystem](https://docs.kernel.org/filesystems/vfs.html) which allows the dispatching of messages in the FUSE protocol somewhat similar to a client-server model:
 
 ```
 +++++++        +++++++++++         ++++++++++++
@@ -250,6 +252,10 @@ Security and access control in whatever form is an important consideration in fi
 
 ## transactions and the WAL
 todo: a simple commit protocol + wal over object storage.
+
+## measuring performance
+
+userspace logging vs kernel logging half blind, insert prom + grafana metric dash
 
 ## references & notes
 
