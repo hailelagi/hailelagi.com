@@ -54,17 +54,17 @@ terraform
 ```
 
 control plane:
-api server
-cloud-controller-manager
-controller manager
-controllers(stateless or stateful) - daemonset, statefulset, cronjobs, sidecars etc
-cluster store/etcd
-scheduler
 
-services/ingress
-worker nodes run workloads - (vm) - pods, attached kubelet, kube-proxy
+- api server
+- cloud-controller-manager
+- controller manager
+- controllers(stateless or stateful-(stateful systems are hard!)) - daemonset, statefulset, cronjobs, sidecars etc
+- cluster store/etcd
+- scheduler
 
-controller - podtemplate
+and worker nodes run workloads - (vm) - pods, attached kubelet, kube-proxy
+
+controller - (podtemplate, deployment)
 pods:
 - labels and annotations
 - restart policies
@@ -89,6 +89,7 @@ kubectl exec -it <pod> -- sh #--container=<c>
 
 namespaces: quotas + policies to sub-clusters of pods, services & deployments.
 (kube-system(dns, metrics) - control plane, kube-public, kube-node-lease(heartbeat))
+
 ```sh
 kubectl api-resources
 kubectl get svc --namespace kube-system
@@ -104,7 +105,7 @@ kubectl scale deploy <deployment> --replicas 5
 kubectl rollout (status | history) | pause | resume | rollback  deploy <deployment>
 ```
 
-services: RESTful Object - stable IP, DNS and port coupled & load-balances(endpoint slice) to pods via labels + selectors.
+services: RESTful object - stable IP, DNS and port coupled & load-balances(endpoint slice) to pods via labels + selectors.
 - internal dns lookup  (ClusterIP - internal DNS [switched fabric](https://en.wikipedia.org/wiki/Switched_fabric))
 - query endpoint slices `kubectl get endpointslices`
 externally via `NodePort` + `LoadBalancer`

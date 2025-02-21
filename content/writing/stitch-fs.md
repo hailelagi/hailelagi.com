@@ -13,19 +13,19 @@ What _really_ lurks in the world of disk IO? what does storage mean in the cloud
 
 Filesystems seem like such **a fundamental abstraction**, an idea so pervasive to any computer, it's important to appreciate it's an _invention_. What do sophisticated filesystems old and new alike: **zfs**[^1], **xfs**[^2], **ffs**[^3] and [ext4](https://www.kernel.org/doc/html/v4.20/filesystems/ext4/index.html) really do? why are there so many? what are some of the _key ideas and design tradeoffs?_ what are the _workloads?_
 
-To explore these questions I made [a filesystem over object storage](https://github.com/hailelagi/flubber):
+To explore some these questions I made [a filesystem over object storage](https://github.com/hailelagi/flubber):
 <script async id="asciicast-569727" src="https://asciinema.org/a/569727.js"></script>
 
 To understand any abstraction and its composition we begin not by looking at the implementation we look at the _interfaces_ and _primitives_.
 
 ## storage
-At the bottom, [somewhere](https://cloud.google.com/docs/geography-and-regions), in the long lost, cold, and distant datacenter, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be a Hard Disk Drive, Solid State Drive, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_.
+At the bottom, [somewhere](https://cloud.google.com/docs/geography-and-regions), in the long lost, cold, and distant datacenter, there must exist some _physical media_ which will hold data we conveniently call a 'block'. It could be a hard disk drive, solid state drive, [tape](https://aws.amazon.com/storagegateway/vtl/) or something else, [what interface does this physical media present?](https://pages.cs.wisc.edu/~remzi/OSTEP/file-devices.pdf) It's exposed over many _protocols_:
 
 ![simplified sketch of file system layering](/sketch_fs.svg)
 
 <p class="subtext" style="font-size: 0.8em; color: #666;"> An important theme here is the _compositional_ almost recursive nature of storage interfaces, this comes up again and again and again. :) </p>
 
-A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based solid state drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) (or if you're lucky EC2's generic NVMe interface or a protocol like NVMe express) and then many generic block interfaces, there are quite a few layers to experiment with, what we need is a block device abstraction, but which one?
+A hard disk drive exposes a "flat" address space to read or write, the smallest atomic unit is a sector (e.g 512-byte block) and flash based solid state drives expose a unit called a "page" to which we can issue read or write "commands" [†1] above which are the intricacies of [_drivers_](https://lwn.net/Kernel/LDD3/) or if you're lucky [EC2's generic NVMe interface](https://docs.aws.amazon.com/ebs/latest/userguide/nvme-ebs-volumes.html) or a protocol like [NVMe express](https://nvmexpress.org/) :) and then the many layers of generic block interfaces, which to experiment with? what we need is a block device abstraction, but which one?
 
 1. [the linux kernel block interface](https://linux-kernel-labs.github.io/refs/heads/master/labs/block_device_drivers.html#overview)
 2. [ublk](https://spdk.io/doc/ublk.html)
@@ -88,26 +88,10 @@ block = (inumber * sizeof(inode_t)) / blockSize;
 sector = ((block * blockSize) + inodeStartAddr) / sectorSize;
 ```
 
-To make this concrete, a small function with some help from `xv6-riscv`, when the filesystem reads from disk given an `inumber`:
-```c
-void
-rinode(uint inum, struct dinode *ip)
-{
-  char buf[BSIZE];
-  uint bn;
-  struct dinode *dip;
-
-  bn = IBLOCK(inum, sb);
-  rsect(bn, buf);
-  dip = ((struct dinode*)buf) + (inum % IPB);
-  *ip = *dip;
-}
-```
-
 This glosses over considering how `ls -i` _finds_ the inumber from **disk** in the first place: and presumes that our files
 fit in a 4KiB chunk -- examining `cutecat.gif` on any computer eludes to more going on.
 
-In a nutshell, answering the first question requires traversing from the _root_ **on every single access to resolve hello.txt -> inum 2**:
+In a nutshell, answering the first question requires traversing from the _root_ **on every single access to resolve hello.txt -> inum 2**, to make this concrete, a small function with some help from `xv6-riscv`:
 ```c
 // Look up and return the inode for a path name.
 // If parent != 0, return the inode for the parent and copy the final
@@ -149,11 +133,11 @@ namex(char *path, int nameiparent, char *name)
 }
 ```
 
-This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently and their interaction with page tables, nevermind transactions. As a play on our re-occurent theme, to represent more space than a page size we **introduce more indirection** in the form of _pointers_, these pointers can come in the form of _extents_ which are in essence a pointer + block len, or multi-level indexes which are "stringed together" pointers to a page with pointers highlighting an important design choice between flexibility vs a space compact representation.
+This _is_ pretty expensive and there's more to be said about designing access methods and traversing inodes efficiently/caching and their interaction with page tables, nevermind transactional consistency -- worries for later, at least now we have some mental model of a read/write path to a page on disk. How then could a `2MiB` `cutecat.gif` file be laid out? As a play on our re-occurent theme, to represent more space than a page size we _introduce more indirection_ in the form of _pointers_, these pointers can come in the form of **extents** which are in essence a pointer + block len, or **multi-level indexes** which are "stringed together" pointers to a page with pointers highlighting an important design choice between flexibility vs a space compact representation.
 
 ## filesystems are composable!
 
-Filesystems are an **interface** and one goal of a good interface is _composability_ -- this is a point worth appreciating _carefully_. For example when I first mounted an early version of this fuse filesystem, I hadn't implemented directory path traversal, the "link" to ext4 was broken and it took awhile to understand the connection:
+Filesystems are an **interface** and one goal of a good interface is _composability_ -- this is a point worth appreciating _carefully_. For example when I first mounted an early version of this filesystem, I hadn't implemented directory path traversal, the "link" to ext4 was broken and it took awhile to understand the connection:
 ```bash
 haile@ubuntu:/Users/haile/documents/github$ cd flubber
 -bash: cd: flubber: Transport endpoint is not connected
@@ -165,7 +149,7 @@ rawBridge on /temp/flubber-fuse type fuse.rawBridge (rw,nosuid,nodev,relatime,us
 rawBridge on /Users/haile/documents/github/flubber type fuse.rawBridge (rw,nosuid,nodev,relatime,user_id=501,group_id=501,max_read=131072)
 ```
 
-A classic filesystem is by and large just software. It compiles down to a custom binary data format known as an image which is **not executable** (as opposed to an ELF binary), to use this _image_ we need to write it to the underlying disk, through `mkfs` in some _format_ - and finally `mount` it - a way of registering metadata on disk with the operating system for reading and writing, but not all filesystems do the same things. An interesting concept is a recursive mount, here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of registering a`loopback` FUSE filesystem which implements a recursive mounting using the filesystem below it _transparently_ as storage -- typically used for testing:
+A classic filesystem is by and large just software. It compiles down to a custom binary data format known as an image which is **not executable** (as opposed to an ELF binary), to use this _image_ we need to write it to the underlying disk, through `mkfs` in some _format_ - and finally `mount` it - a way of registering metadata on disk with the operating system for reading and writing, but not all filesystems do the same things. An interesting concept is a recursive mount, here's an abridged example [from the go-fuse documentation](https://github.com/hanwen/go-fuse/blob/master/example/loopback/main.go) of registering a`loopback` filesystem which provides a shim using the filesystem below it _transparently_ as storage over the FUSE protocol:
 
 ```go
 func main() {
@@ -183,10 +167,10 @@ func main() {
 }
 ```
 
-At every point during the boot <-> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point** or interact with each other using the filesystem interface, as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by `copy-on-write` filesystems to cache, decouple and recreate snapshots of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
+At every point during the boot <-> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point** or interact with each other using a well formed generic filesystem interface(the virtual filesystem interface -- an idea [going back to oracle!](https://docs.oracle.com/cd/E36784_01/html/E39021/fsoverview-51.html)), as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by `copy-on-write` filesystems to cache, decouple and recreate snapshots of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
 
 ## why fuse?
-Hopefully it makes sense that file system heirarchies can be built as an interface over whatever you like -- with FUSE or `ublk` it's right in userspace, no need to muck about inside a kernel - that's a scary place, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics: it's cheap, and POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
+Hopefully it makes sense that file system heirarchies can be built as an interface over whatever your preferred medium -- with FUSE or `ublk` it's right in userspace, no need to muck about inside a kernel, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination and time -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics, why? it's cheap, highly available + fault tolerant with practically zero overhead operational cost for such reliability moreover POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
 
 {{% callout %}}
 An aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
@@ -245,17 +229,17 @@ A semantic guarantee with a heavy burden that filesystems and tangentially datab
 
 Perhaps a more disturbing thought, why a filesystem if you have a database?[^10] [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly interesting and perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^11] questions for another time :)
 
-
-{{% callout %}}
-Security and access control in whatever form is an important consideration in filesystem design, especially in a distributed context where the network provides a wider surface area of attack than the process boundary. User groups and access control lists are often something worth considering when implementing a filesystem abstraction.
-{{% /callout %}}
-
 ## transactions and the WAL
 todo: a simple commit protocol + wal over object storage.
 
 ## measuring performance
 
 userspace logging vs kernel logging half blind, insert prom + grafana metric dash
+
+
+{{% callout %}}
+Security and access control in whatever form is an important consideration in filesystem design, especially in a distributed context where the network provides a wider surface area of attack than the process boundary. User groups and access control lists are often something worth considering when implementing a filesystem abstraction.
+{{% /callout %}}
 
 ## references & notes
 
