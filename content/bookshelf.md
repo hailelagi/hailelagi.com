@@ -1,8 +1,13 @@
 
 <!---
-I'm currently reading:
+In 2025 I would like to read
 - The Kubernetes Book - Poulton N
 - Networking & Kubernetes - A Layered Approach
+- Rust for Rustaceans
+- [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
+- [crafting interpreters](https://craftinginterpreters.com/)
+-  https://www.interdb.jp/pg/
+- https://edu.postgrespro.com/postgresql_internals-14_en.pdf
 
 <!--
 Previously Explored:
@@ -22,18 +27,6 @@ Previously Explored:
 --->
 
 <!--
-reread, if relevant(low priority):
-- Rust for Rustaceans
-- - [A Tour of C++](https://www.amazon.co.uk/Tour-C-Depth/dp/0321958314)
--->
-
-<!--
-extremely low priority abandon:
-- [Learn you some erlang (for great good!)](https://learnyousomeerlang.com/content)
-- [Erlang in Anger](https://www.erlang-in-anger.com/)
--->
-
-<!--
 - The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
 Interesting/on my radar but who knows if I'll ever get around to it:
 - [High Performance Browser Networking](https://hpbn.co/)
@@ -41,9 +34,7 @@ Interesting/on my radar but who knows if I'll ever get around to it:
 - [Nand2Tetris](https://www.nand2tetris.org/)
 - [How to Design Programs](https://htdp.org/)
 - Distributed Systems - Maarten & Andrew
-- [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
 - design patterns elements of reusable object-oriented software
-- [crafting interpreters](https://craftinginterpreters.com/)
 -->
 
 <!--
