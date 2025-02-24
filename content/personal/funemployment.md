@@ -1,7 +1,7 @@
 ---
 title: "Funemployment"
 date: 2023-12-08T12:46:58+01:00
-draft: false
+draft: true
 ---
 
 ![winnie the pooh around a table with friends](/winnie.jpg)

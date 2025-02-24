@@ -123,9 +123,16 @@ ingress:
 - controller (install/setup) - parse hostnames , resolve dns routes etc
 - object spec
 
+ingress class mix and match ingress controllers (nginx, istio etc) on a cluster
+
 ```
 kubectl get ing
+kubectl get ingressclass
 ```
+
+service discovery in a k8s cluster:
+- internal DNS (coredns)
+- global Service kube-dns
 
 data plane
 

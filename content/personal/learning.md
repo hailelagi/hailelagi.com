@@ -1,7 +1,7 @@
 ---
 title: "Self Directed Learning"
 date: 2023-06-01T11:37:27+01:00
-draft: false
+draft: true
 ---
 
 An [old wise man](https://en.wikipedia.org/wiki/Aristotle) once said:

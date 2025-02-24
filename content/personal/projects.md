@@ -1,7 +1,7 @@
 ---
 title: "Picking Projects"
 date: 2023-06-23T14:18:50+01:00
-draft: false
+draft: true
 ---
 
 ![Wait but why](https://149909199.v2.pressablecdn.com/wp-content/uploads/2018/04/venn-with-big-loop-small.png)

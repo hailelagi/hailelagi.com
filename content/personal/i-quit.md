@@ -1,7 +1,7 @@
 ---
 title: 'I Quit.'
 date: Mon, 02 Sep 2019 08:16:44 +0000
-draft: false
+draft: true
 tags: ['archive', 'archive-old']
 ---
 

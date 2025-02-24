@@ -1,7 +1,7 @@
 ---
 title: "Advice"
 date: 2024-06-30T14:26:32+01:00
-draft: false
+draft: true
 ---
 
 Curated, self reminder advice from people much much smarter than me:

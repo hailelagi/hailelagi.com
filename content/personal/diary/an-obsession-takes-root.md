@@ -1,7 +1,7 @@
 ---
 title: 'An obsession takes root'
 date: Sun, 28 Jul 2019 17:33:17 +0000
-draft: false
+draft: true
 tags: ['Uncategorized']
 original: "https://atimetravellingghost.wordpress.com/"
 ---

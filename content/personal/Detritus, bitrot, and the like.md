@@ -1,7 +1,7 @@
 ---
 title: "Detritus, Bitrot, and the Like"
 date: 2021-08-18T10:28:54+01:00
-draft: false
+draft: true
 tags: ['archive']
 ---
 

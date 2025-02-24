@@ -1,7 +1,7 @@
 ---
 title: "Pace Yourself"
 date: 2024-04-25T13:14:10+01:00
-draft: false
+draft: true
 ---
 
 I've come to the rational conclusion it is near-impossible to get good enough at database development to be 

@@ -167,7 +167,7 @@ func main() {
 }
 ```
 
-At every point during the boot <-> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point** or interact with each other using a well formed generic filesystem interface(the virtual filesystem interface -- an idea [going back to oracle!](https://docs.oracle.com/cd/E36784_01/html/E39021/fsoverview-51.html)), as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited by `copy-on-write` filesystems to cache, decouple and recreate snapshots of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
+At every point during the boot <-> runtime lifecycle of an operating system(linux at least) there probably exist filesystems which mount themselves on themselves at some **mount point** or interact with each other using a well formed generic filesystem interface(the virtual filesystem interface -- an idea [going back to oracle!](https://docs.oracle.com/cd/E36784_01/html/E39021/fsoverview-51.html)), as par for course this implies a [root fs](https://systemd.io/MOUNT_REQUIREMENTS/). This compositional nature is often exploited further by `copy-on-write` filesystems to [cache](https://docs.docker.com/get-started/docker-concepts/building-images/using-the-build-cache/), decouple and [recreate snapshots](https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/) of filesystem objects, by interacting with the FUSE kernel api, we can mount anything right in userspace! -- more important than _how_ is _why._
 
 ## why fuse?
 Hopefully it makes sense that file system heirarchies can be built as an interface over whatever your preferred medium -- with FUSE or `ublk` it's right in userspace, no need to muck about inside a kernel, google drive, your [calendar](https://github.com/lvkv/whenfs), a zip archive, [icmp packets](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)... it goes on, you are only bounded by imagination and time -- but should you put it in production?[^7] I don't know, but I know it's possible to do so over object storage and is a natural fit[^6] for certain workloads such as machine learning and analytics, why? it's cheap, highly available + fault tolerant with practically zero overhead operational cost for such reliability moreover POSIX access methods are well understood by existing applications, however [beware of latency and compatibility.](https://materializedview.io/p/the-quest-for-a-distributed-posix-fs)
@@ -213,10 +213,10 @@ method in a form of the buffer containing a file descriptor. FUSE splices WRITE 
 a single page of data. Similar logic applies to replies to
 READ requests with more than two pages of data
 
-## write-back caching
+## concurrency & write-back caching
 The basic write behavior of FUSE is synchronous and only 4KB of data is sent to the user daemon for writing.
 
-## inodes, access methods, concurrency & garbage collection
+## inodes, access methods & garbage collection
 The command `ls -i hello.txt` helped us find the inode for our file, guided the discovery of file/directory name translation to an inode,
 what more can it tell us? A key decision in the design and performance of filesystems is the inode representation, inodes can most commonly be represented by a bitmap, linked-list or a b-tree
 
@@ -227,7 +227,8 @@ todo RUM ref
 ## file systems come with great responsibility
 A semantic guarantee with a heavy burden that filesystems and tangentially databases make is to say they'll take your data to disk and won't lose it along the way via some kind of mechanisms to force writes to disk, in the face of the real world which can and does _lose_ data[^8] and sometimes lies about it, alas our software and hardware are trying their best and define models like "crash stop" and "fail stop", this gets doubly hard for large data centers and distributed systems[^9] where data loss isn't just loss, it's a cascade failure mode of corruption and headaches. There are of course many things to be done to guard against the troubling world of physical disks, such as magic numbers, checksums and RAID which transparently map logical IO to physical IO for fault-tolerance in a fail-stop model via your preffered mapping (stripping, mirroring & parity.) and of course the [clever rabbit hole of bit flipping repair algorithms](https://transactional.blog/blog/2024-erasure-coding).
 
-Perhaps a more disturbing thought, why a filesystem if you have a database?[^10] [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly interesting and perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^11] questions for another time :)
+Perhaps a more disturbing thought, why a filesystem if you have a database?[^10] [SQLite](https://www.sqlite.org/fasterthanfs.html) seems to agree, as does [Oracle](https://docs.oracle.com/cd/B16351_01/doc/server.102/b14196/asm001.htm#), it's certainly interesting and perhaps it's worth the inherited complexity? why stop at the filesystem? or disk manager? perhaps let's do away with the operating system altogether?[^11] 
+
 
 ## transactions and the WAL
 todo: a simple commit protocol + wal over object storage.
