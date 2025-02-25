@@ -47,3 +47,4 @@ Page server, Log server etc
 [^9]: [Is Scalable OLTP in the Cloud a Solved Problem?](https://www.cidrdb.org/cidr2023/papers/p50-ziegler.pdf)
 [^10]: [Disaggregated Database Systems](https://www.cs.purdue.edu/homes/csjgwang/pubs/SIGMOD23_Tutorial_DisaggregatedDB.pdf)
 [^11]: [Immutability Changes Everything](https://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper16.pdf?)
+[^12]: [Dissecting, Designing, and Optimizing LSM-based Data Stores](https://cs-people.bu.edu/mathan/publications/sigmod22-sarkar-tutorial.pdf)
