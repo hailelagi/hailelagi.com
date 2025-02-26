@@ -1,0 +1,217 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="A repository for my thoughts"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=icon type=image/x-icon href=/favicon.ico><link rel=stylesheet href=/css/style.min.css><meta name=title property=”og:title” content="Nothing | Haile (ሐይሌ)"><meta name=twitter:card content="summary"><meta name=twitter:title content="Nothing | Haile (ሐይሌ)"><meta name=description content><meta property="og:description" content><meta name=twitter:description content><meta name=twitter:creator content="@hailelagi"><title>Nothing</title></head><body><header id=banner><h2><a href=https://www.hailelagi.com/>Haile (ሐይሌ)</a></h2><nav><ul><li><a href=https://www.github.com/hailelagi title=github>github</a></li><li><a href=/notes title=notes>notes</a></li></ul></nav></header><main id=content><article><header id=post-header><h1>Nothing</h1><time>January 21, 2025</time><meta name=twitter:card content="summary">
+<meta property="og:url" content="https://www.hailelagi.com/"><meta property="og:image" content="/favicon-32x32.png"><meta itemprop=image content="/favicon-32x32.png"><meta name=twitter:image content="/favicon-32x32.png"><meta name=twitter:image:src content="/favicon-32x32.png"></header><p>Self reminder for each segment of crt-0:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=kt>int</span> <span class=nf>main</span><span class=p>(</span><span class=kt>void</span><span class=p>)</span> <span class=p>{}</span>
+</span></span></code></pre></div><pre tabindex=0><code>gcc -o nothing nothing.c -Wall -O
+</code></pre><pre tabindex=0><code>objdump -S nothing
+</code></pre><p>macos:</p><pre tabindex=0><code>nothing:        file format mach-o arm64
+
+Disassembly of section __TEXT,__text:
+
+0000000100003fa0 &lt;_main&gt;:
+100003fa0: 52800000     mov     w0, #0
+100003fa4: d65f03c0     ret
+</code></pre><p>linux:</p><pre tabindex=0><code>nothing:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+0000000000001000 &lt;_init&gt;:
+    1000:       f3 0f 1e fa             endbr64
+    1004:       48 83 ec 08             sub    $0x8,%rsp
+    1008:       48 8b 05 d9 2f 00 00    mov    0x2fd9(%rip),%rax        # 3fe8 &lt;__gmon_start__@Base&gt;
+    100f:       48 85 c0                test   %rax,%rax
+    1012:       74 02                   je     1016 &lt;_init+0x16&gt;
+    1014:       ff d0                   call   *%rax
+    1016:       48 83 c4 08             add    $0x8,%rsp
+    101a:       c3                      ret
+
+Disassembly of section .plt:
+
+0000000000001020 &lt;.plt&gt;:
+    1020:       ff 35 a2 2f 00 00       push   0x2fa2(%rip)        # 3fc8 &lt;_GLOBAL_OFFSET_TABLE_+0x8&gt;
+    1026:       ff 25 a4 2f 00 00       jmp    *0x2fa4(%rip)        # 3fd0 &lt;_GLOBAL_OFFSET_TABLE_+0x10&gt;
+    102c:       0f 1f 40 00             nopl   0x0(%rax)
+
+Disassembly of section .plt.got:
+
+0000000000001030 &lt;__cxa_finalize@plt&gt;:
+    1030:       f3 0f 1e fa             endbr64
+    1034:       ff 25 be 2f 00 00       jmp    *0x2fbe(%rip)        # 3ff8 &lt;__cxa_finalize@GLIBC_2.2.5&gt;
+    103a:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
+
+Disassembly of section .text:
+
+0000000000001040 &lt;_start&gt;:
+    1040:       f3 0f 1e fa             endbr64
+    1044:       31 ed                   xor    %ebp,%ebp
+    1046:       49 89 d1                mov    %rdx,%r9
+    1049:       5e                      pop    %rsi
+    104a:       48 89 e2                mov    %rsp,%rdx
+    104d:       48 83 e4 f0             and    $0xfffffffffffffff0,%rsp
+    1051:       50                      push   %rax
+    1052:       54                      push   %rsp
+    1053:       45 31 c0                xor    %r8d,%r8d
+    1056:       31 c9                   xor    %ecx,%ecx
+    1058:       48 8d 3d ca 00 00 00    lea    0xca(%rip),%rdi        # 1129 &lt;main&gt;
+    105f:       ff 15 73 2f 00 00       call   *0x2f73(%rip)        # 3fd8 &lt;__libc_start_main@GLIBC_2.34&gt;
+    1065:       f4                      hlt
+    1066:       66 2e 0f 1f 84 00 00    cs nopw 0x0(%rax,%rax,1)
+    106d:       00 00 00
+
+0000000000001070 &lt;deregister_tm_clones&gt;:
+    1070:       48 8d 3d 99 2f 00 00    lea    0x2f99(%rip),%rdi        # 4010 &lt;__TMC_END__&gt;
+    1077:       48 8d 05 92 2f 00 00    lea    0x2f92(%rip),%rax        # 4010 &lt;__TMC_END__&gt;
+    107e:       48 39 f8                cmp    %rdi,%rax
+    1081:       74 15                   je     1098 &lt;deregister_tm_clones+0x28&gt;
+    1083:       48 8b 05 56 2f 00 00    mov    0x2f56(%rip),%rax        # 3fe0 &lt;_ITM_deregisterTMCloneTable@Base&gt;
+    108a:       48 85 c0                test   %rax,%rax
+    108d:       74 09                   je     1098 &lt;deregister_tm_clones+0x28&gt;
+    108f:       ff e0                   jmp    *%rax
+    1091:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+    1098:       c3                      ret
+    1099:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+
+00000000000010a0 &lt;register_tm_clones&gt;:
+    10a0:       48 8d 3d 69 2f 00 00    lea    0x2f69(%rip),%rdi        # 4010 &lt;__TMC_END__&gt;
+    10a7:       48 8d 35 62 2f 00 00    lea    0x2f62(%rip),%rsi        # 4010 &lt;__TMC_END__&gt;
+    10ae:       48 29 fe                sub    %rdi,%rsi
+    10b1:       48 89 f0                mov    %rsi,%rax
+    10b4:       48 c1 ee 3f             shr    $0x3f,%rsi
+    10b8:       48 c1 f8 03             sar    $0x3,%rax
+    10bc:       48 01 c6                add    %rax,%rsi
+    10bf:       48 d1 fe                sar    $1,%rsi
+    10c2:       74 14                   je     10d8 &lt;register_tm_clones+0x38&gt;
+    10c4:       48 8b 05 25 2f 00 00    mov    0x2f25(%rip),%rax        # 3ff0 &lt;_ITM_registerTMCloneTable@Base&gt;
+    10cb:       48 85 c0                test   %rax,%rax
+    10ce:       74 08                   je     10d8 &lt;register_tm_clones+0x38&gt;
+    10d0:       ff e0                   jmp    *%rax
+    10d2:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
+    10d8:       c3                      ret
+    10d9:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+
+00000000000010e0 &lt;__do_global_dtors_aux&gt;:
+    10e0:       f3 0f 1e fa             endbr64
+    10e4:       80 3d 25 2f 00 00 00    cmpb   $0x0,0x2f25(%rip)        # 4010 &lt;__TMC_END__&gt;
+    10eb:       75 2b                   jne    1118 &lt;__do_global_dtors_aux+0x38&gt;
+    10ed:       55                      push   %rbp
+    10ee:       48 83 3d 02 2f 00 00    cmpq   $0x0,0x2f02(%rip)        # 3ff8 &lt;__cxa_finalize@GLIBC_2.2.5&gt;
+    10f5:       00
+    10f6:       48 89 e5                mov    %rsp,%rbp
+    10f9:       74 0c                   je     1107 &lt;__do_global_dtors_aux+0x27&gt;
+    10fb:       48 8b 3d 06 2f 00 00    mov    0x2f06(%rip),%rdi        # 4008 &lt;__dso_handle&gt;
+    1102:       e8 29 ff ff ff          call   1030 &lt;__cxa_finalize@plt&gt;
+    1107:       e8 64 ff ff ff          call   1070 &lt;deregister_tm_clones&gt;
+    110c:       c6 05 fd 2e 00 00 01    movb   $0x1,0x2efd(%rip)        # 4010 &lt;__TMC_END__&gt;
+    1113:       5d                      pop    %rbp
+    1114:       c3                      ret
+    1115:       0f 1f 00                nopl   (%rax)
+    1118:       c3                      ret
+    1119:       0f 1f 80 00 00 00 00    nopl   0x0(%rax)
+
+0000000000001120 &lt;frame_dummy&gt;:
+    1120:       f3 0f 1e fa             endbr64
+    1124:       e9 77 ff ff ff          jmp    10a0 &lt;register_tm_clones&gt;
+
+0000000000001129 &lt;main&gt;:
+    1129:       f3 0f 1e fa             endbr64
+    112d:       b8 00 00 00 00          mov    $0x0,%eax
+    1132:       c3                      ret
+
+Disassembly of section .fini:
+
+0000000000001134 &lt;_fini&gt;:
+    1134:       f3 0f 1e fa             endbr64
+    1138:       48 83 ec 08             sub    $0x8,%rsp
+    113c:       48 83 c4 08             add    $0x8,%rsp
+    1140:       c3                      ret
+</code></pre><p>rustc <code>library/std/src/rt.rs</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-rust data-lang=rust><span class=line><span class=cl><span class=k>fn</span> <span class=nf>handle_rt_panic</span><span class=o>&lt;</span><span class=n>T</span><span class=o>&gt;</span><span class=p>(</span><span class=n>e</span>: <span class=nb>Box</span><span class=o>&lt;</span><span class=k>dyn</span><span class=w> </span><span class=n>Any</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=nb>Send</span><span class=o>&gt;</span><span class=p>)</span><span class=w> </span>-&gt; <span class=nc>T</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>mem</span>::<span class=n>forget</span><span class=p>(</span><span class=n>e</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=fm>rtabort!</span><span class=p>(</span><span class=s>&#34;initialization or cleanup bug&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cp>#[cfg_attr(test, allow(dead_code))]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>unsafe</span><span class=w> </span><span class=k>fn</span> <span class=nf>init</span><span class=p>(</span><span class=n>argc</span>: <span class=kt>isize</span><span class=p>,</span><span class=w> </span><span class=n>argv</span>: <span class=o>*</span><span class=k>const</span><span class=w> </span><span class=o>*</span><span class=k>const</span><span class=w> </span><span class=kt>u8</span><span class=p>,</span><span class=w> </span><span class=n>sigpipe</span>: <span class=kt>u8</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=cp>#[cfg_attr(target_os = </span><span class=s>&#34;teeos&#34;</span><span class=cp>, allow(unused_unsafe))]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>unsafe</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>sys</span>::<span class=n>init</span><span class=p>(</span><span class=n>argc</span><span class=p>,</span><span class=w> </span><span class=n>argv</span><span class=p>,</span><span class=w> </span><span class=n>sigpipe</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Remember the main thread ID to give it the correct name.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// SAFETY: this is the only time and place where we call this function.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=k>unsafe</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>main_thread</span>::<span class=n>set</span><span class=p>(</span><span class=n>thread</span>::<span class=n>current_id</span><span class=p>())</span><span class=w> </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=sd>/// Clean up the thread-local runtime state. This *should* be run after all other
+</span></span></span><span class=line><span class=cl><span class=sd>/// code managed by the Rust runtime, but will not cause UB if that condition is
+</span></span></span><span class=line><span class=cl><span class=sd>/// not fulfilled. Also note that this function is not guaranteed to be run, but
+</span></span></span><span class=line><span class=cl><span class=sd>/// skipping it will cause leaks and therefore is to be avoided.
+</span></span></span><span class=line><span class=cl><span class=sd></span><span class=k>pub</span><span class=p>(</span><span class=k>crate</span><span class=p>)</span><span class=w> </span><span class=k>fn</span> <span class=nf>thread_cleanup</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// This function is run in situations where unwinding leads to an abort
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// (think `extern &#34;C&#34;` functions). Abort here instead so that we can
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// print a nice message.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>panic</span>::<span class=n>catch_unwind</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>crate</span>::<span class=n>thread</span>::<span class=n>drop_current</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>unwrap_or_else</span><span class=p>(</span><span class=n>handle_rt_panic</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// One-time runtime cleanup.
+</span></span></span><span class=line><span class=cl><span class=c1>// Runs after `main` or at program exit.
+</span></span></span><span class=line><span class=cl><span class=c1>// NOTE: this is not guaranteed to run, for example when the program aborts.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>pub</span><span class=p>(</span><span class=k>crate</span><span class=p>)</span><span class=w> </span><span class=k>fn</span> <span class=nf>cleanup</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>static</span><span class=w> </span><span class=no>CLEANUP</span>: <span class=nc>Once</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Once</span>::<span class=n>new</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=no>CLEANUP</span><span class=p>.</span><span class=n>call_once</span><span class=p>(</span><span class=o>||</span><span class=w> </span><span class=k>unsafe</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// Flush stdout and disable buffering.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=k>crate</span>::<span class=n>io</span>::<span class=n>cleanup</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// SAFETY: Only called once during runtime cleanup.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=n>sys</span>::<span class=n>cleanup</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>// To reduce the generated code of the new `lang_start`, this function is doing
+</span></span></span><span class=line><span class=cl><span class=c1>// the real work.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cp>#[cfg(not(test))]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>fn</span> <span class=nf>lang_start_internal</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>main</span>: <span class=kp>&amp;</span><span class=p>(</span><span class=k>dyn</span><span class=w> </span><span class=nb>Fn</span><span class=p>()</span><span class=w> </span>-&gt; <span class=kt>i32</span> <span class=o>+</span><span class=w> </span><span class=nb>Sync</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=k>crate</span>::<span class=n>panic</span>::<span class=n>RefUnwindSafe</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>argc</span>: <span class=kt>isize</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>argv</span>: <span class=o>*</span><span class=k>const</span><span class=w> </span><span class=o>*</span><span class=k>const</span><span class=w> </span><span class=kt>u8</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>sigpipe</span>: <span class=kt>u8</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span>-&gt; <span class=kt>isize</span> <span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// Guard against the code called by this function from unwinding outside of the Rust-controlled
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// code, which is UB. This is a requirement imposed by a combination of how the
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// `#[lang=&#34;start&#34;]` attribute is implemented as well as by the implementation of the panicking
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// mechanism itself.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>//
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// There are a couple of instances where unwinding can begin. First is inside of the
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// `rt::init`, `rt::cleanup` and similar functions controlled by bstd. In those instances a
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// panic is a std implementation bug. A quite likely one too, as there isn&#39;t any way to
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// prevent std from accidentally introducing a panic to these functions. Another is from
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// user code from `main` or, more nefariously, as described in e.g. issue #86030.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>//
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// We use `catch_unwind` with `handle_rt_panic` instead of `abort_unwind` to make the error in
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=c1>// case of a panic a bit nicer.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>    </span><span class=n>panic</span>::<span class=n>catch_unwind</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// SAFETY: Only called once during runtime initialization.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=k>unsafe</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>init</span><span class=p>(</span><span class=n>argc</span><span class=p>,</span><span class=w> </span><span class=n>argv</span><span class=p>,</span><span class=w> </span><span class=n>sigpipe</span><span class=p>)</span><span class=w> </span><span class=p>};</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>ret_code</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>panic</span>::<span class=n>catch_unwind</span><span class=p>(</span><span class=n>main</span><span class=p>).</span><span class=n>unwrap_or_else</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>|</span><span class=n>payload</span><span class=o>|</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>// Carefully dispose of the panic payload.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>            </span><span class=kd>let</span><span class=w> </span><span class=n>payload</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>panic</span>::<span class=n>AssertUnwindSafe</span><span class=p>(</span><span class=n>payload</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>panic</span>::<span class=n>catch_unwind</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=nb>drop</span><span class=p>({</span><span class=w> </span><span class=n>payload</span><span class=w> </span><span class=p>}.</span><span class=mi>0</span><span class=p>)).</span><span class=n>unwrap_or_else</span><span class=p>(</span><span class=k>move</span><span class=w> </span><span class=o>|</span><span class=n>e</span><span class=o>|</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=n>mem</span>::<span class=n>forget</span><span class=p>(</span><span class=n>e</span><span class=p>);</span><span class=w> </span><span class=c1>// do *not* drop the 2nd payload
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>                </span><span class=fm>rtabort!</span><span class=p>(</span><span class=s>&#34;drop of the panic payload panicked&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>// Return error code for panicking programs.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>            </span><span class=mi>101</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>let</span><span class=w> </span><span class=n>ret_code</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>ret_code</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=kt>isize</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>cleanup</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// Guard against multiple threads calling `libc::exit` concurrently.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=c1>// See the documentation for `unique_thread_exit` for more information.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>        </span><span class=k>crate</span>::<span class=n>sys</span>::<span class=n>exit_guard</span>::<span class=n>unique_thread_exit</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>ret_code</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>.</span><span class=n>unwrap_or_else</span><span class=p>(</span><span class=n>handle_rt_panic</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></div></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>Copyright © 2025 Haile Lagi</a><div><span>feel free to reach out: hailelagi[at]gmail.com</span></span></div></footer></body></html>
