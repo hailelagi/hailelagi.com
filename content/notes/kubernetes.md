@@ -132,7 +132,17 @@ kubectl get ingressclass
 
 service discovery in a k8s cluster:
 - internal DNS (coredns)
+```
+kubectl get pods -n kube-system -l k8s-app=kube-dns
+```
 - global Service kube-dns
+- registry & discovery
+- kube-proxy over Linux IP Virtual Server(IPVS) [deprecated - iptables]
+- cluster DNS holds A and SRV records.
+- local routing rules on kubelet
+```
+/etc/resolv.conf
+```
 
 data plane
 
