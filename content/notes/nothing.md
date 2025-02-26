@@ -1,7 +1,7 @@
 ---
 title: "Nothing"
 date: 2025-01-21T08:08:15+01:00
-draft: true
+draft: false
 ---
 
 Self reminder for each segment of crt-0:
