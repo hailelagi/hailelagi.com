@@ -4,12 +4,6 @@ date: 2024-11-26T12:57:51+01:00
 draft: true
 ---
 
-{{% callout %}}
-random notes and scribbles, does not meet any standards of quality or 
-comprehension, here it is, anyway, otherwise it may never escape my drafts.
-{{% /callout %}}
-
-
 Atomics, typically a compiler intrinsic, platform/hardware dependent(x86, risc-v, arm etc), OS dependent.
 typically at least a pointer size -- in rust a [`usize`](https://doc.rust-lang.org/std/primitive.usize.html)
 
