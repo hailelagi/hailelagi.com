@@ -49,6 +49,15 @@ k3d cluster create <name_cluster> <flags> <image>
 tools to observe of performance, behaviour and health of software systems: metrics, logs & traces.
 tools to create/ provisioning and deployment packaging:
 ```sh
+ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm upgrade --atomic --install prometheus-community \
+--create-namespace \
+--namespace prometheus-community \
+--values yourconfigtoobserverxyz.yaml \
+prometheus-community/kube-prometheus-stack
+```
+
+```sh
 helm
 terraform
 ```

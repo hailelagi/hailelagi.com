@@ -109,3 +109,5 @@ pub struct MemtableIterator<'a> {
 [^10]: [Disaggregated Database Systems](https://www.cs.purdue.edu/homes/csjgwang/pubs/SIGMOD23_Tutorial_DisaggregatedDB.pdf)
 [^11]: [Immutability Changes Everything](https://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper16.pdf?)
 [^12]: [Dissecting, Designing, and Optimizing LSM-based Data Stores](https://cs-people.bu.edu/mathan/publications/sigmod22-sarkar-tutorial.pdf)
+[^13]: [Asynchronous I/O - With Great Power Comes Great Responsibility](https://arxiv.org/pdf/2411.16254)
+[^14]: [Characteristics of multithreading models for high-performance IO driven network applications](https://arxiv.org/pdf/0909.4934)
