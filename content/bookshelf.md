@@ -19,21 +19,6 @@ Previously Explored:
 - [elixir in action](https://www.notion.so/Elixir-in-Action-Book-review-27ff4cbe67f140a688637e1422f11641)
 - [algorithms and data structures with python](https://runestone.academy/ns/books/published/pythonds/index.html)
 
-Interesting/on my radar but who knows if I'll ever get around to it:
-- Networking & Kubernetes - A Layered Approach
-- Rust for Rustaceans
-- [crafting interpreters](https://craftinginterpreters.com/)
--  https://www.interdb.jp/pg/
-- https://edu.postgrespro.com/postgresql_internals-14_en.pdf
-- The Art of Multiprocessor Programming - Maurice Herlihy & Nir Shavit
-- [High Performance Browser Networking](https://hpbn.co/)
-- https://cs186berkeley.net/resources/
-- [Nand2Tetris](https://www.nand2tetris.org/)
-- [How to Design Programs](https://htdp.org/)
-- Distributed Systems - Maarten & Andrew
-- design patterns elements of reusable object-oriented software
-
-
 books that are actually reference manuals or papers:
 - [The Beam Book](https://github.com/happi/theBeamBook)
 - http://www.redbook.io/
