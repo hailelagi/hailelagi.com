@@ -201,13 +201,14 @@ type TrieNode struct {
 }
 ```
 
-A trie is pretty simple data-structure used for pattern-matching & autocomplete, it does so by storing a representation of the "paths" in a string and bounds its performance by `O(k)`, sadly though it wastes alot of space which necessitates finding ways of compressing this information, you can [play around with it here](https://cmps-people.ok.ubc.ca/ylucet/DS/CompressedTrie.html). The adaptive radix tree takes this one step even further, in theory it sounds like it fits the bill quite nicely.
+A trie is a pretty simple data-structure used for pattern-matching & autocomplete, it does so by storing a representation of the "paths" in a string and bounds its performance by `O(k)`, sadly though it wastes alot of space which necessitates finding ways of compressing this information, you can [play around with it here](https://cmps-people.ok.ubc.ca/ylucet/DS/CompressedTrie.html). The adaptive radix tree takes this one step even further, in theory it sounds like it fits the bill quite nicely.
 
 > Even though ART’s performance
 is comparable to hash tables, it maintains the data in sorted
 order, which enables additional operations like range scan and
 prefix lookup.
 
+todo: ref ART paper
 
 ## Being a good neighbour
 
