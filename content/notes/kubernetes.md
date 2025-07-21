@@ -1,7 +1,7 @@
 ---
 title: "K8s and the 😶‍🌫️"
 date: 2025-02-05T06:43:40+01:00
-draft: true
+draft: false
 ---
 
 k8s manages and orchestrates clusters of containerised applications, 

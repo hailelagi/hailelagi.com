@@ -1,9 +1,6 @@
 
-
-In 2025 I would like to read:
-- [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
-
 Previously Explored:
+- [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
 - [Database Internals: A Deep Dive into How Distributed Data Systems Work](https://www.databass.dev/)
 - [Designing Data-Intensive Applications](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)
 - [Operating Systems: Three Easy Pieces](https://www.amazon.com/Operating-Systems-Three-Easy-Pieces/dp/198508659X)

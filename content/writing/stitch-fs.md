@@ -174,8 +174,7 @@ Hopefully it makes sense that file system heirarchies can be built as an interfa
 
 {{% callout %}}
 An aside on POSIX, there are "popular" syscalls say open, read, write, close, lseek, mkdir etc
-but how about the flock, fcntl and the ioctl family? How would locking and transactional semantics work across a network boundary that can fail?
-what consistency guarantees do we present?
+but how about the flock, fcntl and the ioctl family? How would locking and transactional semantics work across a network boundary that can fail? what consistency guarantees do we present? how do we propagate metadata?
 {{% /callout %}}
 
 

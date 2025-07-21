@@ -80,8 +80,7 @@ key-value data. Global mutexes are a practical solution but you tend to encounte
 
 One way to leverage this property of partitions is sharding, if one hashmap won't work, let's scale _horizontally_, have you tried two? or perhaps sixteen or thirty two? Java's ConcurrentHashMap` and rust's `DashMap` are great examples of this, careful with your hashing algorithm though! 
 
-A well-known technique in database literature is called fine-grained locking or latching, the general idea is instead of a global mutex we serialise access to specific 'levels', the 
-high-level idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
+A well-known technique in database literature is called fine-grained locking or latching, the general idea is instead of a global mutex we serialise access to specific 'levels', the high-level idea being we want to seperate read access from write access choosing the smallest possible critical sections[^3]:
 
 ```go
 type Map[K any, V any] struct {
@@ -95,8 +94,7 @@ type Map[K any, V any] struct {
 
 This [naive implementation](https://github.com/hailelagi/porcupine/blob/main/porcupine/fine-map.go#L43) could add some complexity, however we gain write throughput but pay the cost of acquiring and releasing two locks on some operations, perhaps a reader-writer lock? [something more sophisticated?](https://github.com/efficient/libcuckoo) conceptually we're on track.
 
-Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast 
-ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
+Next, we'd like to be able to store both ordered and unordered key value data, hash maps store unordered data so this calls for some sort of additional data structure with fast ordered `KVStore` operations for our `ordered_set`. We must define a new interface:
 
 ```go
 type OrderedKVStore[Key constraints.Ordered, Value any] interface {
