@@ -1,0 +1,66 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="A repository for my thoughts"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=icon type=image/x-icon href=/favicon.ico><link rel=stylesheet href=/css/style.min.css><meta name=title property=”og:title” content="K8s and the 😶‍🌫️ | Haile (ሐይሌ)"><meta name=twitter:card content="summary"><meta name=twitter:title content="K8s and the 😶‍🌫️ | Haile (ሐይሌ)"><meta name=description content><meta property="og:description" content><meta name=twitter:description content><meta name=twitter:creator content="@hailelagi"><title>K8s and the 😶‍🌫️</title></head><body><header id=banner><h2><a href=https://www.hailelagi.com/>Haile (ሐይሌ)</a></h2><nav><ul><li><a href=https://www.github.com/hailelagi title=github>github</a></li><li><a href=/notes title=notes>notes</a></li></ul></nav></header><main id=content><article><header id=post-header><h1>K8s and the 😶‍🌫️</h1><time>February 5, 2025</time><meta name=twitter:card content="summary">
+<meta property="og:url" content="https://www.hailelagi.com/"><meta property="og:image" content="/favicon-32x32.png"><meta itemprop=image content="/favicon-32x32.png"><meta name=twitter:image content="/favicon-32x32.png"><meta name=twitter:image:src content="/favicon-32x32.png"></header><p>k8s manages and orchestrates clusters of containerised applications,
+by abstracting over pools of computing resources cpu, network, memory & disk and abstracting deploying to a public cloud(s).
+via declarative yaml, json (but also <a href=https://kubernetes.io/docs/tasks/manage-kubernetes-objects/imperative-command/>imperative apis</a>)</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>desired &lt;-&gt; observed &lt;-&gt; reconciliation
+</span></span></code></pre></div><ul><li>achieve high-availability while running in <strong>fault-prone environments</strong></li><li>to allow us to continuously release new versions with <strong>zero downtime</strong></li><li>to handle <strong>dynamic workloads</strong> (e.g. request volumes)</li></ul><p>intuition/basic algorithm: <a href=https://en.wikipedia.org/wiki/Bin_packing_problem>https://en.wikipedia.org/wiki/Bin_packing_problem</a></p><p>hypervisors: <a href=https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf>https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf</a></p><p>scheduling/orchestrating: <a href=https://fly.io/blog/carving-the-scheduler-out-of-our-orchestrator/>https://fly.io/blog/carving-the-scheduler-out-of-our-orchestrator/</a></p><ul><li>supervision/fault tolerance</li><li>scheduling</li><li>scaling up or down</li><li>rolling upgrades</li></ul><p>container = OCI runtime spec (docker-engine, containerd, etc)</p><p>trace nodes and pods:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl get nodes -v<span class=o>=</span><span class=m>9</span>
+</span></span><span class=line><span class=cl>kubectl get pods -v<span class=o>=</span><span class=m>9</span>
+</span></span></code></pre></div><p>local dev tooling:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>tilt
+</span></span><span class=line><span class=cl>minikube
+</span></span><span class=line><span class=cl>kind
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>k3d cluster create &lt;name_cluster&gt; &lt;flags&gt; &lt;image&gt;
+</span></span></code></pre></div><p>tools to observe of performance, behaviour and health of software systems: metrics, logs & traces.
+tools to create/ provisioning and deployment packaging:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl> helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+</span></span><span class=line><span class=cl>helm upgrade --atomic --install prometheus-community <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>--create-namespace <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>--namespace prometheus-community <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>--values yourconfigtoobserverxyz.yaml <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>prometheus-community/kube-prometheus-stack
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>helm
+</span></span><span class=line><span class=cl>terraform
+</span></span></code></pre></div><p>control plane:</p><ul><li>api server</li><li>cloud-controller-manager</li><li>controller manager</li><li>controllers(stateless or stateful-(stateful systems are hard!)) - daemonset, statefulset, cronjobs, sidecars etc</li><li>cluster store/etcd</li><li>scheduler</li></ul><p>and worker nodes run workloads - (vm) - pods, attached kubelet, kube-proxy</p><p>controller - (podtemplate, deployment)
+pods:</p><ul><li>labels and annotations</li><li>restart policies</li><li>probes</li><li>afinity</li><li>termination control</li><li>security policies</li><li>resource limits</li></ul><p>deploying pods: manifest or controller [net, pid, mnt, UTS, IPC]
+lifecyle: side car, adapter, ambassador, init</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl get pods &lt;pod&gt; -o yaml
+</span></span><span class=line><span class=cl>kubectl describe pods &lt;pod&gt;
+</span></span><span class=line><span class=cl>kubectl logs &lt;pod&gt;
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl <span class=nb>exec</span> -it &lt;pod&gt; -- sh <span class=c1>#--container=&lt;c&gt;</span>
+</span></span></code></pre></div><p>namespaces: quotas + policies to sub-clusters of pods, services & deployments.
+(kube-system(dns, metrics) - control plane, kube-public, kube-node-lease(heartbeat))</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl api-resources
+</span></span><span class=line><span class=cl>kubectl get svc --namespace kube-system
+</span></span><span class=line><span class=cl>kubectl config set-context --current --namespace &lt;ns&gt;
+</span></span></code></pre></div><p>deployments: (stateless pods/container mngmt) spec + controller viz replicaset |labels + selectors| to pod,
+<a href=https://kubernetes.io/docs/tutorials/stateless-application/expose-external-ip-address/>exposing over an external IP</a></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl get <span class=p>|</span> describe deploy &lt;deployment&gt;
+</span></span><span class=line><span class=cl>kubectl get <span class=p>|</span> describe rs <span class=c1># at least one replica set per deploy</span>
+</span></span><span class=line><span class=cl>kubectl scale deploy &lt;deployment&gt; --replicas <span class=m>5</span>
+</span></span><span class=line><span class=cl>kubectl rollout <span class=o>(</span>status <span class=p>|</span> <span class=nb>history</span><span class=o>)</span> <span class=p>|</span> pause <span class=p>|</span> resume <span class=p>|</span> rollback  deploy &lt;deployment&gt;
+</span></span></code></pre></div><p>services: RESTful object - stable IP, DNS and port coupled & load-balances(endpoint slice) to pods via labels + selectors.</p><ul><li>internal dns lookup (ClusterIP - internal DNS <a href=https://en.wikipedia.org/wiki/Switched_fabric>switched fabric</a>)</li><li>query endpoint slices <code>kubectl get endpointslices</code>
+externally via <code>NodePort</code> + <code>LoadBalancer</code></li><li>(NodePorts only work on high port numbers (30000-32767) and require knowledge of node names or IPs)</li><li>cloud lb &lt;-> <code>LoadBalancer</code>
+(layer 4 via cloud controller manager &lt;-> Service (k8s) - need layer 7(app) below to multiplex routes)</li></ul><p>options:</p><ul><li><a href=https://gateway-api.sigs.k8s.io/#what-is-the-gateway-api>https://gateway-api.sigs.k8s.io/#what-is-the-gateway-api</a></li><li>ingress: expose multiple clusterIP services &lt;-> clould lb, routing rules etc</li><li>service meshes(istio, linkerd - layer 7): expose multiple clusterIP services &lt;-> clould lb, routing rules etc</li><li>lb service: 80 || 443 - host/path deploys ingress objects</li></ul><p>ingress:</p><ul><li>controller (install/setup) - parse hostnames , resolve dns routes etc</li><li>object spec</li></ul><p>ingress class mix and match ingress controllers (nginx, istio etc) on a cluster</p><pre tabindex=0><code>kubectl get ing
+kubectl get ingressclass
+</code></pre><p>service discovery in a k8s cluster:</p><ul><li>internal DNS (coredns)</li></ul><pre tabindex=0><code>kubectl get pods -n kube-system -l k8s-app=kube-dns
+</code></pre><ul><li>global Service kube-dns</li><li>registry & discovery</li><li>kube-proxy over Linux IP Virtual Server(IPVS) [deprecated - iptables]</li><li>cluster DNS holds A and SRV records.</li><li>local routing rules on kubelet</li></ul><pre tabindex=0><code>/etc/resolv.conf
+</code></pre><p>data plane</p><h2 id=spin-up-an-ec2-jumpbox>spin up an ec2 jumpbox</h2><p>todo: <a href=https://github.com/kelseyhightower/kubernetes-the-hard-way>https://github.com/kelseyhightower/kubernetes-the-hard-way</a></p><p><a href=https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html>https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html</a></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span><span class=line><span class=cl><span class=c1># exit on error</span>
+</span></span><span class=line><span class=cl><span class=nb>set</span> -e
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Starting my ec2 box...&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># update</span>
+</span></span><span class=line><span class=cl>sudo apt-get update <span class=o>&amp;&amp;</span> sudo apt-get upgrade -y
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># build and profiling</span>
+</span></span><span class=line><span class=cl>sudo apt-get install -y <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    build-essential <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    curl <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    wget <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    git <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    linux-tools-common <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    linux-tools-generic <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    linux-tools-<span class=sb>`</span>uname -r<span class=sb>`</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    strace
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># rs</span>
+</span></span><span class=line><span class=cl>curl --proto <span class=s1>&#39;=https&#39;</span> --tlsv1.2 -sSf https://sh.rustup.rs <span class=p>|</span> sh -s -- -y
+</span></span><span class=line><span class=cl><span class=nb>source</span> <span class=nv>$HOME</span>/.cargo/env
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Setup complete! Remember to &#39;source ~/.bashrc&#39; to load the new environment variables&#34;</span>
+</span></span></code></pre></div><h2 id=spin-up-a-compute-engine>spin up a compute engine</h2><p><a href=https://cloud.google.com/compute/docs/instances>https://cloud.google.com/compute/docs/instances</a></p><h2 id=terraform>Terraform</h2></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>Copyright © 2025 Haile Lagi</a><div><span>feel free to reach out: hailelagi[at]gmail.com</span></span></div></footer></body></html>
