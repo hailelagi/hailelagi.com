@@ -11,10 +11,10 @@ via declarative yaml, json (but also <a href=https://kubernetes.io/docs/tasks/ma
 </span></span></code></pre></div><p>tools to observe of performance, behaviour and health of software systems: metrics, logs & traces.
 tools to create/ provisioning and deployment packaging:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl> helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 </span></span><span class=line><span class=cl>helm upgrade --atomic --install prometheus-community <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>--create-namespace <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>--namespace prometheus-community <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>--values yourconfigtoobserverxyz.yaml <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>prometheus-community/kube-prometheus-stack
+</span></span></span><span class=line><span class=cl>--create-namespace <span class=se>\
+</span></span></span><span class=line><span class=cl>--namespace prometheus-community <span class=se>\
+</span></span></span><span class=line><span class=cl>--values yourconfigtoobserverxyz.yaml <span class=se>\
+</span></span></span><span class=line><span class=cl>prometheus-community/kube-prometheus-stack
 </span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>helm
 </span></span><span class=line><span class=cl>terraform
 </span></span></code></pre></div><p>control plane:</p><ul><li>api server</li><li>cloud-controller-manager</li><li>controller manager</li><li>controllers(stateless or stateful-(stateful systems are hard!)) - daemonset, statefulset, cronjobs, sidecars etc</li><li>cluster store/etcd</li><li>scheduler</li></ul><p>and worker nodes run workloads - (vm) - pods, attached kubelet, kube-proxy</p><p>controller - (podtemplate, deployment)
@@ -39,7 +39,7 @@ kubectl get ingressclass
 </code></pre><p>service discovery in a k8s cluster:</p><ul><li>internal DNS (coredns)</li></ul><pre tabindex=0><code>kubectl get pods -n kube-system -l k8s-app=kube-dns
 </code></pre><ul><li>global Service kube-dns</li><li>registry & discovery</li><li>kube-proxy over Linux IP Virtual Server(IPVS) [deprecated - iptables]</li><li>cluster DNS holds A and SRV records.</li><li>local routing rules on kubelet</li></ul><pre tabindex=0><code>/etc/resolv.conf
 </code></pre><p>data plane</p><h2 id=spin-up-an-ec2-jumpbox>spin up an ec2 jumpbox</h2><p>todo: <a href=https://github.com/kelseyhightower/kubernetes-the-hard-way>https://github.com/kelseyhightower/kubernetes-the-hard-way</a></p><p><a href=https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html>https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html</a></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=cp>#!/bin/bash
-</span></span></span><span class=line><span class=cl><span class=cp></span>
+</span></span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=c1># exit on error</span>
 </span></span><span class=line><span class=cl><span class=nb>set</span> -e
 </span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Starting my ec2 box...&#34;</span>
@@ -49,18 +49,18 @@ kubectl get ingressclass
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=c1># build and profiling</span>
 </span></span><span class=line><span class=cl>sudo apt-get install -y <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    build-essential <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    curl <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    wget <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    git <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    linux-tools-common <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    linux-tools-generic <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    linux-tools-<span class=sb>`</span>uname -r<span class=sb>`</span> <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>    strace
+</span></span></span><span class=line><span class=cl>    build-essential <span class=se>\
+</span></span></span><span class=line><span class=cl>    curl <span class=se>\
+</span></span></span><span class=line><span class=cl>    wget <span class=se>\
+</span></span></span><span class=line><span class=cl>    git <span class=se>\
+</span></span></span><span class=line><span class=cl>    linux-tools-common <span class=se>\
+</span></span></span><span class=line><span class=cl>    linux-tools-generic <span class=se>\
+</span></span></span><span class=line><span class=cl>    linux-tools-<span class=sb>`</span>uname -r<span class=sb>`</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    strace
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=c1># rs</span>
 </span></span><span class=line><span class=cl>curl --proto <span class=s1>&#39;=https&#39;</span> --tlsv1.2 -sSf https://sh.rustup.rs <span class=p>|</span> sh -s -- -y
 </span></span><span class=line><span class=cl><span class=nb>source</span> <span class=nv>$HOME</span>/.cargo/env
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Setup complete! Remember to &#39;source ~/.bashrc&#39; to load the new environment variables&#34;</span>
-</span></span></code></pre></div><h2 id=spin-up-a-compute-engine>spin up a compute engine</h2><p><a href=https://cloud.google.com/compute/docs/instances>https://cloud.google.com/compute/docs/instances</a></p><h2 id=terraform>Terraform</h2></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>Copyright © 2025 Haile Lagi</a><div><span>feel free to reach out: hailelagi[at]gmail.com</span></span></div></footer></body></html>
+</span></span></code></pre></div><h2 id=spin-up-a-compute-engine>spin up a compute engine</h2><p><a href=https://cloud.google.com/compute/docs/instances>https://cloud.google.com/compute/docs/instances</a></p><h2 id=terraform>Terraform</h2></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>Copyright © 2026 Haile Lagi</a><div><span>feel free to reach out: hailelagi[at]gmail.com</span></span></div></footer></body></html>
