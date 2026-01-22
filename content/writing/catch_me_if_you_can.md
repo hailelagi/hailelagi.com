@@ -18,7 +18,12 @@ Given a task/topic/problem I know I <b>cannot do now</b> and knowing Claude is d
 My background in a previous life now forgotten was in a STEM/chemical engineering degree, then I taught myself to program and I've since tried to learn as much as I can about web servers, databases and distributed systems. On honest reflection I would never claim understanding enough of these things but I try to reason through basics and do useful things, sometimes I succeed, sometimes I fail. However, I've retained a blindside for computer architecture - until now?
 
 ## The problem
-We are presented with a simulation of a computation kernel and are tasked with optimizing the kernel as much as possible in the available time, as measured by test_kernel_cycles on a frozen separate copy of the simulator.
+
+
+We are presented with a simulation of a computation kernel and are tasked with optimizing the kernel as much as possible in the available time, as measured by test_kernel_cycles on a frozen separate copy of the simulator. What's a computation kernel?
+
+the context here is not an operating system kernel but something called an [accelerator circuit](https://en.wikipedia.org/wiki/Hardware_acceleration), they have suprisingly similar designs though!
+
 
 ```bash
 ➜  original_performance_takehome git:(main) python3 tests/submission_tests.py
@@ -46,7 +51,14 @@ CYCLES:  147734
 
 What's a computer anyway? It kind of depends on your perspective, [this is a funny and great concise read,](https://cpu.land/) however for Anthropic's performance engineering challenge, the fundamental unit isn't a vertex, or a "node" or a VM process/thread, it's something I have genuinely taken for granted all my life it's a CPU.
 
-## How Did You Pass The BAAAAAr'? Frank Abagnale Jr. ...
+#### How Did You Pass The BAAAAAr'? Frank Abagnale Jr. ...
+
+[^1] [^2] [^3]
 
 {{< youtube c9Uu7sxScYo >}}
 
+
+## References and Useful Resources
+[^1]: Computer Architecture: A Quantitative Approach
+[^2]: [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/)
+[^3]: [Software optimization resources](https://www.agner.org/optimize/)
