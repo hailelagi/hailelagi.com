@@ -1,3 +1,4 @@
+I'm currently reading: [Computer Architecture A Quantitative Approach](https://www.amazon.com/Computer-Architecture-Quantitative-Approach-Kaufmann/dp/0128119055)
 
 Previously Explored:
 - [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
