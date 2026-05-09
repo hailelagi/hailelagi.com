@@ -168,7 +168,16 @@ Disassembly of section .fini:
  1138: 48 83 ec 08 sub $0x8,%rsp
  113c: 48 83 c4 08 add $0x8,%rsp
  1140: c3 ret
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;rustc &lt;code&gt;library/std/src/rt.rs&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>How do databases count?</title><link>https://www.hailelagi.com/notes/how-do-databases-count/</link><pubDate>Tue, 05 Nov 2024 18:13:34 +0100</pubDate><guid>https://www.hailelagi.com/notes/how-do-databases-count/</guid><description>&lt;p&gt;Given the simple query below, how does a database count?&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;rustc &lt;code&gt;library/std/src/rt.rs&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>Atomics</title><link>https://www.hailelagi.com/notes/atomics/</link><pubDate>Tue, 26 Nov 2024 12:57:51 +0100</pubDate><guid>https://www.hailelagi.com/notes/atomics/</guid><description>&lt;p&gt;Atomics, typically a compiler intrinsic, platform/hardware dependent(x86, risc-v, arm etc), OS dependent.
+typically at least a pointer size &amp;ndash; in rust a &lt;a href="https://doc.rust-lang.org/std/primitive.usize.html"&gt;&lt;code&gt;usize&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="usecasespatterns"&gt;Usecases/Patterns&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;stop flag/locking primitive/aka naive mutex + busy wait&lt;/li&gt;
+&lt;li&gt;thread progress reporting&lt;/li&gt;
+&lt;li&gt;synchronization/barrier fence etc&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A SeqCst fence is both a release fence and an acquire fence (just like AcqRel), but also part of the single total order of sequentially consistent operations. However, only the fence is part of the total order, but not necessarily the atomic operations before or after it.&lt;/p&gt;</description></item><item><title>How do databases count?</title><link>https://www.hailelagi.com/notes/how-do-databases-count/</link><pubDate>Tue, 05 Nov 2024 18:13:34 +0100</pubDate><guid>https://www.hailelagi.com/notes/how-do-databases-count/</guid><description>&lt;p&gt;Given the simple query below, how does a database count?&lt;/p&gt;
 &lt;pre tabindex="0"&gt;&lt;code&gt;psql -U postgres
 select count(distinct col1) from table1;
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Let&amp;rsquo;s ask the database directly, &lt;a href="https://www.postgresql.org/docs/current/using-explain.html"&gt;in this case, it&amp;rsquo;s postgres&lt;/a&gt;:&lt;/p&gt;
