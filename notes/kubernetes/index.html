@@ -24,7 +24,8 @@ lifecyle: side car, adapter, ambassador, init</p><div class=highlight><pre tabin
 </span></span><span class=line><span class=cl>kubectl logs &lt;pod&gt;
 </span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl <span class=nb>exec</span> -it &lt;pod&gt; -- sh <span class=c1>#--container=&lt;c&gt;</span>
 </span></span></code></pre></div><p>namespaces: quotas + policies to sub-clusters of pods, services & deployments.
-(kube-system(dns, metrics) - control plane, kube-public, kube-node-lease(heartbeat))</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl api-resources
+(kube-system(dns, metrics) - control plane, kube-public, kube-node-lease(heartbeat))</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>kubectl get ns
+</span></span><span class=line><span class=cl>kubectl api-resources
 </span></span><span class=line><span class=cl>kubectl get svc --namespace kube-system
 </span></span><span class=line><span class=cl>kubectl config set-context --current --namespace &lt;ns&gt;
 </span></span></code></pre></div><p>deployments: (stateless pods/container mngmt) spec + controller viz replicaset |labels + selectors| to pod,
@@ -38,7 +39,9 @@ externally via <code>NodePort</code> + <code>LoadBalancer</code></li><li>(NodePo
 kubectl get ingressclass
 </code></pre><p>service discovery in a k8s cluster:</p><ul><li>internal DNS (coredns)</li></ul><pre tabindex=0><code>kubectl get pods -n kube-system -l k8s-app=kube-dns
 </code></pre><ul><li>global Service kube-dns</li><li>registry & discovery</li><li>kube-proxy over Linux IP Virtual Server(IPVS) [deprecated - iptables]</li><li>cluster DNS holds A and SRV records.</li><li>local routing rules on kubelet</li></ul><pre tabindex=0><code>/etc/resolv.conf
-</code></pre><p>data plane</p><h2 id=spin-up-an-ec2-jumpbox>spin up an ec2 jumpbox</h2><p>todo: <a href=https://github.com/kelseyhightower/kubernetes-the-hard-way>https://github.com/kelseyhightower/kubernetes-the-hard-way</a></p><p><a href=https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html>https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html</a></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=cp>#!/bin/bash
+</code></pre><p>data plane
+configuration: ConfigMaps & Secrets
+storage: stateful sets, persistent volumes, PV claims & Storage classes</p><h2 id=spin-up-an-ec2-jumpbox>spin up an ec2 jumpbox</h2><p>todo: <a href=https://github.com/kelseyhightower/kubernetes-the-hard-way>https://github.com/kelseyhightower/kubernetes-the-hard-way</a></p><p><a href=https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html>https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html</a></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=cp>#!/bin/bash
 </span></span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=c1># exit on error</span>
 </span></span><span class=line><span class=cl><span class=nb>set</span> -e
@@ -63,4 +66,4 @@ kubectl get ingressclass
 </span></span><span class=line><span class=cl><span class=nb>source</span> <span class=nv>$HOME</span>/.cargo/env
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;Setup complete! Remember to &#39;source ~/.bashrc&#39; to load the new environment variables&#34;</span>
-</span></span></code></pre></div><h2 id=spin-up-a-compute-engine>spin up a compute engine</h2><p><a href=https://cloud.google.com/compute/docs/instances>https://cloud.google.com/compute/docs/instances</a></p><h2 id=terraform>Terraform</h2></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>Copyright © 2026 Haile Lagi</a><div><span>feel free to reach out: hailelagi[at]gmail.com</span></span></div></footer></body></html>
+</span></span></code></pre></div><h2 id=spin-up-a-compute-engine>spin up a compute engine</h2><p><a href=https://cloud.google.com/compute/docs/instances>https://cloud.google.com/compute/docs/instances</a></p></article></main><footer id=footer><a href=https://github.com/hailelagi/blog>Copyright © 2026 Haile Lagi</a><div><span>feel free to reach out: hailelagi[at]gmail.com</span></span></div></footer></body></html>

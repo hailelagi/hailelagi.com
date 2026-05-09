@@ -1,1 +1,31 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Database Internals, Bookclub on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/tags/database-internals-bookclub/</link><description>Recent content in Database Internals, Bookclub on Haile (ሐይሌ)</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 Mar 2024 10:52:36 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/tags/database-internals-bookclub/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Database Internals, Bookclub on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/tags/database-internals-bookclub/</link><description>Recent content in Database Internals, Bookclub on Haile (ሐይሌ)</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sun, 03 Mar 2024 10:52:36 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/tags/database-internals-bookclub/index.xml" rel="self" type="application/rss+xml"/><item><title>B Tree Basics - Slides</title><link>https://www.hailelagi.com/notes/b-tree-present/</link><pubDate>Sun, 03 Mar 2024 10:52:36 +0100</pubDate><guid>https://www.hailelagi.com/notes/b-tree-present/</guid><description>&lt;p&gt;generated with: &lt;a href="https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html"&gt;https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html&lt;/a&gt;, please feel free to explore!&lt;/p&gt;
+&lt;h1 id="a-simple-2-way-b-tree"&gt;A simple 2-way B+ tree&lt;/h1&gt;
+&lt;p&gt;assumptions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;non-decreasing order&lt;/em&gt; and &lt;em&gt;max degree&lt;/em&gt; of 3&lt;/li&gt;
+&lt;li&gt;elements(N) are 1, 2, 3, 4, 5&lt;/li&gt;
+&lt;li&gt;**sibling pointers (B-link borrowed)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="insertion"&gt;Insertion&lt;/h2&gt;
+&lt;p&gt;Inserting, find target leaf and insert the keys &lt;code&gt;1&lt;/code&gt; and &lt;code&gt;2&lt;/code&gt; target == root.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;[figure 1]&lt;/strong&gt;
+&lt;img src="https://www.hailelagi.com/init.png" alt="init"&gt;&lt;/p&gt;
+&lt;p&gt;When we insert key &lt;code&gt;3&lt;/code&gt;? we have our first &lt;em&gt;overflow&lt;/em&gt; causing a split:
+&lt;img src="https://www.hailelagi.com/split.png" alt="split"&gt;
+&lt;code&gt;2&lt;/code&gt; is &lt;em&gt;promoted&lt;/em&gt; and contents are split in two, we recurse from the bottom up.&lt;/p&gt;</description></item><item><title>B Tree Basics - TalkPoints</title><link>https://www.hailelagi.com/notes/b-tree-talk/</link><pubDate>Thu, 29 Feb 2024 12:49:19 +0100</pubDate><guid>https://www.hailelagi.com/notes/b-tree-talk/</guid><description>&lt;p&gt;Listen to the twitter space! &lt;blockquote class="twitter-tweet"&gt;&lt;p lang="en" dir="ltr"&gt;Join us this Sunday by 5pm GMT to review Chapter 2 of Database Internals by &lt;a href="https://twitter.com/ifesdjeen?ref_src=twsrc%5Etfw"&gt;@ifesdjeen&lt;/a&gt;. &lt;a href="https://twitter.com/haile_lagi?ref_src=twsrc%5Etfw"&gt;@haile_lagi&lt;/a&gt; will lead discussions this week! See you soon.&lt;a href="https://t.co/UtMsYoHXC2"&gt;https://t.co/UtMsYoHXC2&lt;/a&gt;&lt;/p&gt;&amp;mdash; SysDsgn (@sysdsgn) &lt;a href="https://twitter.com/sysdsgn/status/1762892598081937619?ref_src=twsrc%5Etfw"&gt;February 28, 2024&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async src="https://platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;
+
+&lt;/p&gt;
+&lt;p&gt;Simple walkthrough/guide&lt;/p&gt;
+&lt;p&gt;Recap storage engines at the heart B-Tree.
+Data structures contiguous vs pointer based.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Honorable mention hashmap
+Binary Search Trees - Dictionary Data type/Map
+balancing
+going beyond Big-O
+mutability vs immutability
+briefly concurrency&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;disk considerations
+data set cannot fit in memory, we must cache and page in and out of memory.&lt;/p&gt;</description></item></channel></rss>

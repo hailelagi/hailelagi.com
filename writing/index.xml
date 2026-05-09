@@ -1,1 +1,54 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Writings on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/writing/</link><description>Recent content in Writings on Haile (ሐይሌ)</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 11 Aug 2024 16:07:35 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/writing/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Writings on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/writing/</link><description>Recent content in Writings on Haile (ሐይሌ)</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sun, 11 Aug 2024 16:07:35 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/writing/index.xml" rel="self" type="application/rss+xml"/><item><title>Call Me Maybe?</title><link>https://www.hailelagi.com/writing/call-me-maybe-lol/</link><pubDate>Sun, 11 Aug 2024 16:07:35 +0100</pubDate><guid>https://www.hailelagi.com/writing/call-me-maybe-lol/</guid><description>&lt;p&gt;What I learned &lt;a href="https://github.com/hailelagi/gossip-glomers"&gt;solving&lt;/a&gt; the &lt;a href="https://www.fly.io/dist-sys"&gt;fly.io distributed systems challenges&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The title of this post is inspired by &lt;a href="https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul"&gt;kyle kingsbury&amp;rsquo; series of articles like this one&lt;/a&gt; and &lt;a href="https://aphyr.com/posts/315-call-me-maybe-rabbitmq"&gt;this one&lt;/a&gt; and of course:&lt;/p&gt;
+
+&lt;iframe src="https://open.spotify.com/embed/track/20I6sIOMTCkB6w7ryavxtO"
+ width="100%"
+ height="380"
+ frameborder="0"
+ allowtransparency="true"
+ allow="encrypted-media"&gt;&lt;/iframe&gt;
+
+
+&lt;aside id="toc"&gt;
+ &lt;h4&gt;A lay of the land &lt;/h4&gt;
+ &lt;nav id="TableOfContents"&gt;
+ &lt;ul&gt;
+ &lt;li&gt;&lt;a href="#1-echo"&gt;1. Echo&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#2-unique-id-generation"&gt;2. Unique ID Generation&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#3-broadcast"&gt;3. Broadcast&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#4-grow-only-counter"&gt;4. Grow-Only Counter&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#5-kafka-style-log"&gt;5. Kafka-Style Log&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#6-totally-available-transactions"&gt;6. Totally-Available Transactions&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#7-testing-model-checkers-and-simulators"&gt;7. Testing, Model Checkers and Simulators&lt;/a&gt;
+ &lt;ul&gt;
+ &lt;li&gt;&lt;a href="#references"&gt;References&lt;/a&gt;&lt;/li&gt;
+ &lt;/ul&gt;
+ &lt;/li&gt;
+ &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;/aside&gt;
+
+&lt;h2 id="1-echo"&gt;1. Echo&lt;/h2&gt;
+&lt;p&gt;saying hello world! but distributed systems style, it&amp;rsquo;s mostly boilerplate setup,
+reading the maelstrom docs and the go client docs, we instantiate a maelstrom node/binary, define an RPC style handler and return messages:&lt;/p&gt;</description></item><item><title>DIY an on-disk B+ Tree</title><link>https://www.hailelagi.com/writing/diy-b-tree/</link><pubDate>Wed, 17 Apr 2024 13:48:23 +0100</pubDate><guid>https://www.hailelagi.com/writing/diy-b-tree/</guid><description>&lt;div class="callout-warning"&gt;
+ 💡 
+This article is a &lt;i&gt;speed run/crash course/concise note/summary&lt;/i&gt; and assumes the reader has read or is somewhat familiar with concepts explained in part I of database internals. Notably chapter 1 - 4, and parts of chapter 5 where Buffer Management is explained.
+&lt;/div&gt;
+&lt;p&gt;If not, here&amp;rsquo;s a visual crash course on the operations of a &lt;a href="../b-tree-present"&gt;b-tree&lt;/a&gt; and &lt;a href="../b-tree-talk"&gt;generally on-disk considerations.&lt;/a&gt; or a much better &lt;a href="https://fly.io/blog/sqlite-internals-btree/"&gt;walkthrough with sqlite&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;What is a Datastructure&amp;rsquo;s memory representation? Everything is either a contigous block or pointer based.
+&lt;em&gt;Relevant programming techniques&lt;/em&gt;: pointers, recursion and binary search - Olog(N) is powerful, syscalls and binary formats.&lt;/p&gt;</description></item><item><title>Thumbelina</title><link>https://www.hailelagi.com/writing/thumbelina/</link><pubDate>Wed, 20 Dec 2023 17:44:15 +0100</pubDate><guid>https://www.hailelagi.com/writing/thumbelina/</guid><description>&lt;p&gt;Re-re-re-introducing &lt;a href="https://github.com/hailelagi/thumbelina"&gt;thumbelina&lt;/a&gt; ⚗️🧪🔮.&lt;/p&gt;
+&lt;p&gt;Thumbelina was a project I started thinking about sometime in late 2022 when I was a wee little inexperienced with elixir. The problem I set out to solve was simple, I wanted to manipulate images using elixir, specifically I wanted to generate thumbnails. Seems straightfoward no?&lt;/p&gt;
+&lt;p&gt;As it turns out this is the kind of thing the language isn&amp;rsquo;t suited for &amp;ndash; most practical roads lead to aws s3 and
+adding imagemagick to your dockerfile. For production that is exactly what I did, but I kept wondering what was the &amp;ldquo;best&amp;rdquo; solution?&lt;/p&gt;</description></item><item><title>It's legos all the way down</title><link>https://www.hailelagi.com/writing/legos/</link><pubDate>Fri, 17 Feb 2023 04:59:26 +0100</pubDate><guid>https://www.hailelagi.com/writing/legos/</guid><description>&lt;h3 id="introduction"&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;Often as folks who create useful software things we tend to think of ourselves as people who write software for the mythical &amp;ldquo;user&amp;rdquo;. A &amp;ldquo;user&amp;rdquo; clicks a button and
+something magical happens. This is commonly reffered to as an &lt;a href="https://en.wikipedia.org/wiki/Abstraction_(computer_science)"&gt;abstraction&lt;/a&gt;.
+Abstractions are all around us in software and clever programmers create good abstractions for other programmers often to manage complexity.&lt;/p&gt;
+&lt;p&gt;A really common example of this is an &lt;a href="https://en.wikipedia.org/wiki/API"&gt;Application Programming Interface&lt;/a&gt; which allows two &amp;ldquo;applications&amp;rdquo; to share useful data with each other over some transport while being platform-agnostic as to how this data is used. Like an API, there are other interesting kinds of abstractions &amp;ndash; let&amp;rsquo;s peel back the abstraction between the language creator and language user by &lt;em&gt;inventing syntax!&lt;/em&gt;&lt;/p&gt;</description></item><item><title>A Peek Into the Beam</title><link>https://www.hailelagi.com/writing/a-peek-into-the-beam/</link><pubDate>Tue, 29 Mar 2022 08:16:09 +0100</pubDate><guid>https://www.hailelagi.com/writing/a-peek-into-the-beam/</guid><description>&lt;p&gt;A long time ago, you would give a computer an intensive set of instructions - in assembly or something more sane, and
+it would compute these instructions one by one, but while it did that - it would “freeze up” you could not really do much
+else with it. At the time, computer hardware was pretty limited, it had a single CPU core
+(something that executes instruction sets) which did pretty much everything, one by one - computer scientists were not particularly
+satisfied with this, and they &lt;a href="https://en.wikipedia.org/wiki/Mutual_exclusion"&gt;found a solution&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>boredom</title><link>https://www.hailelagi.com/writing/boredom/</link><pubDate>Tue, 07 Sep 2021 14:57:54 +0100</pubDate><guid>https://www.hailelagi.com/writing/boredom/</guid><description>&lt;p&gt;Are you bad at hacking? Often it&amp;rsquo;s called imposter syndrome, let&amp;rsquo;s dive into understanding the self and framing failure. The short answer is probably yes. The long answer is maybe, but it doesn&amp;rsquo;t matter. The first time a programmer, or at least I opened up a text editor(it was sublime), I was pretty bad at this activity. I couldn&amp;rsquo;t really talk to my computer.&lt;/p&gt;
+&lt;p&gt;I didn&amp;rsquo;t understand it and it didn&amp;rsquo;t understand me. There was a disconnect, but overtime this feedback loop got tighter and tighter. Suddenly I could loop over stuff, red errors weren&amp;rsquo;t scary or overwhelming, it felt like a conversation. I hacked throwaway scripts that turned into applications. I developed a &lt;em&gt;level of competency&lt;/em&gt;, which is to say - given a problem within this domain I could accomplish X level of complexity of a task in Y time. I improved.&lt;/p&gt;</description></item><item><title>The weight of choice is heavy</title><link>https://www.hailelagi.com/writing/dev.to/the-weight-of-choice-is-heavy/</link><pubDate>Mon, 31 Aug 2020 18:46:19 +0000</pubDate><guid>https://www.hailelagi.com/writing/dev.to/the-weight-of-choice-is-heavy/</guid><description>&lt;p&gt;What are the odds? I&amp;rsquo;ve spent quite a few hours invested in implementing a seemingly innocent feature of a game I&amp;rsquo;m
+currently working on as part of my learning in the world of functional programming with Elixir. I won&amp;rsquo;t bore you with
+the details, I haven&amp;rsquo;t even finished making the game, the prelude to discovering this problem is an innocent one.
+It&amp;rsquo;s a terminal dungeon crawling game, where you venture into dark rooms in search of treasure and an eventual (hopeful) exit.&lt;/p&gt;</description></item></channel></rss>

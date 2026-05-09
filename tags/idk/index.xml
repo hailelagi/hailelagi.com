@@ -1,1 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Idk on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/tags/idk/</link><description>Recent content in Idk on Haile (ሐይሌ)</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 22 Jan 2026 16:24:34 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/tags/idk/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Idk on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/tags/idk/</link><description>Recent content in Idk on Haile (ሐይሌ)</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Thu, 22 Jan 2026 16:24:34 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/tags/idk/index.xml" rel="self" type="application/rss+xml"/><item><title>Reflect</title><link>https://www.hailelagi.com/personal/reflect/</link><pubDate>Thu, 22 Jan 2026 16:24:34 +0100</pubDate><guid>https://www.hailelagi.com/personal/reflect/</guid><description>&lt;p&gt;This is a small excerpt from an email exchange between myself and a former colleague, after I had just quit my backend role at a financial exchange and I was trying to decide what to do for work.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;&amp;gt; Why a database?
+How to unpack this lol, a few themes:
+1. I want answers to - &amp;#34;do I want to work on databases professionally&amp;#34;? and &amp;#34;can I gain the technical competence to be effective&amp;#34;?
+2. It&amp;#39;s a fundamental area of computer science and deep knowledge here accumulates regardless of 1.
+3. It takes a really long time and large amounts of focus/skill to make progress (it&amp;#39;s a hard thing)
+4. It could lead to working on important things (related to 1 but different)
+
+&amp;gt; I&amp;#39;m very curious. How do you study? You seem so much more competent in programming compared to when we worked together a few years ago.
+It&amp;#39;s been about three years! That&amp;#39;s a long time! lol by default almost everyone improves by sheer inertia/requirements of working in the industry!
+
+I honestly still suck at some things and have lots of areas to improve on. _Seeming competent_ is very different from _being competent_.
+The mental models of operating and creating good software is different from selling that (and sell, you must!), there&amp;#39;s overlap but they&amp;#39;re different things.
+There&amp;#39;s lots I continue to struggle with and the mountains of unfinished work &amp;amp; rejections I have had (and in all likelihood continue to) is obviously a testament to that fact.
+
+It&amp;#39;s also contextual right? Building and owning an application product, iterating over user feedback and scaling that to an increasingly successful market is a 
+very very different skill set from messing around with virtual networks, bypassing/interacting with the kernel and fiddling with ptrace. There are different kinds of valuable work.
+
+I wouldn&amp;#39;t say there&amp;#39;s anything specific to it -- In fact I don&amp;#39;t study as much as I should or could.
+A better way to put it is I have no idea what I&amp;#39;m doing. Just trying my best.
+I can point you right now to lots of folks that are much more productive than I am writing software.
+
+Your plan sounds really good -- looking forward to the launch!
+If I had any advice, it&amp;#39;d be to listen to hamming -- https://www.youtube.com/watch?v=a1zDuOPkMSw
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As I write this nearly two years later, I&amp;rsquo;m &lt;em&gt;right back there?&lt;/em&gt; 2024 was an extremely difficult year for me. My long term relationship with my girlfriend eroded and the stress of being unemployed strained on it and I made some awful dumb mistakes, it eventually ended in the most disastrous way much later. My life/career was spinning out of control and&amp;hellip; I tried to learn and work on things, I tried to produce work, do what one can do to navigate a difficult job market - and thanks to the kindness of people I met on the internet I found something, I got a chance to work on a storage engine/database for a new blockchain &lt;em&gt;in some capacity&lt;/em&gt; not a toy or side project, a God&amp;rsquo;s honest real one!&lt;/p&gt;</description></item></channel></rss>

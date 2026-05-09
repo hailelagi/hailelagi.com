@@ -1,1 +1,33 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Go, Distributed-Systems on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/tags/go-distributed-systems/</link><description>Recent content in Go, Distributed-Systems on Haile (ሐይሌ)</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 11 Aug 2024 16:07:35 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/tags/go-distributed-systems/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Go, Distributed-Systems on Haile (ሐይሌ)</title><link>https://www.hailelagi.com/tags/go-distributed-systems/</link><description>Recent content in Go, Distributed-Systems on Haile (ሐይሌ)</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sun, 11 Aug 2024 16:07:35 +0100</lastBuildDate><atom:link href="https://www.hailelagi.com/tags/go-distributed-systems/index.xml" rel="self" type="application/rss+xml"/><item><title>Call Me Maybe?</title><link>https://www.hailelagi.com/writing/call-me-maybe-lol/</link><pubDate>Sun, 11 Aug 2024 16:07:35 +0100</pubDate><guid>https://www.hailelagi.com/writing/call-me-maybe-lol/</guid><description>&lt;p&gt;What I learned &lt;a href="https://github.com/hailelagi/gossip-glomers"&gt;solving&lt;/a&gt; the &lt;a href="https://www.fly.io/dist-sys"&gt;fly.io distributed systems challenges&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The title of this post is inspired by &lt;a href="https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul"&gt;kyle kingsbury&amp;rsquo; series of articles like this one&lt;/a&gt; and &lt;a href="https://aphyr.com/posts/315-call-me-maybe-rabbitmq"&gt;this one&lt;/a&gt; and of course:&lt;/p&gt;
+
+&lt;iframe src="https://open.spotify.com/embed/track/20I6sIOMTCkB6w7ryavxtO"
+ width="100%"
+ height="380"
+ frameborder="0"
+ allowtransparency="true"
+ allow="encrypted-media"&gt;&lt;/iframe&gt;
+
+
+&lt;aside id="toc"&gt;
+ &lt;h4&gt;A lay of the land &lt;/h4&gt;
+ &lt;nav id="TableOfContents"&gt;
+ &lt;ul&gt;
+ &lt;li&gt;&lt;a href="#1-echo"&gt;1. Echo&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#2-unique-id-generation"&gt;2. Unique ID Generation&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#3-broadcast"&gt;3. Broadcast&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#4-grow-only-counter"&gt;4. Grow-Only Counter&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#5-kafka-style-log"&gt;5. Kafka-Style Log&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#6-totally-available-transactions"&gt;6. Totally-Available Transactions&lt;/a&gt;&lt;/li&gt;
+ &lt;li&gt;&lt;a href="#7-testing-model-checkers-and-simulators"&gt;7. Testing, Model Checkers and Simulators&lt;/a&gt;
+ &lt;ul&gt;
+ &lt;li&gt;&lt;a href="#references"&gt;References&lt;/a&gt;&lt;/li&gt;
+ &lt;/ul&gt;
+ &lt;/li&gt;
+ &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;/aside&gt;
+
+&lt;h2 id="1-echo"&gt;1. Echo&lt;/h2&gt;
+&lt;p&gt;saying hello world! but distributed systems style, it&amp;rsquo;s mostly boilerplate setup,
+reading the maelstrom docs and the go client docs, we instantiate a maelstrom node/binary, define an RPC style handler and return messages:&lt;/p&gt;</description></item></channel></rss>
