@@ -5,7 +5,7 @@ tags: database internals, bookclub
 draft: false
 ---
 
-Listen to the twitter space! {{< twitter user="sysdsgn" id="1762892598081937619" >}}
+Listen to the twitter space! {{< x user="sysdsgn" id="1762892598081937619" >}}
 
 
 Simple walkthrough/guide

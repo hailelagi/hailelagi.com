@@ -100,6 +100,7 @@ namespaces: quotas + policies to sub-clusters of pods, services & deployments.
 (kube-system(dns, metrics) - control plane, kube-public, kube-node-lease(heartbeat))
 
 ```sh
+kubectl get ns
 kubectl api-resources
 kubectl get svc --namespace kube-system
 kubectl config set-context --current --namespace <ns>
@@ -154,6 +155,8 @@ kubectl get pods -n kube-system -l k8s-app=kube-dns
 ```
 
 data plane
+configuration: ConfigMaps & Secrets
+storage: stateful sets, persistent volumes, PV claims & Storage classes
 
 ## spin up an ec2 jumpbox
 
@@ -191,6 +194,3 @@ echo "Setup complete! Remember to 'source ~/.bashrc' to load the new environment
 
 ## spin up a compute engine
 https://cloud.google.com/compute/docs/instances
-
-
-## Terraform
