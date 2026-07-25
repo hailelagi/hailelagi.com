@@ -1,4 +1,5 @@
-I'm currently reading: [Computer Architecture A Quantitative Approach](https://www.amazon.com/Computer-Architecture-Quantitative-Approach-Kaufmann/dp/0128119055)
+I'm currently reading: [Computer Architecture A Quantitative Approach](https://www.amazon.com/Computer-Architecture-Quantitative-Approach-Kaufmann/dp/0128119055) & [Is Parallel Programming Hard, And, If So,
+What Can You Do About It?](https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.2026.06.21a.pdf)
 
 Previously Explored:
 - [Systems Performance](https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
