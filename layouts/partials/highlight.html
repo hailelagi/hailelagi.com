@@ -1,0 +1,64 @@
+<span> Interesting things I've made recently: </span>
+
+<section class="highlight-list">
+    <p class="section-label"></p>
+    <ul>
+        {{ range hugo.Data.highlights }}
+        <li>
+            <div class="highlight-info">
+                <p>
+                    <strong>{{ .name }}</strong>
+                    <span class="desc">— {{ .description }}</span>
+                </p>
+                <p class="tech">{{ delimit .tech " · " }}</p>
+            </div>
+            <div class="highlight-links">
+                {{ range .links }}
+                <a href="{{ .url }}" rel="noopener">{{ .label }}</a>
+                {{ end }}
+            </div>
+        </li>
+        {{ end }}
+    </ul>
+</section>
+
+<style>
+    .highlight-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .highlight-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.5rem;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .highlight-list .section-label {
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+    }
+
+    .highlight-list .desc {
+        font-size: 0.8em;
+        font-weight: 200;
+    }
+
+    .highlight-list .tech {
+        font-family: monospace;
+        font-size: 1rem;
+        margin: 4px 0 0;
+    }
+
+    .highlight-list .highlight-links {
+        display: flex;
+        gap: 0.9rem;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+</style>

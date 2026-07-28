@@ -1,0 +1,5 @@
+- name: finish, something, impactful
+  description: much ado about something
+  tech: [X, X, X]
+  links:
+    - { label: source, url: "https://github.com/hailelagi/x" }
